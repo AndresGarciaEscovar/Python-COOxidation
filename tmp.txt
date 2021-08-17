@@ -1,0 +1,41 @@
+# --------------------------------------------------------------------------
+    # Oxygen related rates.
+    # --------------------------------------------------------------------------
+
+    # Oxygen adsorption.
+    k[0] = 1
+
+    # Oxygen desorption.
+    k[1] = 1
+
+    # Oxygen diffusion, two possible moves (left or right) with a rate of 1.
+    k[2] = 2 * 1
+
+    # --------------------------------------------------------------------------
+    # Carbon monoxide related rates.
+    # --------------------------------------------------------------------------
+
+    # Carbon monoxide adsorption.
+    k[3] = 1
+
+    # Carbon monoxide desorption.
+    k[4] = 1
+
+    # Carbon monoxide diffusion, two possible moves (left or right) with a rate of 1.
+    k[5] = 2 * 1
+
+    # --------------------------------------------------------------------------
+    # Carbon monoxide - oxygen interaction related rates.
+    # --------------------------------------------------------------------------
+
+    # Carbon monoxide - oxygen neighbor reaction on surface, two possible
+    # reaction sites (left or right) with a rate of 1.
+    k[6] = 2 * 1
+
+    # Carbon monoxide - oxygen reaction in gas (i.e., oxygen on surface binds to
+    # CO in gas)
+    k[7] = 1
+
+    # Carbon monoxide - oxygen reaction anywhere in lattice, two possible
+    # reaction sites (i.e., not the chosen site) with a rate of 1.
+    k[8] = 2 * 1
