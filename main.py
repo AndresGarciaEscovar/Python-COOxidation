@@ -20,7 +20,7 @@ elapsed_time = np.double(0.0)
 maximum_time = np.double(10 ** 3)
 
 # Number of simulations over which to average.
-step_number = 10
+step_number = 10_000
 
 # ------------------------------------------------------------------------------
 # Get Functions.
