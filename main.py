@@ -30,11 +30,11 @@ step_number = 10_000
 def get_rates():
     """ Gets the rates of the system. More rates can be added if needed.
 
-        :return k: Returns the cumulative rates of the system.
+        :return rates_0: Returns the cumulative rates of the system.
     """
 
     # There are 9 rates in total.
-    k = [0 for _ in range(9)]
+    rates_0 = [0 for _ in range(9)]
 
     # --------------------------------------------------------------------------
     # Oxygen related rates.
@@ -42,27 +42,27 @@ def get_rates():
 
     # Oxygen adsorption, always try to adsorb on neighboring sites (left or
     # right) with a rate of 1.
-    k[0] = 2 * 1
+    rates_0[0] = 2 * 1
 
     # Oxygen desorption, always try to desorb from neighboring sites (left or
     # right) with a rate of 1.
-    k[1] = 2 * 1
+    rates_0[1] = 2 * 1
 
     # Oxygen diffusion, two possible moves (left or right) with a rate of 1.
-    k[2] = 2 * 1
+    rates_0[2] = 2 * 1
 
     # --------------------------------------------------------------------------
     # Carbon monoxide related rates.
     # --------------------------------------------------------------------------
 
     # Carbon monoxide adsorption.
-    k[3] = 1
+    rates_0[3] = 1
 
     # Carbon monoxide desorption.
-    k[4] = 1
+    rates_0[4] = 1
 
     # Carbon monoxide diffusion, two possible moves (left or right) with a rate of 1.
-    k[5] = 2 * 1
+    rates_0[5] = 2 * 1
 
     # --------------------------------------------------------------------------
     # Carbon monoxide - oxygen interaction related rates.
@@ -70,23 +70,25 @@ def get_rates():
 
     # Carbon monoxide - oxygen neighbor reaction on surface, two possible
     # reaction sites (left or right) with a rate of 1.
-    k[6] = 2 * 1
+    rates_0[6] = 2 * 1
 
     # Carbon monoxide - oxygen reaction in gas (i.e., oxygen on surface binds to
     # CO in gas)
-    k[7] = 1
+    rates_0[7] = 1
 
     # Carbon monoxide - oxygen reaction anywhere in lattice, two possible
     # reaction sites (i.e., not the chosen site) with a rate of 1.
-    k[8] = 2 * 1
+    rates_0[8] = 2 * 1
 
     # --------------------------------------------------------------------------
     # Calculate the cumulative rates.
     # --------------------------------------------------------------------------
 
-    k = np.array([sum(k[0:i + 1]) if i > 0 else k[i] for i, _ in enumerate(k)], dtype=np.double)
+    rates_0 = np.array([sum(rates_0[0:i + 1]) if i > 0 else rates_0[i] for i, _ in enumerate(rates_0)], dtype=np.double)
 
-    return k
+    print(rates_0)
+
+    return rates_0
 
 # ------------------------------------------------------------------------------
 # System move functions.
@@ -241,7 +243,7 @@ def reaction_particle(site_0, rate_id_0):
     # Carbon monoxide - oxygen reaction anywhere in lattice, two possible
     # reaction sites (i.e., not the chosen site) with a rate of 1.
     if rate_id_0 == 8:
-        # Select the two possible sites to choose.
+        # Select the two possible sites from where to choose.
         sites_0 = [i for i in range(3)]
         sites_0.remove(site_0)
 
