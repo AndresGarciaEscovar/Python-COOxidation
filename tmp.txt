@@ -2,11 +2,11 @@
     # Oxygen related rates.
     # --------------------------------------------------------------------------
 
-    # Oxygen adsorption.
-    k[0] = 1
+    # Oxygen adalways try to adsorb on neighboring sites.
+    k[0] = 2 * 1
 
     # Oxygen desorption.
-    k[1] = 1
+    k[1] = 2 * 1
 
     # Oxygen diffusion, two possible moves (left or right) with a rate of 1.
     k[2] = 2 * 1

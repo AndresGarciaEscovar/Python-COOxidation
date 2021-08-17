@@ -1,0 +1,4 @@
+maximum time: 1000.0
+site 0:P(E) = 0.4, P(O) = 0.1, P(CO) = 0.5
+site 1:P(E) = 0.5, P(O) = 0.1, P(CO) = 0.4
+site 2:P(E) = 0.5, P(O) = 0.2, P(CO) = 0.3
