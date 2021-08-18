@@ -1,3 +1,7 @@
 # Ignore all the .xlm and .iml files.
 *.xml
 *.iml
+
+# Ignore the Pycharm files.
+.idea
+.idea/*
