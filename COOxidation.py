@@ -584,19 +584,28 @@ class COOxidationKMC:
 
 
 if __name__ == "__main__":
-    """ Explanation: To determine the probability of finding a specific particle
-        at a site [1 - 3] after a given time t (provided by the user), where t
-        is given in units of 1/k; k is the total rate of the system.
+    """
+        Explanation:
         
-        To determine the probability, an ensemble average is taken over a given
-        number of simulations (provided by the user). Notice that to get good
-        statistics we must average over a large number of simulations, with the
-        caveat that the more simulations we make to get this average, the more
-        time it will take, i.e., we must sacrifice either time or accuracy, or
-        find a satisfactory balance.
+        To determine the probability of finding a specific particle at a site
+        [1 - 3] after a given time t (provided by the user), where t is given in
+        units of 1/k; k is the total rate of the system.
+        
+        To determine the probabilities, an ensemble average is taken over a
+        given number of simulations (provided by the user). Notice that to get
+        good statistics we must average over a large number of simulations, with
+        the caveat that the more simulations we make to get this average, the
+        more time it will take, i.e., we must sacrifice either time or accuracy,
+        or find a satisfactory balance.
     """
 
-    """ Instructions:
+    """
+        Instructions:
+        
+        To run this code, you will need Python 3.8 or above and the numpy
+        package. The other packages already come with the basic Python
+        installation.
+    
             * Rates for the different processes must be provided.
                 - In the code, look for the get_rates(self) function.
                 
@@ -604,7 +613,9 @@ if __name__ == "__main__":
                 ones (1) by the corresponding rates. DO NOT touch the
                 pre-factors, i.e, the twos (2).
             
-            *
+            * Use the functions below to run a simulation. You might want to use
+            a loop to run several simulations at a time. I am thinking of adding
+            parallel processing capabilities (not worth it at this time).
     """
 
     # Create a simulation with parameters:
