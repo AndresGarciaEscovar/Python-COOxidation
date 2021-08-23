@@ -649,6 +649,3 @@ if __name__ == "__main__":
     append_to_file_0 = True
 
     simulation.save_to_file(name=file_name, append_to_file=append_to_file_0)
-
-    #TODO: Add a test.
-    pass
