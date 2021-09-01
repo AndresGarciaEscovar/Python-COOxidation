@@ -9,3 +9,6 @@
 # Ignore output from background processes.
 nohup.out
 **nohup.out
+
+# Ignore iPython temporary files.
+**checkpoint**
