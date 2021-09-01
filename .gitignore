@@ -5,3 +5,7 @@
 # Ignore the Pycharm files.
 .idea
 .idea/*
+
+# Ignore output from background processes.
+nohup.out
+**nohup.out
