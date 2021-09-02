@@ -12,3 +12,6 @@ nohup.out
 
 # Ignore iPython temporary files.
 **checkpoint**
+
+# Ignore generated text files.
+**.txt
