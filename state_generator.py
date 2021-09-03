@@ -33,7 +33,7 @@ class EquationGenerator:
         # Strip the name from spaces and/or extensions.
         name = file_name.strip()
         name = name.split(".")[0]
-        name = name.strip() + ".txt"
+        name = name.strip()
 
         # Get the full path.
         full_file_path = full_path + name
@@ -49,83 +49,29 @@ class EquationGenerator:
         all_states = [[i, j, k] for i, j, k in itertools.product(site_states, site_states, site_states)]
 
         # Do it for all the states.
-        for i, state0 in enumerate(all_states):
-            # File mode.
-            file_mode = "w" if i == 0 else "a"
+        for i, state in enumerate(all_states):
+            # Number the file correctly.
+            file_path = full_file_path + f"({i+1}).txt"
 
-            # Set an empty string with the generating rates.
-            state_string_in = ""
+            # Get all the incoming terms and outgoing terms.
+            table_input = EquationGenerator.generate_incoming_rates(state)
+            table_outpu = EquationGenerator.generate_outgoing_rates(state)
 
-            # Set a string with the decay rates.
-            state_string = "\\frac{d" + EquationGenerator.get_latex_form(state0) + "}{dt}="
-            state_string_out = EquationGenerator.generate_outgoing_rates(state0)
+            # Remember to copy the remaining output to the table.
+            table_input[i][0], table_input[i][1] = table_outpu[0][0], table_outpu[0][1]
 
-            # Scan all the states.
-            for state1 in all_states:
-                # Skip if the states are the same.
-                if state0 == state1:
-                    continue
+            # Generate the HTML table.
+            table_string = EquationGenerator.generate_table(state, table_input, f"{i + 1}. ", 2)
 
-                # Get the rates that generate the state.
-                tmp = EquationGenerator.get_individual_rate(state1, state0)
+            # Generate the LaTeX format equation.
+            equation_string = EquationGenerator.generate_equation(state, table_input)
 
-                if state_string_in == "":
-                    state_string_in = tmp
-                    continue
-
-                # Add them to the string.
-                state_string_in += "" if tmp == "" else f" + {tmp}"
-
-            # Always remember to append the content.
-            state_string += state_string_in + state_string_out
+            # Merge the table and equation.
+            state_string = table_string + "\n\n***\n\n" + equation_string
 
             # Save the variable to the file.
-            with open(full_file_path, file_mode) as fl:
+            with open(file_path, "w") as fl:
                 fl.write(state_string + "\n")
-
-    @staticmethod
-    def get_individual_rate(initial_state, final_state):
-        """ Gets the total rate at which the given initial state decays into the
-            given final state.
-
-            :param initial_state: The initial state from which the final state
-            will be generated.
-
-            :param final_state: The final state that must be generated from the
-            decay of the given initial state.
-
-            :return rates_string: The string that represents the sum of the
-            rates of the processes that turn the initial state into the final
-            state.
-        """
-
-        # Auxiliary variables.
-        rates_list = []
-
-        # Get the list of labels and final states given the initial state.
-        labels, final_states = EquationGenerator.get_rate_function_tuple(initial_state)
-
-        # Apply the possible processes to the state.
-        for i, state in enumerate(final_states):
-            # Filter out the processes that cannot generate the state.
-            if len(state) == 0 or final_state not in state:
-                continue
-
-            # Add the rate to the list.
-            rates_list.append(labels[i])
-
-        # If there are no processes on the initial state that generate the final
-        # state, an empty string is returned.
-        if len(rates_list) == 0:
-            return ""
-
-        # Create the rates string.
-        rates_string = rates_list[0] if len(rates_list) == 1 else "(" + " + ".join(rates_list) + ")"
-
-        # Append the state in LaTeX form.
-        rates_string += EquationGenerator.get_latex_form(initial_state)
-
-        return rates_string
 
     @staticmethod
     def get_latex_form(state):
@@ -137,7 +83,7 @@ class EquationGenerator:
         """
 
         # Add the left bracket.
-        latex_string = f"\\left<"
+        latex_string = f"\left<"
 
         # Add the site states with the appropriate numbering.
         for i, site in enumerate(state):
@@ -147,6 +93,48 @@ class EquationGenerator:
         latex_string += f"\\right>"
 
         return latex_string
+
+    @staticmethod
+    def get_gain_rate(initial_state, final_state):
+        """ Get the total rate at which the initial state generates the final
+            state.
+
+            :param initial_state: The initial state from which the final state
+            must be generated.
+
+            :param final_state: The final state to which the initial state is
+            intended to decay.
+
+            :return: A string representing the total rate at which the initial
+            state decays into the final state.
+        """
+
+        # Auxiliary variables.
+        rates_list = []
+
+        # String where the total rate is stored.
+        rates_string = ""
+
+        # States that can be, potentially, generated from the initial state.
+        rates, possible_states = EquationGenerator.get_rate_function_tuple(initial_state)
+
+        # Search for the process that generate the final state.
+        for i, states in enumerate(possible_states):
+            # If final state is NOT in the list, continue.
+            if final_state not in states:
+                continue
+
+            # Add the rate to the possible outcomes.
+            rates_list.append(rates[i])
+
+        # Check that there is at least one rate to continue.
+        if len(rates_list) == 0:
+            return "0"
+
+        # Generate the string.
+        rates_string = rates_list[0] if len(rates_list) == 1 else "\\left(" + " + ".join(rates_list) + "\\right)"
+
+        return rates_string
 
     @staticmethod
     def get_rate_function_tuple(state):
@@ -211,6 +199,34 @@ class EquationGenerator:
     # --------------------------------------------------------------------------
 
     @staticmethod
+    def generate_equation(state, table):
+        """ Generates a rate equation with the given transition rates in the
+            table.
+
+            :param state: The state for which the differential equation is to be
+            written.
+
+            :param table: The table that contains the information of the  rates
+            and states of the system.
+
+            :return eq_string: A string representing an equation with the
+            contribution of each state to the overall gain/decay rate of a
+            state.
+        """
+
+        # Generate a list with the non-zero terms.
+        non_zero_rates = [ "".join(x) for x in table if not x[0] == "0"]
+
+        # Join the strings.
+        eq_string = "$$\n\t\\begin{align}\n"
+        eq_string += "\t\t\\frac{d" + EquationGenerator.get_latex_form(state) + "}{dt}=&"
+        for i, strng in enumerate(non_zero_rates):
+            eq_string += " + " + strng if i > 0 and not strng[0] == "-" else strng
+        eq_string += "\n\t\\end{align}\n$$"
+
+        return eq_string
+
+    @staticmethod
     def generate_incoming_rates(final_state):
         """ Generates the string that represents the total rate at which the
             given state is generated from other states.
@@ -222,33 +238,30 @@ class EquationGenerator:
             states that can generate the given state.
         """
 
-        # String where sum of the rate constants and states will be saved; initally empty.
-        rates_string = ""
-
         # Possible states.
         states = ["CO", "O", "E"]
 
         # Generate a list of all possible states.
         all_states = [[i, j, k] for i, j, k in itertools.product(states, states, states)]
 
-        # Do it for all states, except .
-        for i, state in enumerate(all_states):
-            # If the states are equal, no need to do it.
-            if state == final_state:
+        # List that contains the rate contribution from each state to producing
+        # the final state.
+        rate_list = [["0", ""] for _ in range(len(all_states))]
+
+        # Scan all states.
+        for i, initial_state in enumerate(all_states):
+
+            # Fill in the LaTeX form of the name from the list.
+            rate_list[i][1] = EquationGenerator.get_latex_form(initial_state)
+
+            # Do it for states different from the final_state.
+            if final_state == initial_state:
                 continue
 
-            # Get the string to be generated.
-            tmp = EquationGenerator.get_individual_rate(state, final_state)
+            # Get the total rate at which the initial state generates the final state.
+            rate_list[i][0] = EquationGenerator.get_gain_rate(initial_state, final_state)
 
-            # Get the string started.
-            if rates_string == "":
-                rates_string = tmp
-                continue
-
-            # Append the other terms.
-            rates_string += "" if tmp == "" else f" + {tmp}"
-
-        return rates_string
+        return rate_list
 
     @staticmethod
     def generate_outgoing_rates(initial_state):
@@ -263,35 +276,94 @@ class EquationGenerator:
         """
 
         # Auxiliary variables.
-        rates_list = []
+        tmp_list = []
+        rate_list = [["0", ""]]
+
+        # Get the string representation of the state.
+        latex_string = EquationGenerator.get_latex_form(initial_state)
+        rate_list[0][1] = latex_string
 
         # Get the functions to apply.
         labels, final_states = EquationGenerator.get_rate_function_tuple(initial_state)
 
         # Get the constants into a list.
         for i, states0 in enumerate(final_states):
+            # Get the number of states.
+            state_number = len(states0)
+
             # No need to include the lists of zero length.
-            if len(states0) == 0:
+            if state_number == 0:
                 continue
 
             # Get the proper string.
-            tmp = "" if len(states0) == 1 else f"{len(states0)}"
+            tmp = "" if state_number == 1 else f"{state_number}"
             tmp += labels[i]
 
             # Append the string to the rates string.
-            rates_list.append(tmp)
+            tmp_list.append(tmp)
 
         # If there are no rates to append return an empty string.
-        if len(rates_list) == 0:
-            return ""
+        if len(tmp_list) == 0:
+            return rate_list
 
         # Generate the parenthesized expression.
-        rates_string = f"-{rates_list[0]}" if len(rates_list) == 1 else "-(" + " + ".join(rates_list) + ")"
+        rates_string = f"-{tmp_list[0]}" if len(tmp_list) == 1 else "-\\left(" + " + ".join(tmp_list) + "\\right)"
 
-        # Get the latex form of the given state and append it to the string.
-        rates_string += EquationGenerator.get_latex_form(initial_state)
+        # Save the rate and return the list.
+        rate_list[0][0] = rates_string
 
-        return rates_string
+        return rate_list
+
+    @staticmethod
+    def generate_table(state, table, index="", columns=6):
+        """ Generates an HTML table with the given transition rates in the
+            table.
+
+            :param state: The state for which the table is to be generated.
+
+            :param table: The table that contains the information of the
+             rates and states of the system.
+
+            :param index: The index with which the entry must be labeled.
+
+            :param columns: The number of columns the table should have.
+
+            :return tb_string: A string representing an HTML table with the
+            contribution of each state to the overall gain/decay rate of a
+            state.
+        """
+
+        # Auxiliary variables.
+        tb_header = str(index) + "$\\frac{d" + EquationGenerator.get_latex_form(state) + "}{dt}$:\n\n"
+        tb_header += '<table style="background-color: white; width: 100%; text-align: left">\n'
+        tb_footer = '</table>'
+
+        td_opening = '\t\t<td style="background-color: white; width: 100%; text-align: left">\n'
+        td_closing = '\t\t</td>\n'
+
+        tr_opening = '\t<tr>\n'
+        tr_closing = '\t</tr>\n'
+
+        # Start with the header and an opening table row.
+        tb_string = tb_header + tr_opening
+
+        for i, term in enumerate(table):
+            if i % columns == 0 and i > 0:
+                tb_string += tr_closing + tr_opening
+
+            tb_string += td_opening
+            tb_string += "\t\t\t" + str(i + 1) + ". $" + term[0] + "$\n"
+            tb_string += td_closing
+
+            # Complete the table.
+            if i == len(table) - 1:
+                for j in range((i+1) % columns):
+                    tb_string += td_opening + td_closing
+
+        # Remember to always close the table.
+        tb_string += tr_closing + tb_footer
+
+        return tb_string
 
     # --------------------------------------------------------------------------
     # Oxygen exclusive methods.
@@ -628,11 +700,11 @@ class EquationGenerator:
     @staticmethod
     def validate_state(state):
         """ Validates that the state is a list of three items and those items
-            are in the list ["E", "O", "CO"].
+            are in the list ["CO", "O", "E"].
         """
 
         # List of possible states.
-        state_list = ["E", "O", "CO"]
+        state_list = ["CO", "O", "E"]
 
         # The state to be validated.
         if not isinstance(state, (list,)):
@@ -650,4 +722,5 @@ class EquationGenerator:
 if __name__ == "__main__":
 
     CD = os.path.dirname(__file__)
+
     EquationGenerator.get_all_equations(CD)
