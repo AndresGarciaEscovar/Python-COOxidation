@@ -1,0 +1,509 @@
+import copy as cp
+
+
+class MathematicaGenerator:
+
+    # --------------------------------------------------------------------------
+    # Get methods.
+    # --------------------------------------------------------------------------
+
+    def get_states_order(self, order=1):
+        """ Given the order, it returns ALL the possible combinations of the
+            system variables, i.e., all the possible combinations of the
+            variables in n slots.
+
+            :param order: The order of the requested possible variables.
+
+            :return all_states: All the variables of the given order.
+        """
+
+        # ----------------------------------------------------------------------
+        # Auxiliary functions.
+        # ----------------------------------------------------------------------
+
+        def get_level(state0, counter0):
+            """ Recursively generates all the possible states and saves them in
+                an external array.
+                :param state0:
+                :param counter0:
+                :return:
+            """
+            # Stop the recursion.
+            if counter0 == order:
+                all_states.append(cp.deepcopy(state0))
+                return
+
+            # Recursive step to generate the state.
+            for state in self.states:
+                state_tmp = cp.deepcopy(state0)
+                state_tmp.append(state)
+                get_level(state_tmp, counter0 + 1)
+
+        def validate_order():
+            """ Validates that the order to which the equatios are requested
+                are valid.
+            """
+
+            # Check the requested order is greater than zero.
+            if order <= 0:
+                raise ValueError("The order parameter must be greater than zero.")
+
+            # Check that the order parameter is not more than the number of sites.
+            if order > self.sites:
+                raise ValueError(f"The order parameter must less than or equal to {self.sites}.")
+
+        # ----------------------------------------------------------------------
+        # Implementation.
+        # ----------------------------------------------------------------------
+
+        # Auxiliary variable.
+        all_states = []
+
+        # Validate that the order is valid.
+        validate_order()
+
+        # Get the levels.
+        get_level([], 0)
+
+        return all_states
+
+    def get_possible_numbering(self, state):
+        """ Given a state, it returns the possible states that the system can
+            have.
+
+            :param state: The state to be numbered.
+
+            :return: The list of possible numbered states.
+        """
+
+        # Auxiliary variables.
+        all_states = []
+
+        # Explore all the possibilities.
+        for i in range(self.sites):
+            # Only attempt if there are enough sites.
+            if i + len(state) > self.sites:
+               break
+
+            # Make a deep copy of the state.
+            tmp_state = cp.deepcopy(state)
+
+            # Get the
+            tmp_list = list(range(i, i+len(state)))
+
+            all_states.append([tmp_state[j] + f".{x + 1}" for j, x in enumerate(tmp_list)])
+
+        return all_states
+
+    def get_site_in_state(self, site, state):
+        """ Given a site and a state, it determines if the state is related to
+            the site, i.e., the state has a numbering such that the number of
+            the site appears.
+
+            :param site: The site that is being searched.
+
+            :param state: The state that is properly labeled.
+
+            :return: True, if the site in the equation. False, otherwise.
+        """
+
+        # ----------------------------------------------------------------------
+        # Auxiliary states.
+        # ----------------------------------------------------------------------
+
+        def validate_state():
+            """ Validates if the state is valid, i.e., has the appropriate
+                length.
+            """
+
+            if len(state) > self.sites:
+                raise ValueError(f"The size of the state must be, at most, {self.sites}"
+                                 f"Current size: {len(state)}")
+
+        # ----------------------------------------------------------------------
+        # Implementation.
+        # ----------------------------------------------------------------------
+
+        # Validate the state.
+        validate_state()
+
+        # Get the numbering of the states.
+        sites = [int(x.split(".")[-1]) for x in state]
+
+        return site in sites
+
+    # --------------------------------------------------------------------------
+    # Oxygen exclusive methods.
+    # --------------------------------------------------------------------------
+
+    def oxygen_adsorb(self, site, initial_state):
+        """ Given a state, returns the list of states that are generated by the
+            adsorption of oxygen.
+
+            :param initial_state: The state to be analyzed.
+
+            :return: final_states: A list of final states that are generated due
+            to the process of oxygen adsorption.
+        """
+
+        # Determine if the state is valid for analysis.
+        MathematicaGenerator.validate_state(initial_state)
+
+        # Define the list of possible final states.
+        final_states = []
+
+        # Check both sites
+        for i in range(0, 2):
+            # Auxiliary variables.
+            j = i + 1
+
+            # Always make a copy of the list.
+            tmp = cp.deepcopy(initial_state)
+
+            # Check which sites can adsorb oxygen and do the process.
+            if tmp[i] == "E" and tmp[j] == "E":
+                tmp[i], tmp[j] = "O", "O"
+                final_states.extend([tmp])
+
+        # Get the unique elements.
+        final_states = MathematicaGenerator.get_unique(final_states)
+
+        # Determine if the final states are valid.
+        for state in final_states:
+            MathematicaGenerator.validate_state(state)
+
+        return final_states
+
+    def oxygen_desorb(self, site, initial_state):
+        """ Given a state, returns the list of states that are generated by the
+            desorption of oxygen.
+
+            :param initial_state: The state to be analyzed.
+
+            :return: final_states: A list of final states that are generated due
+            to the process of oxygen desorption.
+        """
+
+        # Determine if the state is valid for analysis.
+        MathematicaGenerator.validate_state(initial_state)
+
+        # Define the list of possible final states.
+        final_states = []
+
+        # Check both sites
+        for i in range(0, 2):
+            # Auxiliary variables.
+            j = i + 1
+            # Always make a copy of the list.
+            tmp = cp.deepcopy(initial_state)
+
+            # Check which sites can desorb oxygen and do the process.
+            if tmp[i] == "O" and tmp[j] == "O":
+                tmp[i], tmp[j] = "E", "E"
+                final_states.extend([tmp])
+
+        # Get the unique elements.
+        final_states = MathematicaGenerator.get_unique(final_states)
+
+        # Determine if the final states are valid.
+        for state in final_states:
+            MathematicaGenerator.validate_state(state)
+
+        return final_states
+
+    def oxygen_diffusion(self, site, initial_state):
+        """ Given a state, returns the list of states that are generated by the
+            diffusion of oxygen to adjacent sites.
+
+            :param initial_state: The state to be analyzed.
+
+            :return: final_states: A list of final states that are generated due
+            to the process of oxygen diffusion to adjacent sites.
+        """
+
+        # Determine if the state is valid for analysis.
+        MathematicaGenerator.validate_state(initial_state)
+
+        # Define the list of possible final states.
+        final_states = []
+
+        # Check both sites
+        for i in range(0, 2):
+            # Auxiliary variables.
+            j = i + 1
+            # Always make a copy of the initial state.
+            tmp = cp.deepcopy(initial_state)
+
+            # Try to make the diffusion happen.
+            if (tmp[i] == "O" and tmp[j] == "E") or (tmp[i] == "E" and tmp[j] == "O"):
+                # Exchange the particles.
+                tmp[i], tmp[j] = tmp[j], tmp[i]
+
+                # Append to the list.
+                final_states.extend([tmp])
+
+        # Get the unique elements.
+        final_states = MathematicaGenerator.get_unique(final_states)
+
+        # Determine if the final states are valid.
+        for state in final_states:
+            MathematicaGenerator.validate_state(state)
+
+        return final_states
+
+    # --------------------------------------------------------------------------
+    # Carbon monoxide exclusive methods.
+    # --------------------------------------------------------------------------
+
+    def carbon_monoxide_adsorb(self, site, initial_state):
+        """
+            Given a state, returns the list of states that are generated by the
+            adsorption of carbon monoxide.
+
+            :param initial_state: The state to be analyzed.
+
+            :return: final_states: A list of final states that are generated due
+            to the process of carbon monoxide adsorption.
+        """
+
+        # Determine if the state is valid for analysis.
+        MathematicaGenerator.validate_state(initial_state)
+
+        # Define the list of possible final states.
+        final_states = []
+
+        # Check ALL sites
+        for i in range(0, 3):
+            # Always make a copy of the list.
+            tmp = cp.deepcopy(initial_state)
+
+            # Check which sites can adsorb carbon monoxide and do the process.
+            if tmp[i] == "E":
+                tmp[i] = "CO"
+                final_states.extend([tmp])
+
+        # Get the unique elements.
+        final_states = MathematicaGenerator.get_unique(final_states)
+
+        # Determine if the final states are valid.
+        for state in final_states:
+            MathematicaGenerator.validate_state(state)
+
+        return final_states
+
+    def carbon_monoxide_desorb(self, site, initial_state):
+        """
+            Given a state, returns the list of states that are generated by the
+            desorption of carbon monoxide.
+
+            :param initial_state: The state to be analyzed.
+
+            :return: final_states: A list of final states that are generated due
+            to the process of carbon monoxide desorption.
+        """
+
+        # Determine if the state is valid for analysis.
+        MathematicaGenerator.validate_state(initial_state)
+
+        # Define the list of possible final states.
+        final_states = []
+
+        # Check both sites
+        for i in range(0, 3):
+            # Always make a copy of the list.
+            tmp = cp.deepcopy(initial_state)
+
+            # Check which sites can desorb carbon monoxide and do the process.
+            if tmp[i] == "CO":
+                tmp[i] = "E"
+                final_states.extend([tmp])
+
+        # Get the unique elements.
+        final_states = MathematicaGenerator.get_unique(final_states)
+
+        # Determine if the final states are valid.
+        for state in final_states:
+            MathematicaGenerator.validate_state(state)
+
+        return final_states
+
+    def carbon_monoxide_diffusion(self, site, initial_state):
+        """
+            Given a state, returns the list of states that are generated by the
+            diffusion of carbon monoxide to adjacent sites.
+
+            :param initial_state: The state to be analyzed.
+
+            :return: final_states: A list of final states that are generated due
+            to the process of carbon monoxide diffusion to adjacent sites.
+        """
+
+        # Determine if the state is valid for analysis.
+        MathematicaGenerator.validate_state(initial_state)
+
+        # Define the list of possible final states.
+        final_states = []
+
+        # Check both sites
+        for i in range(0, 2):
+            # Auxiliary variables.
+            j = i + 1
+
+            # Always make a copy of the initial state.
+            tmp = cp.deepcopy(initial_state)
+
+            # Try to make the diffusion happen.
+            if (tmp[i] == "CO" and tmp[j] == "E") or (tmp[i] == "E" and tmp[j] == "CO"):
+                # Exchange the particles.
+                tmp[i], tmp[j] = tmp[j], tmp[i]
+
+                # Append to the list.
+                final_states.extend([tmp])
+
+        # Get the unique elements.
+        final_states = MathematicaGenerator.get_unique(final_states)
+
+        # Determine if the final states are valid.
+        for state in final_states:
+            MathematicaGenerator.validate_state(state)
+
+        return final_states
+
+    # --------------------------------------------------------------------------
+    # Carbon monoxide - oxygen reaction exclusive methods.
+    # --------------------------------------------------------------------------
+
+    def lh_reaction(self, site, initial_state):
+        """
+            Given a state, returns the list of states that are generated by the
+            Langmuir-Hinshelwood reaction of carbon monoxide and oxygen; i.e.,
+            oxygen and carbon monoxide on adjacent sites react and immediately
+            desorb.
+
+            :param initial_state: The state to be analyzed.
+
+            :return: final_states: A list of final states that are generated due
+            to the Langmuir-Hinshelwood reaction of carbon monoxide and oxygen.
+        """
+
+        # Determine if the state is valid for analysis.
+        MathematicaGenerator.validate_state(initial_state)
+
+        # Define the list of possible final states.
+        final_states = []
+
+        # Check ALL sites
+        for i in range(0, 2):
+            # Auxiliary variables.
+            j = i + 1
+            # Always make a copy of the list.
+            tmp = cp.deepcopy(initial_state)
+
+            # Try to make the reaction happen.
+            if (tmp[i] == "CO" and tmp[j] == "O") or (tmp[i] == "O" and tmp[j] == "CO"):
+                tmp[i], tmp[j] = "E", "E"
+                final_states.extend([tmp])
+
+        # Get the unique elements.
+        final_states = MathematicaGenerator.get_unique(final_states)
+
+        # Determine if the final states are valid.
+        for state in final_states:
+            MathematicaGenerator.validate_state(state)
+
+        return final_states
+
+    def er_reaction(self, site, initial_state):
+        """
+            Given a state, returns the list of states that are generated by the
+            gas-phase reaction oxygen on the surface with gaseous carbon
+            monoxide in the environment; i.e., a surface oxygen and gaseous
+            carbon monoxide Elay-Rideal reaction.
+
+            :param initial_state: The state to be analyzed.
+
+            :return: final_states: A list of final states that are generated due
+            to a surface oxygen and gaseous carbon monoxide Elay-Rideal
+            reaction.
+        """
+
+        # Determine if the state is valid for analysis.
+        MathematicaGenerator.validate_state(initial_state)
+
+        # Define the list of possible final states.
+        final_states = []
+
+        # Check ALL sites
+        for i in range(0, 3):
+            # Always make a copy of the list.
+            tmp = cp.deepcopy(initial_state)
+
+            # Check which sites can have an Elay-Rideal reaction.
+            if tmp[i] == "O":
+                tmp[i] = "E"
+                final_states.extend([tmp])
+
+        # Get the unique elements.
+        final_states = MathematicaGenerator.get_unique(final_states)
+
+        # Determine if the final states are valid.
+        for state in final_states:
+            MathematicaGenerator.validate_state(state)
+
+        return final_states
+
+    # --------------------------------------------------------------------------
+    # Validation methods.
+    # --------------------------------------------------------------------------
+
+    def validate_state(self, state):
+        """ Validates that the state is a list of three items and those items
+            are in the list ["CO", "O", "E"].
+        """
+
+        # List of possible states.
+        state_list = ["CO", "O", "E"]
+
+        # The state to be validated.
+        if not isinstance(state, (list,)):
+            raise ValueError(f"The type of the state is not valid. Current  type: {type(state)}.")
+
+        elif not len(state) == 3:
+            raise ValueError(f"The current length of the state lis is not valid, it must be 3."
+                             f" Current legth: {len(state)}.")
+
+        elif not all(map(lambda x: x in state_list, state)):
+            raise ValueError(f"The states are not valid, they must be in the list {state_list}."
+                             f" Current state: {state}.")
+
+    # --------------------------------------------------------------------------
+    # Validation methods.
+    # --------------------------------------------------------------------------
+
+    def __init__(self):
+        """ Creates a MathematicaGenerator object and initializes its
+            properties.
+        """
+
+        # Define the number of sites.
+        self.sites = 3
+
+        # Define the possible states each site of the system can take.
+        self.states = ["CO", "O", "E"]
+
+
+if __name__ == "__main__":
+
+    tmp = MathematicaGenerator()
+
+    tmp_array = []
+    for i in range(tmp.sites):
+        states = tmp.get_states_order(i + 1)
+        for state in states:
+            tmp_array.extend(tmp.get_possible_numbering(state))
+
+    all_site_2 = [x for x in tmp_array if tmp.get_site_in_state(2, x)]
+
+    for site in all_site_2:
+        print(site)
+
