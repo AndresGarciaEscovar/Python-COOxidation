@@ -87,13 +87,13 @@ class EquationGenerator:
         # ----------------------------------------------------------------------
 
         def get_resulting_state(state0):
-            """ Gets the list of resulting states from applying ALL the
+            """ Gets a dictionary of resulting states from applying ALL the
                 possible system operations to a given state.
 
                 :param state0: The state to which the process will be applied.
 
-                :return: A list of the resulting states from applying ALL the
-                possible system operations to the given state.
+                :return: A dictionary of the resulting states from applying ALL
+                the possible system operations to the given state.
             """
 
             # Check that it is a valid state.
@@ -108,9 +108,12 @@ class EquationGenerator:
                 result_states = [] if not len(state0) == process[0] else process[2](state0)
 
                 # Append the results to the list.
-                result_list.append([process[1], result_states])
+                result_list.append((process[1], result_states))
 
-            return result_list
+            # Create a dictionary
+            result_list = tuple(result_list)
+
+            return dict(result_list)
 
         # ----------------------------------------------------------------------
         # Implementation.
@@ -139,20 +142,24 @@ class EquationGenerator:
             # Store the results here.
             resultant_states.append([involved_state, get_resulting_state(involved_state)])
 
+        # Get the dictionary keys from the first entry.
+        reaction_constants = resultant_states[0][1].keys()
+
         # Loop through all the lowest order states.
         for i, low_state in enumerate(lowest_states):
             # Loop through all the possible outcomes of the processes for ALL the involved states.
             for j, resultant_state in enumerate(resultant_states):
+                # If the low state is a substate of the state undergoing the process, it has the potential to
+                # destroy the state.
                 if self._get_state1_in_state2(low_state, resultant_state[0]):
+                    # print(low_state, resultant_state[0])
+                    continue
+
+                # If the state is not a substate of the resultant state, it has the potential of creating the state.
+                if self._get_state1_in_state2_indexes(low_state, resultant_state[0]):
                     print(low_state, resultant_state[0])
 
             print("")
-
-
-
-
-
-
 
     # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
     # Private Interface.
@@ -306,6 +313,56 @@ class EquationGenerator:
 
             # Check all the entries.
             is_sub_state = is_sub_state and any(map(lambda x: entry == x, state2))
+
+        return is_sub_state
+
+    def _get_state1_in_state2_indexes(self, state1, state2):
+        """ Determines if indexes of the sites in state 1 are a subset of the
+            indexes of the sites in state 2. Order matters in this case.
+
+            :param state1: The state whose indexes are evaluated to be a
+            sub-set.
+
+            :param state2: The state where the indexes of state1 are going to be
+            searched.
+
+            :return: True if the indexes of state1 are a subset, or the same,
+            as those of state2. False, otherwise.
+        """
+
+        # Validate the states.
+        self._validate_state(state1)
+        self._validate_state(state2)
+
+        # Get the subindexes of state 1 and state 2.
+        subindexes1 = tuple(x[1] for x in state1)
+        subindexes2 = tuple(x[1] for x in state2)
+
+        # Determine if they are the same.
+        is_sub_state = subindexes1 == subindexes2
+
+        # If the states are equal no need to continue.
+        if is_sub_state:
+            return is_sub_state
+
+        # If the state1 is longer than state 2, the state cannot be a
+        # subtate of state2.
+        if len(subindexes1) > len(subindexes2):
+            return False
+
+        # Otherwise, ALL the entries in state1 must be in state2.
+        for i, entry in enumerate(subindexes1):
+            # The first entry can determine the state.
+            if i == 0:
+                is_sub_state = any(map(lambda x: entry == x, subindexes2))
+                continue
+
+            # If an entry is not in the state, it cannot be a substate.
+            if not is_sub_state:
+                break
+
+            # Check all the entries.
+            is_sub_state = is_sub_state and any(map(lambda x: entry == x, subindexes2))
 
         return is_sub_state
 
