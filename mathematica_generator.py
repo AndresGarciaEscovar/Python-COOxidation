@@ -244,9 +244,30 @@ class EquationGenerator:
 
         def get_latex_format(state0):
             """ Gets the string that represents a state in LaTeX format.
-            :param state0:
-            :return:
+
+                :param state0: The state for which to get LaTeX format string.
+
+                :return latex_state: The string that represents the state in a
+                LaTeX format.
             """
+
+            # Format the string.
+            latex_states0 = "\\left<" + ", ".join([f"{x[0]}" + "_{" f"{x[1]}" + "}" for x in state0]) + "\\right>"
+
+            return latex_states0
+
+        # ----------------------------------------------------------------------
+        # Implementation.
+        # ----------------------------------------------------------------------
+
+        # Get the LaTeX format of the given state.
+        state_strng = "\\frac{d" + get_latex_format(equation[0]) + "}{dt}="
+
+        # Get the dictionary keys.
+        keys = [key for key in equation[1].keys()]
+
+
+        print(keys)
 
     # --------------------------------------------------------------------------
     # Get methods.
@@ -1271,7 +1292,5 @@ class EquationGenerator:
 
 if __name__ == "__main__":
     tmp = EquationGenerator()
-
     tmp.get_exact_equations()
-
-    tmp.generate_latex()
+    tmp.generate_latex_equation(tmp.equations[0])
