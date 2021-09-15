@@ -92,7 +92,7 @@ class EquationGenerator:
 
             # Set all the entries in the dictionary to empty.
             for key0 in keys:
-                decay_dictionary[key0] = 0
+                decay_dictionary[key0] = []
                 create_dictionary[key0] = []
 
         def get_creation_states(state0, state1):
@@ -126,8 +126,19 @@ class EquationGenerator:
                 [original_state, decay_dictionary]
             """
 
-            # TODO: Write this function.
-            pass
+            # Only proceed if the state is in the process.
+            if not self._get_state1_in_state2(state0[0], state1[0]):
+                return
+
+            # Check all the keys.
+            for key0 in keys:
+                # Only processes that are in the lowest order are considered.
+                if not len(state1[0]) == process_orders[key0]:
+                    continue
+
+                # Append the states to the dictionary if needed.
+                if len(state1[1][key0]) > 0:
+                    state0[1][key0].extend([cp.deepcopy(state1[0]) for _ in state1[1][key0]])
 
         def print_equation(equation0):
             """ Prints a table with the decay and creation states.
@@ -250,6 +261,11 @@ class EquationGenerator:
                 # If the states are different we testing creation.
                 get_creation_states(low_state, resultant_state)
 
+            print(low_state[0])
+            for key0 in keys:
+                print(f"\t{key0:8}", low_state[1][key0])
+            print("")
+
     # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
     # Private Interface.
     # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
@@ -310,10 +326,10 @@ class EquationGenerator:
         """
 
         # Get the process functions.
-        functions = self._get_process_functions()
+        functions, _ = self._get_process_functions()
 
         # The keys are in the second column.
-        keys = list(np.array(functions, dtype=str)[:, 1])
+        keys = [key[1] for key in functions]
 
         return keys
 
