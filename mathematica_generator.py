@@ -5,9 +5,10 @@
 
 # Imports.
 import copy as cp
-from itertools import product
 import numpy as np
 
+from collections.abc import Iterable
+from itertools import product
 
 class EquationGenerator:
     """ Generates the differential equations in different formats. Currently
@@ -71,6 +72,350 @@ class EquationGenerator:
     """
 
     # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+    # Getters, Setters and Deleters.
+    # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+    @property
+    def k_o_ads(self):
+        """ Gets the oxygen adsorption order.
+        """
+        return cp.deepcopy(self.__k_o_ads)
+
+    @k_o_ads.setter
+    def k_o_ads(self, k_o_ads):
+        """ Sets the oxygen adsorption parameter.
+        """
+        self.__k_o_ads = "k.O.ads"
+
+    @k_o_ads.deleter
+    def k_o_ads(self):
+        pass
+
+    # --------------------------------------------------------------------------
+
+    @property
+    def k_o_des(self):
+        """ Gets the oxygen desorption order.
+        """
+        return cp.deepcopy(self.__k_o_des)
+
+    @k_o_des.setter
+    def k_o_des(self, _):
+        """ Sets the oxygen desorption parameter.
+        """
+        self.__k_o_des = "k.O.des"
+
+    @k_o_des.deleter
+    def k_o_des(self):
+        pass
+
+    # --------------------------------------------------------------------------
+
+    @property
+    def k_o_dif(self):
+        """ Gets the oxygen diffusion order.
+        """
+        return cp.deepcopy(self.__k_o_dif)
+
+    @k_o_dif.setter
+    def k_o_dif(self, _):
+        """ Sets the oxygen diffusion parameter.
+        """
+        self.__k_o_dif = "k.O.dif"
+
+    @k_o_dif.deleter
+    def k_o_dif(self):
+        pass
+
+    # --------------------------------------------------------------------------
+
+    @property
+    def k_co_ads(self):
+        """ Gets the carbon monoxide adsorption order.
+        """
+        return cp.deepcopy(self.__k_co_ads)
+
+    @k_co_ads.setter
+    def k_co_ads(self, _):
+        """ Sets the carbon monoxide adsorption parameter.
+        """
+        self.__k_co_ads = "k.CO.ads"
+
+    @k_co_ads.deleter
+    def k_co_ads(self):
+        pass
+
+    # --------------------------------------------------------------------------
+
+    @property
+    def k_co_des(self):
+        """ Gets the carbon monoxide desorption order.
+        """
+        return cp.deepcopy(self.__k_co_des)
+
+    @k_co_des.setter
+    def k_co_des(self, _):
+        """ Sets the carbon monoxide desorption parameter.
+        """
+        self.__k_co_des = "k.CO.des"
+
+    @k_co_des.deleter
+    def k_co_des(self):
+        pass
+
+    # --------------------------------------------------------------------------
+
+    @property
+    def k_co_dif(self):
+        """ Gets the carbon monoxide diffusion order.
+        """
+        return cp.deepcopy(self.__k_co_dif)
+
+    @k_co_dif.setter
+    def k_co_dif(self, _):
+        """ Sets the carbon monoxide diffusion parameter.
+        """
+        self.__k_co_dif = "k.CO.dif"
+
+    @k_co_dif.deleter
+    def k_co_dif(self):
+        pass
+
+    # --------------------------------------------------------------------------
+
+    @property
+    def k_coo_lh(self):
+        """ Gets the carbon monoxide - oxygen reaction order.
+        """
+        return cp.deepcopy(self.__k_coo_lh)
+
+    @k_coo_lh.setter
+    def k_coo_lh(self, _):
+        """ Sets the carbon monoxide - oxygen reaction parameter.
+        """
+        self.__k_coo_lh = "k.COO.lh"
+
+    @k_coo_lh.deleter
+    def k_coo_lh(self):
+        pass
+
+    # --------------------------------------------------------------------------
+
+    @property
+    def k_coo_el(self):
+        """ Gets the carbon monoxide - oxygen  gas-phase reaction order.
+        """
+        return cp.deepcopy(self.__k_coo_el)
+
+    @k_coo_el.setter
+    def k_coo_el(self, _):
+        """ Sets the carbon monoxide - oxygen  gas-phase reaction parameter.
+        """
+        self.__k_coo_el = "k.COO.el"
+
+    @k_coo_el.deleter
+    def k_coo_el(self):
+        pass
+
+    # --------------------------------------------------------------------------
+
+    @property
+    def o_o_ads(self):
+        """ Gets the oxygen adsorption order.
+        """
+        return cp.deepcopy(self.__o_o_ads)
+
+    @o_o_ads.setter
+    def o_o_ads(self, _):
+        """ Sets the oxygen adsorption parameter.
+        """
+        self.__o_o_ads = 2
+
+    @o_o_ads.deleter
+    def o_o_ads(self):
+        pass
+
+    # --------------------------------------------------------------------------
+
+    @property
+    def o_o_des(self):
+        """ Gets the oxygen desorption order.
+        """
+        return cp.deepcopy(self.__o_o_des)
+
+    @o_o_des.setter
+    def o_o_des(self, _):
+        """ Sets the oxygen desorption parameter.
+        """
+        self.__o_o_des = 2
+
+    @o_o_des.deleter
+    def o_o_des(self):
+        pass
+
+    # --------------------------------------------------------------------------
+
+    @property
+    def o_o_dif(self):
+        """ Gets the oxygen diffusion order.
+        """
+        return cp.deepcopy(self.__o_o_dif)
+
+    @o_o_dif.setter
+    def o_o_dif(self, _):
+        """ Sets the oxygen diffusion parameter.
+        """
+        self.__o_o_dif = 2
+
+    @o_o_dif.deleter
+    def o_o_dif(self):
+        pass
+
+    # --------------------------------------------------------------------------
+
+    @property
+    def o_co_ads(self):
+        """ Gets the carbon monoxide adsorption order.
+        """
+        return cp.deepcopy(self.__o_co_ads)
+
+    @o_co_ads.setter
+    def o_co_ads(self, _):
+        """ Sets the carbon monoxide adsorption parameter.
+        """
+        self.__o_co_ads = 1
+
+    @o_co_ads.deleter
+    def o_co_ads(self):
+        pass
+
+    # --------------------------------------------------------------------------
+
+    @property
+    def o_co_des(self):
+        """ Gets the carbon monoxide desorption order.
+        """
+        return cp.deepcopy(self.__o_co_des)
+
+    @o_co_des.setter
+    def o_co_des(self, _):
+        """ Sets the carbon monoxide desorption parameter.
+        """
+        self.__o_co_des = 1
+
+    @o_co_des.deleter
+    def o_co_des(self):
+        pass
+
+    # --------------------------------------------------------------------------
+
+    @property
+    def o_co_dif(self):
+        """ Gets the carbon monoxide diffusion order.
+        """
+        return cp.deepcopy(self.__o_co_dif)
+
+    @o_co_dif.setter
+    def o_co_dif(self, _):
+        """ Sets the carbon monoxide diffusion parameter.
+        """
+        self.__o_co_dif = 2
+
+    @o_co_dif.deleter
+    def o_co_dif(self):
+        pass
+
+    # --------------------------------------------------------------------------
+
+    @property
+    def o_coo_lh(self):
+        """ Gets the carbon monoxide - oxygen reaction order.
+        """
+        return cp.deepcopy(self.__o_coo_lh)
+
+    @o_coo_lh.setter
+    def o_coo_lh(self, _):
+        """ Sets the carbon monoxide - oxygen reaction parameter.
+        """
+        self.__o_coo_lh = 1
+
+    @o_coo_lh.deleter
+    def o_coo_lh(self):
+        pass
+
+    # --------------------------------------------------------------------------
+
+    @property
+    def o_coo_el(self):
+        """ Gets the carbon monoxide - oxygen  gas-phase reaction order.
+        """
+        return cp.deepcopy(self.__o_coo_el)
+
+    @o_coo_el.setter
+    def o_coo_el(self, _):
+        """ Sets the carbon monoxide - oxygen  gas-phase reaction parameter.
+        """
+        self.__o_coo_el = 1
+
+    @o_coo_el.deleter
+    def o_coo_el(self):
+        pass
+
+    # --------------------------------------------------------------------------
+
+    @property
+    def number_of_sites(self):
+        """ Gets the number of sites in the lattice.
+        """
+        return cp.deepcopy(self.__number_of_sites)
+
+    @number_of_sites.setter
+    def number_of_sites(self, number_of_sites):
+        """ Sets the number of sites in the lattice.
+        """
+
+        # Verify that the parameter is a positive integer number.
+        if not isinstance(number_of_sites, (int,)) or number_of_sites < 1:
+            raise ValueError("The number of sites must be an integer greater than zero.")
+
+        self.__number_of_sites = number_of_sites
+
+    @number_of_sites.deleter
+    def number_of_sites(self):
+        pass
+
+    # --------------------------------------------------------------------------
+
+    @property
+    def states(self):
+        """ Gets the possible states a system can have.
+        """
+        return cp.deepcopy(self.__states)
+
+    @states.setter
+    def states(self, states):
+        """ Sets the possible states a system can have. Must be an iterable
+            object of UNIQUE objects that allow a string representation.
+        """
+
+        # Verify that the states allow a string representation and are unique
+        if not isinstance(states, Iterable):
+            raise ValueError(f"The states variable must be an iterable object, current type: {type(states)}")
+
+        # Convert the iterable to a tuple of strings.
+        tmp_states = tuple(map(str, states))
+
+        # Check that the elements are unique.
+        if not len(tmp_states) == len(tuple(set(states))):
+            raise ValueError(f"The states a system can take must be unique: {states}")
+
+        self.__states = tmp_states
+
+    @states.deleter
+    def states(self):
+        pass
+
+    # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
     # Public Interface.
     # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
@@ -78,11 +423,17 @@ class EquationGenerator:
     # Generate methods.
     # --------------------------------------------------------------------------
 
-    def generate_latex_equations(self, gather_by_state=False, save_file_name=""):
+    def generate_equations(self, gather_by_state=False, format_string="latex", order=0, save_file_name="equations"):
         """ Generates the equations in LaTeX format.
 
             :param gather_by_state: True, if the terms must be factorized by
             state. False, if the terms must be factorized by reaction constant.
+
+            :param format_string: The type of formatting that must be applied to
+            the strings. LaTeX is the default setting.
+
+            :param order: The order to which approximate the terms. Must
+            be an integer greater than or equal to zero.
 
             :param save_file_name: The name of the file where the strings will
             be saved.
@@ -91,25 +442,31 @@ class EquationGenerator:
         """
 
         # ----------------------------------------------------------------------
-        # Auxiliary functions.
-        # ----------------------------------------------------------------------
-
-        # ----------------------------------------------------------------------
         # Implementation.
         # ----------------------------------------------------------------------
 
         # List where the output strings are to be saved.
         output_strings = []
 
+        # ----------------------------------------------------------------------
+        # Get the equations.
+        # ----------------------------------------------------------------------
+
         # Get all the strings.
         for equation in self.equations:
-            output_strings.append(self._generate_latex_equation(equation, gather_by_state))
+            # Save the output string to the list to be saved, if needed.
+            output_strings.append(self._generate_equation(equation, gather_by_state, format_string, order))
 
-        # Save the strings to a file, if needed.
-        if not save_file_name == "":
-            to_save = "\n".join(output_strings)
-            with open(save_file_name, "w") as fl:
-                fl.write(to_save)
+        # ----------------------------------------------------------------------
+        # Save the strings to a file.
+        # ----------------------------------------------------------------------
+
+        # Join the equations to save.
+        to_save = "\n\n".join(output_strings)
+
+        # Save it to the requested file.
+        with open(save_file_name, "w") as fl:
+            fl.write(to_save)
 
     # --------------------------------------------------------------------------
     # Get methods.
@@ -179,6 +536,43 @@ class EquationGenerator:
                 if len(state1[0]) == process_orders[key1] and len(state1[1][key1]) > 0:
                     state0[1][key1].extend([cp.deepcopy(state1[0]) for _ in state1[1][key1]])
 
+        def get_involved_states():
+            """ Gets the states that are involved in the calculation.
+
+                :return involved_states0: A list with the states that are involved in the
+                calculation.
+            """
+
+            # Auxiliary variables.
+            involved_states0 = []
+
+            # The states of the orders that show in the lowest order equations.
+            for order0 in self._get_orders():
+                involved_states0.extend(self._get_states(order0))
+
+            return involved_states0
+
+        def get_resulting_states():
+            """ Gets the resultant states after ALL processes are applied to ALL
+                the states.
+            """
+
+            # Auxiliary variables.
+            resultant_states0 = []
+
+            for state0 in involved_states:
+                # Empty the dictionaries first.
+                decay_dictionary_state0 = {}
+
+                # Get the states to which each state decays due to a process.
+                for i, process0 in enumerate(process_functions):
+                    decay_dictionary_state0[keys[i]] = process0[2](state0)
+
+                # Append the results.
+                resultant_states0.append([state0, decay_dictionary_state0])
+
+            return resultant_states0
+
         def print_states():
             """ Prints a table of the decay states and the creation states of
                 all the states in the system.
@@ -234,9 +628,7 @@ class EquationGenerator:
         lowest_states = self._get_states(1)
 
         # Get ALL the states that are potentially involved in the calculation.
-        involved_states = []
-        for order in self._get_orders():
-            involved_states.extend(self._get_states(order))
+        involved_states = get_involved_states()
 
         # ----------------------------------------------------------------------
         # Get the generated states by each process.
@@ -249,18 +641,8 @@ class EquationGenerator:
         # Get the keys.
         keys = self._get_keys()
 
-        # Get the resultant states from making the operations.
-        resultant_states = []
-        for state in involved_states:
-            # Empty the dictionaries first.
-            decay_dictionary_state = {}
-
-            # Get the states to which each state decays due to a process.
-            for i, process in enumerate(process_functions):
-                decay_dictionary_state[keys[i]] = process[2](state)
-
-            # Append the results.
-            resultant_states.append([state, decay_dictionary_state])
+        # Get the resulting states from making the operations.
+        resultant_states = get_resulting_states()
 
         # ----------------------------------------------------------------------
         # Get the resulting states.
@@ -282,6 +664,7 @@ class EquationGenerator:
                 # If the states are different we testing creation.
                 get_creation_states(low_state, resultant_state)
 
+            # Add the equation to the list.
             self.equations.append(cp.deepcopy(low_state))
 
         # Print the table with all the states.
@@ -296,17 +679,23 @@ class EquationGenerator:
     # Generate methods.
     # --------------------------------------------------------------------------
 
-    def _generate_latex_equation(self, equation, gather_by_state):
-        """ Generates a single equation in LaTeX format; ideal to generate the
-            equations for a Jupyter notebook.
+    def _generate_equation(self, equation, gather_by_state, format_string="latex", order=0):
+        """ Generates a single equation in the required format; ideal to
+            generate LaTeX style equations for a Jupyter notebook.
 
             :param equation: A list that represents an equation. Must be in the
             format
 
-            [state,decay_dictionary, creation_dictionary]
+            [state, decay_dictionary, creation_dictionary]
 
             :param gather_by_state: True, if the terms must be factorized by
             state. False, if the terms must be factorized by reaction constant.
+
+            :param format_string: The type of formatting that must be applied to
+            the strings.
+
+            :param order: The order to which approximate the terms. Must
+            be an integer greater than or equal to zero.
 
             :return: A string that represents the equations in LaTeX format.
         """
@@ -321,105 +710,92 @@ class EquationGenerator:
                 :return: The LaTeX equation string gathered by rate constant.
             """
 
+            # ------------------------------------------------------------------
+            # Implementation.
+            # ------------------------------------------------------------------
+
             # Auxiliary variables.
-            latex_equation = ""
+            equation_string0 = ""
 
             # Go through each rate constant.
             for key0 in keys:
+                # Get the representation of the key.
+                key_string0 = get_string(key0, rate_constant=True)
+
                 # --------------------------------------------------------------
                 # Decay terms.
                 # --------------------------------------------------------------
 
-                # Auxiliary variables.
-                tmp_dict = {}
-
                 # Get all the decay terms.
-                decay_terms = []
-                decay_terms.extend(equation[1][key0])
-
-                # Initialize the decay string.
-                decay_string = ""
-
-                # Only append terms if there are terms to append.
-                if len(decay_terms) > 0:
-                    # Make the states a tuple and turn it into a set.
-                    decay_states0 = list(set(tuple(map(tuple, equation[1][key0]))))
-
-                    # Get the number of times a state appears in the state list.
-                    for statei in decay_states0:
-                        tmp_dict[self._get_format_latex(statei)] = tuple(map(tuple, equation[1][key0])).count(statei)
-
-                    decay_states0 = []
-                    for i, statei in enumerate(tmp_dict.keys()):
-                        tmp_string = statei if tmp_dict[statei] == 1 else str(tmp_dict[statei]) + statei
-                        decay_states0.append(tmp_string)
-
-                    # Generate the string with the equation.
-                    decay_string += ".".join(decay_states0)
+                decay_terms0 = []
+                if len(equation[1][key0]) > 0:
+                    decay_terms0.extend(list(map(get_string, equation[1][key0])))
 
                 # --------------------------------------------------------------
                 # Creation terms.
                 # --------------------------------------------------------------
 
                 # Get all the creation terms.
-                creation_terms = []
-                creation_terms.extend(equation[2][key0])
-
-                # Get the terms in LaTeX format.
-                creation_string = " + ".join(list(map(self._get_format_latex, creation_terms)))
+                creation_terms0 = []
+                if len(equation[2][key0]) > 0:
+                    creation_terms0.extend(list(map(get_string, equation[2][key0])))
 
                 # --------------------------------------------------------------
                 # Join the two strings; three cases to contemplate.
                 # --------------------------------------------------------------
 
                 # There are decay terms, but no creation terms.
-                if len(decay_terms) > 0 and len(creation_terms) == 0:
-                    # Set the digit string to empty.
-                    digits = ""
+                if len(decay_terms0) > 0 and len(creation_terms0) == 0:
+                    # Join all the terms.
+                    decay_string0 = f"-{key_string0} (" + "+".join(decay_terms0) + ")"
 
-                    decay_string = decay_string.split(".")
+                    # Remove parentheses if needed.
+                    if len(decay_terms0) == 1:
+                        decay_string0 = "".join(decay_string0.split("("))
+                        decay_string0 = "".join(decay_string0.split(")"))
 
-                    # Get all the digits.
-                    if len(decay_terms) == 1:
-                        # Make the proper adjustments to the string.
-                        for i, character in enumerate(decay_string[0]):
-                            if character == "\\":
-                                decay_string = f"-{digits}{key0}" + decay_string[0][i:]
-                                break
-                            digits += str(character)
+                    # Be sure to delete leading and trailing spaces.
+                    decay_string0 = decay_string0.strip()
 
-                    else:
-                        decay_string = " + ".join(decay_string)
-                        decay_string = f"-{key0}\\left(" + decay_string + "\\right)"
-
-                    # Join the term to the string.
-                    latex_equation += decay_string
+                    # Join the terms to the string.
+                    equation_string0 += decay_string0
 
                 # There are no decay terms, but there are creation terms.
-                elif len(decay_terms) == 0 and len(creation_terms) > 0:
-                    if len(creation_terms) == 1:
-                        creation_string = f"+{key0}{creation_string}"
-                    else:
-                        creation_string = f"+{key0}\\left({creation_string}\\right)"
+                elif len(decay_terms0) == 0 and len(creation_terms0) > 0:
+                    # Join all the terms.
+                    create_string0 = f"{key_string0} (" + "+".join(creation_terms0) + ")"
 
-                    latex_equation += creation_string
+                    # Remove parentheses if needed.
+                    if len(creation_terms0) == 1:
+                        create_string0 = "".join(create_string0.split("(")).strip()
+                        create_string0 = "".join(create_string0.split(")")).strip()
+
+                    # Be sure to delete leading and trailing spaces.
+                    create_string0 = create_string0.strip()
+
+                    # Join the terms to the string.
+                    equation_string0 += "+" + create_string0
 
                 # There are both decay terms and creation terms.
-                elif len(decay_terms) > 0 and len(creation_terms) > 0:
+                elif len(decay_terms0) > 0 and len(creation_terms0) > 0:
                     # Set the digit string to empty.
-                    decay_string = " - ".join(decay_string.split("."))
-                    latex_equation += f"+{key0}\\left(" + creation_string + "-" + decay_string + "\\right)"
+                    decay_string0 = "-".join(decay_terms0)
+                    create_string0 = "+".join(creation_terms0)
+
+                    # Join the terms to the string.
+                    equation_string0 += f"+{key_string0} (" + create_string0 + "-" + decay_string0 + ")"
 
             # ------------------------------------------------------------------
             # Finish formatting the equation.
             # ------------------------------------------------------------------
 
             # Fix the equation.
-            latex_equation = latex_equation[1:] if latex_equation[0] == "+" else latex_equation
-            latex_equation = " + ".join(latex_equation.split("+"))
-            latex_equation = " - ".join(latex_equation.split("-"))
+            equation_string0 = equation_string0[1:] if equation_string0[0] == "+" else equation_string0
+            equation_string0 = " + ".join(equation_string0.split("+")).strip()
+            equation_string0 = " - ".join(equation_string0.split("-")).strip()
+            equation_string0 = "-" + equation_string0[2:] if equation_string0[0] == "-" else equation_string0
 
-            return latex_equation
+            return equation_string0
 
         def get_gathered_by_state():
             """ Returns the LaTeX equation string gathered by state.
@@ -427,153 +803,154 @@ class EquationGenerator:
                 :return: The LaTeX equation string gathered by state.
             """
 
+            # ------------------------------------------------------------------
+            # Auxiliary functions.
+            # ------------------------------------------------------------------
+
+            def get_all_states():
+                """ Returns a list of all the unique states that appear in the
+                    equation.
+
+                    :return states1: A list of all the unique states that appear
+                    in the equation.
+                """
+
+                # Auxiliary variables.
+                states1 = []
+
+                # Get all the states for all the processes.
+                for key1 in keys:
+                    # Get the states that make the current state decay.
+                    for state1 in equation[1][key1]:
+                        states1.append(state1)
+
+                    # Get the states create the current state.
+                    for state1 in equation[2][key1]:
+                        states1.append(state1)
+
+                # Get a list of unique states.
+                states1 = list(set(tuple(states1)))
+
+                return states1
+
+            def get_key_count(state1, key1):
+                """ Returns the number of overall number of times the state
+                    appears for a certain rate constant.
+
+                    :param state1: The state that is being looked for.
+
+                    :param key1: The key of the entry in the dictionary.
+
+                    :return: The number of overall number of times the state
+                    appears for a certain rate constant.
+                """
+
+                # Count the number of times the constant appears in the
+                # each of the keys.
+                key_count1 = 0
+
+                # Subtract one if the state decays.
+                if state1 in equation[1][key1]:
+                    key_count1 -= 1
+
+                # Subtract one if the state is created.
+                if state1 in equation[2][key1]:
+                    key_count1 += 1
+
+                return key_count1
+
+            # ------------------------------------------------------------------
+            # Implementations.
+            # ------------------------------------------------------------------
+
             # Auxiliary variables.
-            states = []
-            latex_equation = ""
-            equation0 = cp.deepcopy(equation)
+            equation_string0 = ""
 
-            # Make sure to convert the list equations into tuples.
-            for key in keys:
-                equation0[1][key] = tuple(map(tuple, equation0[1][key]))
-                equation0[2][key] = tuple(map(tuple, equation0[2][key]))
-
-            # Get all the states
-            for key in keys:
-                # Get the states that make the current state decay.
-                for state in equation0[1][key]:
-                    states.append(state)
-
-                # Get the states create the current state.
-                for state in equation0[2][key]:
-                    states.append(state)
-
-            # Make it a tuple.
-            states = set(tuple(states))
+            # Get all the unique states..
+            states0 = get_all_states()
 
             # Look for the state in the original dictionaries.
-            for state in states:
-                # List to store the constants.
-                create_string = ""
-                create_constants = []
+            for state0 in states0:
+                # Save the keys that are present.
+                keys_present0 = []
 
-                decay_string = ""
-                decay_constants = []
+                # Look for the state in all the keys.
+                for key0 in keys:
+                    # Get the formatted key.
+                    key_string0 = get_string(key0, rate_constant=True)
 
-                # Look for the state in the different keys.
-                for key in keys:
-                    # ----------------------------------------------------------
-                    # Decay terms.
-                    # ----------------------------------------------------------
+                    # Get the number of times the state appears in the terms.
+                    key_count0 = get_key_count(state0, key0)
 
-                    if state in equation0[1][key]:
-                        # Count the number of times the state appears in the list.
-                        decay_count = equation0[1][key].count(state)
+                    # If the state does not exists in either of the given key,
+                    # go the next one.
+                    if key_count0 == 0:
+                        continue
 
-                        # Append the proper key.
-                        key_string = key if decay_count == 1 else f"{decay_count}{key}"
+                    # Format the key properly.
+                    key_string0 = str(abs(key_count0)) + key_string0 if abs(key_count0) > 1 else key_string0
+                    key_string0 = "-" + key_string0 if key_count0 < 0 else key_string0
 
-                        # Append the constant to the list.
-                        decay_constants.append(key_string)
-
-                    # ----------------------------------------------------------
-                    # Creation terms.
-                    # ----------------------------------------------------------
-
-                    if state in equation0[2][key]:
-                        # Count the number of times the state appears in the list.
-                        create_count = equation0[2][key].count(state)
-
-                        # Append the proper key.
-                        key_string = key if create_count == 1 else f"{create_count}{key}"
-
-                        # Append the constant to the list.
-                        create_constants.append(key_string)
+                    # Add the key to the list of keys
+                    keys_present0.append(key_string0)
 
                 # --------------------------------------------------------------
-                # Join the two strings; three cases to contemplate.
+                # Join to the equation string.
                 # --------------------------------------------------------------
 
-                # Generate the strings.
-                if len(decay_constants) > 0 and len(create_constants) == 0:
-                    # Auxiliary variables.
-                    digits = ""
+                if len(keys_present0) == 1:
+                    # Format the string properly.
+                    key_string0_1 = "".join(keys_present0) + " " + get_string(state0)
 
-                    # In case there is a single term.
-                    if len(decay_constants) == 1:
-                        # Get the digits and cut the string, if needed.
-                        for i, digit in enumerate(decay_constants[0]):
-                            # Get the numeric portion of the string.
-                            if digit.isnumeric():
-                                digits += str(digit)
-                                continue
+                    # Add to the equation string.
+                    equation_string0 += key_string0_1 if key_string0_1[0] == "-" else "+" + key_string0_1
+                else:
+                    # Format the string properly.
+                    key_string0_1 = "".join([string0 if string0[0] == "-" else "+" + string0 for string0 in keys_present0]).strip()
+                    key_string0_1 = key_string0_1[1:] if key_string0_1[0] == "+" else key_string0_1
+                    key_string0_1 = "(" + key_string0_1 + ") " + get_string(state0)
 
-                            # Cut where needed.
-                            decay_constants[0] = decay_constants[0][i:]
-                            break
-
-                        # Format the string.
-                        decay_string += f"-{decay_constants[0]}{self._get_format_latex(state)}"
-
-                    # In case there are more terms.
-                    else:
-                        # Format the string.
-                        decay_string += f"-\\left({'+'.join(decay_constants)}\\right){self._get_format_latex(state)}"
-
-                    # Append it to the general string.
-                    latex_equation += decay_string
-
-                elif len(decay_constants) == 0 and len(create_constants) > 0:
-
-                    # Auxiliary variables.
-                    digits = ""
-
-                    # In case there is a single term.
-                    if len(create_constants) == 1:
-                        # Get the digits and cut the string, if needed.
-                        for i, digit in enumerate(create_constants[0]):
-                            # Get the numeric portion of the string.
-                            if digit.isnumeric():
-                                digits += str(digit)
-                                continue
-
-                            # Cut where needed.
-                            create_constants[0] = create_constants[0][i:]
-                            break
-
-                        # Format the string.
-                        create_string += f"+{create_constants[0]}{self._get_format_latex(state)}"
-
-                    # In case there are more terms.
-                    else:
-                        # Format the string.
-                        create_string += f"+\\left({'+'.join(create_constants)}\\right){self._get_format_latex(state)}"
-
-                    # Append it to the general string.
-                    latex_equation += create_string
-
-                elif len(decay_constants) > 0 and len(create_constants) > 0:
-                    full_string = "\\left(" + "+".join(create_constants) + "-" + "+".join(decay_constants) + "\\right)"
-                    full_string += self._get_format_latex(state)
+                    # Add to the equation string.
+                    equation_string0 += "+" + key_string0_1
 
             # Format the equation further.
-            latex_equation = latex_equation.strip()
-            latex_equation = latex_equation[1:] if latex_equation[0] == "+" else latex_equation
-            latex_equation = " + ".join(latex_equation.split("+"))
-            latex_equation = " - ".join(latex_equation.split("-"))
+            equation_string0 = equation_string0.strip()
+            equation_string0 = equation_string0[1:] if equation_string0[0] == "+" else equation_string0
+            equation_string0 = " + ".join(equation_string0.split("+")).strip()
+            equation_string0 = " - ".join(equation_string0.split("-")).strip()
+            equation_string0 = "-" + equation_string0[2:] if equation_string0[0] == "-" else equation_string0
 
-            return latex_equation
+            return equation_string0
+
+        def get_string(state0, rate_constant=False):
+            """ Gets the string representation of the given state, or rate
+                constant.
+
+                :param state0: The state for which the string representation is
+                 required.
+
+                :param rate_constant: If it is a rate constant the one that is
+                required.
+
+                :return: The string representation of the given state in the
+                requested format.
+            """
+
+            return formatter(state0, order=order, rate_constant=rate_constant)
 
         # ----------------------------------------------------------------------
         # Implementation.
         # ----------------------------------------------------------------------
 
-        # Auxiliary variables.
+        # Define the format in which the equation must be obtained.
+        formatter = EquationFormatter.get_formatter(format_string)
 
         # Get the keys of the processes.
         keys = self._get_keys()
 
         # Get the differential of the state.
-        equation_string = "\\frac{d" + self._get_format_latex(equation[0]) + "}{dt} = "
+        equation_string = formatter(equation[0], derivative=True, order=order) + " ="
+        equation_string += "= " if format_string == "mathematica" else " "
 
         # Write the results gathered in the requested order.
         equation_string += get_gathered_by_state().strip() if gather_by_state else get_gathered_by_constant().strip()
@@ -584,43 +961,9 @@ class EquationGenerator:
     # Get methods.
     # --------------------------------------------------------------------------
 
-    def _get_format_latex(self, state):
-        """ Gets the string that represents a state in LaTeX format.
-
-            :param state: The state for which to get LaTeX format string.
-
-            :return latex_state: The string that represents the state in a
-            LaTeX format.
-        """
-
-        # Validate the state.
-        self._validate_state(state)
-
-        # Format the string.
-        latex_states0 = "\\left<" + ", ".join([f"{x[0]}" + "_{" f"{x[1]}" + "}" for x in state]) + "\\right>"
-
-        return latex_states0
-
-    def _get_format_mathematica(self, state):
-        """ Gets the string that represents a state in Mathematica format.
-
-            :param state: The state for which to get Mathematica format string.
-
-            :return latex_state: The string that represents the state in a
-            Mathematica format.
-        """
-
-        # Validate the state.
-        self._validate_state(state)
-
-        # Format the string.
-        latex_states0 = "P" + ",".join([f"{x[0]}{x[1]}" for x in state]) + "[t]"
-
-        return latex_states0
-
     def _get_keys(self):
-        """ Returns the strings that represent the processes that serve as keys
-            to the dictionaries of processes.
+        """ Returns a tuple that contains the strings that represent the
+            processes that serve as keys to the dictionaries of processes.
 
             :return keys: The strings that represent the processes that serve as
             keys to the dictionaries of processes.
@@ -630,30 +973,76 @@ class EquationGenerator:
         functions, _ = self._get_process_functions()
 
         # The keys are in the second column.
-        keys = [key[1] for key in functions]
+        keys = tuple([key[1] for key in functions])
 
         return keys
+
+    def _get_numbering(self, state):
+        """ Returns a 2-tuple that contains the possible numbering schemes that
+            the given state can take. The numbering scheme used is that of
+            incremental consecutive numbering.
+
+            :param state: The state to be numbered.
+
+            :return: The list of possible numbered states in the given scheme.
+        """
+
+        # ----------------------------------------------------------------------
+        # Auxiliary functions.
+        # ----------------------------------------------------------------------
+
+        def validate_unnumbered_state(state0):
+            """ Validates that the length of the state is consistent.
+
+                :param state0: The state to be validated.
+            """
+
+            # Validate the state.
+            if 0 == len(state0) or len(state0) > self.number_of_sites:
+                raise ValueError(f"The state must contain at least one site and at most {self.number_of_sites}. "
+                                 f"Requested state sites: {len(state0)}")
+
+        # ----------------------------------------------------------------------
+        # Implementation.
+        # ----------------------------------------------------------------------
+
+        # Validate the state.
+        validate_unnumbered_state(state)
+
+        # Auxiliary variables.
+        all_states = []
+
+        # Explore all the possibilities.
+        for i in range(self.number_of_sites):
+            # Only attempt if there are enough sites.
+            if i + len(state) > self.number_of_sites:
+                break
+
+            # Make a deep copy of the state.
+            tmp_state = cp.deepcopy(state)
+
+            # Get the numbering list.
+            tmp_list = list(range(i, i+len(state)))
+
+            # Add the state to the list of possible states.
+            all_states.append(tuple([(tmp_state[j], x + 1) for j, x in enumerate(tmp_list)]))
+
+        return all_states
 
     def _get_orders(self):
         """ Gets the order of the states that are involved in the equations.
         """
 
-        # Oxygen related processes.
-        tmp_list = [self.o_o_ads, self.o_o_des, self.o_o_dif]
+        # Get the orders of the processes.
+        tmp_list = tuple(x[0] for x in self._get_process_functions()[0])
 
-        # Carbon monoxide processes.
-        tmp_list.extend([self.o_co_ads, self.o_co_des, self.o_co_dif])
-
-        # Carbon monoxide - oxygen reaction processes.
-        tmp_list.extend([self.o_coo_lh, self.o_coo_er])
-
-        # Gets the non-repeated elements of the list.
+        # Make the values unique.
         tmp_list = tuple(set(tmp_list))
 
-        # Validate that the values are positive and less than the given order.
-        if any(map(lambda x:  0 >= x or x > self.sites, tmp_list)):
+        # Validate that the values are positive and less than the lattice site number.
+        if any(map(lambda x:  0 >= x or x > self.number_of_sites, tmp_list)):
             raise ValueError("The orders in the equations must be greater than 0 "
-                             f" and less than or equal to {self.sites}. ")
+                             f" and less than or equal to {self.number_of_sites}. ")
 
         return tmp_list
 
@@ -693,9 +1082,9 @@ class EquationGenerator:
         return process_functions, process_dictionary
 
     def _get_states(self, order=1):
-        """ Given the order, it returns ALL the possible combinations of the
-            system variables, i.e., all the possible combinations of the
-            variables in n slots. Non-numbered.
+        """ Given the order, it returns a tuple of ALL the possible combinations
+            of the system variables, i.e., all the possible combinations of the
+            variables in N slots, where N=order; non-numbered.
 
             :param order: The order of the requested possible variables.
 
@@ -716,8 +1105,8 @@ class EquationGenerator:
                 raise ValueError("The order parameter must be greater than zero.")
 
             # Check that the order parameter is not more than the number of sites.
-            if order > self.sites:
-                raise ValueError(f"The order parameter must less than or equal to {self.sites}.")
+            if order > self.number_of_sites:
+                raise ValueError(f"The order parameter must less than or equal to {self.number_of_sites}.")
 
         # ----------------------------------------------------------------------
         # Implementation.
@@ -741,6 +1130,9 @@ class EquationGenerator:
         all_states = []
         for state in tmp_states:
             all_states.extend(self._get_numbering(state))
+
+        # Turn the states into a tuple.
+        all_states = tuple(all_states)
 
         return all_states
 
@@ -788,146 +1180,6 @@ class EquationGenerator:
 
         return is_sub_state
 
-    def _get_state1_in_state2_indexes(self, state1, state2):
-        """ Determines if indexes of the sites in state 1 are a subset of the
-            indexes of the sites in state 2. Order matters in this case.
-
-            :param state1: The state whose indexes are evaluated to be a
-            sub-set.
-
-            :param state2: The state where the indexes of state1 are going to be
-            searched.
-
-            :return: True if the indexes of state1 are a subset, or the same,
-            as those of state2. False, otherwise.
-        """
-
-        # Validate the states.
-        self._validate_state(state1)
-        self._validate_state(state2)
-
-        # Get the subindexes of state 1 and state 2.
-        subindexes1 = tuple(x[1] for x in state1)
-        subindexes2 = tuple(x[1] for x in state2)
-
-        # Determine if they are the same.
-        is_sub_state = subindexes1 == subindexes2
-
-        # If the states are equal no need to continue.
-        if is_sub_state:
-            return is_sub_state
-
-        # If the state1 is longer than state 2, the state cannot be a
-        # subtate of state2.
-        if len(subindexes1) > len(subindexes2):
-            return False
-
-        # Otherwise, ALL the entries in state1 must be in state2.
-        for i, entry in enumerate(subindexes1):
-            # The first entry can determine the state.
-            if i == 0:
-                is_sub_state = any(map(lambda x: entry == x, subindexes2))
-                continue
-
-            # If an entry is not in the state, it cannot be a substate.
-            if not is_sub_state:
-                break
-
-            # Check all the entries.
-            is_sub_state = is_sub_state and any(map(lambda x: entry == x, subindexes2))
-
-        return is_sub_state
-
-    def _get_numbering(self, state):
-        """ Returns a 2-tuple that contains the possible numbering schemes that
-            the given state can take. The numbering scheme used is that of
-            incremental consecutive numbering.
-
-            :param state: The state to be numbered.
-
-            :return: The list of possible numbered states in the given scheme.
-        """
-
-        # ----------------------------------------------------------------------
-        # Auxiliary functions.
-        # ----------------------------------------------------------------------
-
-        def validate_unnumbered_state(state0):
-            """ Validates that the length of the state is consistent.
-
-                :param state0: The state to be validated.
-            """
-
-            # Validate the state.
-            if 0 == len(state0) or len(state0) > self.sites:
-                raise ValueError(f"The state must contain at least one site and at most {self.sites}. "
-                                 f"Requested state sites: {len(state0)}")
-
-        # ----------------------------------------------------------------------
-        # Implementation.
-        # ----------------------------------------------------------------------
-
-        # Validate the state.
-        validate_unnumbered_state(state)
-
-        # Auxiliary variables.
-        all_states = []
-
-        # Explore all the possibilities.
-        for i in range(self.sites):
-            # Only attempt if there are enough sites.
-            if i + len(state) > self.sites:
-                break
-
-            # Make a deep copy of the state.
-            tmp_state = cp.deepcopy(state)
-
-            # Get the numbering list.
-            tmp_list = list(range(i, i+len(state)))
-
-            # Add the state to the list of possible states.
-            all_states.append([(tmp_state[j], x + 1) for j, x in enumerate(tmp_list)])
-
-        return all_states
-
-    def _get_is_site_in_state(self, site, state):
-        """ Given a site and a state, it determines if the state is related to
-            the site, i.e., the state has a numbering such that the number of
-            the site appears.
-
-            :param site: The site that is being searched.
-
-            :param state: The state that is properly labeled.
-
-            :return: True, if the site in the equation. False, otherwise.
-        """
-
-        # ----------------------------------------------------------------------
-        # Auxiliary states.
-        # ----------------------------------------------------------------------
-
-        def validate_state():
-            """ Validates if the state is valid, i.e., has the appropriate
-                length.
-            """
-
-            # The length of the state must be greater than zero and, at most, self.sites.
-            if len(state) == 0 or len(state) > self.sites:
-                raise ValueError(f"The size of the state must be, at most, {self.sites}"
-                                 f"Current size: {len(state)}")
-
-        # ----------------------------------------------------------------------
-        # Implementation.
-        # ----------------------------------------------------------------------
-
-        # Validate the state.
-        validate_state()
-
-        # Get the numbering of the states.
-        sites = [x[1] for x in state]
-
-        return site in sites
-
     # --------------------------------------------------------------------------
     # Carbon monoxide exclusive methods.
     # --------------------------------------------------------------------------
@@ -969,6 +1221,10 @@ class EquationGenerator:
 
         # Auxiliary variables.
         final_states = []
+
+        # Check that the length of the state is consistent.
+        if len(initial_state) < self.o_co_ads:
+            return final_states
 
         # ----------------------------------------------------------------------
         # Get the list of states and the numbering.
@@ -1037,6 +1293,10 @@ class EquationGenerator:
 
         # Auxiliary variables.
         final_states = []
+
+        # Check that the length of the state is consistent.
+        if len(initial_state) < self.o_co_des:
+            return final_states
 
         # ----------------------------------------------------------------------
         # Get the list of states and the numbering.
@@ -1107,13 +1367,13 @@ class EquationGenerator:
         # Auxiliary variables.
         final_states = []
 
+        # Check that the length of the state is consistent.
+        if len(initial_state) < self.o_co_dif:
+            return final_states
+
         # ----------------------------------------------------------------------
         # Get the list of states and the numbering.
         # ----------------------------------------------------------------------
-
-        # No need to check states that have a length less than 2.
-        if len(initial_state) < 2:
-            return final_states
 
         # Turn the 2-tuples in two lists.
         tmp_array = np.array(list(map(list, initial_state)))
@@ -1185,6 +1445,10 @@ class EquationGenerator:
 
         # Auxiliary variables.
         final_states = []
+
+        # Check that the length of the state is consistent.
+        if len(initial_state) < self.o_o_ads:
+            return final_states
 
         # ----------------------------------------------------------------------
         # Get the list of states and the numbering.
@@ -1262,6 +1526,10 @@ class EquationGenerator:
         # Auxiliary variables.
         final_states = []
 
+        # Check that the length of the state is consistent.
+        if len(initial_state) < self.o_o_des:
+            return final_states
+
         # ----------------------------------------------------------------------
         # Get the list of states and the numbering.
         # ----------------------------------------------------------------------
@@ -1336,6 +1604,10 @@ class EquationGenerator:
 
         # Auxiliary variables.
         final_states = []
+
+        # Check that the length of the state is consistent.
+        if len(initial_state) < self.o_o_dif:
+            return final_states
 
         # ----------------------------------------------------------------------
         # Get the list of states and the numbering.
@@ -1417,6 +1689,10 @@ class EquationGenerator:
         # Auxiliary variables.
         final_states = []
 
+        # Check that the length of the state is consistent.
+        if len(initial_state) < self.o_coo_lh:
+            return final_states
+
         # ----------------------------------------------------------------------
         # Get the list of states and the numbering.
         # ----------------------------------------------------------------------
@@ -1492,6 +1768,10 @@ class EquationGenerator:
         # Auxiliary variables.
         final_states = []
 
+        # Check that the length of the state is consistent.
+        if len(initial_state) < self.o_coo_er:
+            return final_states
+
         # ----------------------------------------------------------------------
         # Get the list of states and the numbering.
         # ----------------------------------------------------------------------
@@ -1553,9 +1833,9 @@ class EquationGenerator:
             raise TypeError(f"All states must be tuples of length 2. Tuple lengths: {tmp_lengths}")
 
         # Check that the maximum length of the state is the number of sites.
-        if not 1 <= len(state) <= self.sites:
+        if not 1 <= len(state) <= self.number_of_sites:
             raise ValueError(f"The current length of the state list is not valid, it must be"
-                             f"in the range [1, {self.sites}].  Current legth: {len(state)}.")
+                             f"in the range [1, {self.number_of_sites}].  Current legth: {len(state)}.")
         # ----------------------------------------------------------------------
         # Set the auxiliary variables.
         # ----------------------------------------------------------------------
@@ -1581,14 +1861,14 @@ class EquationGenerator:
         # ----------------------------------------------------------------------
 
         # Check that the length of the state is greater than zero and less than or equal to the maximum number of sites.
-        if not 1 <= len(numbering) <= self.sites:
+        if not 1 <= len(numbering) <= self.number_of_sites:
             raise ValueError(f"The current length of the numbering list is not valid, it must be"
-                             f"in the range [1, {self.sites}].  Current length: {len(numbering)}.")
+                             f"in the range [1, {self.number_of_sites}].  Current length: {len(numbering)}.")
 
         # Check that the numbering of the state is greater than zero and less than or equal to the maximum number of
         # sites.
-        if not all(map(lambda x: 0 < x <= self.sites, numbering)):
-            raise ValueError(f"The numbering of the states must be in the range [1, {self.sites}]."
+        if not all(map(lambda x: 0 < x <= self.number_of_sites, numbering)):
+            raise ValueError(f"The numbering of the states must be in the range [1, {self.number_of_sites}]."
                              f" There is an index that is not in this range: {numbering}")
 
         # Check that the numbering for each site is unique.
@@ -1636,7 +1916,7 @@ class EquationGenerator:
         # ----------------------------------------------------------------------
 
         # Define the maximum number of sites.
-        self.sites = 3
+        self.number_of_sites = 3
 
         # Define the possible unique states each site of the system can take.
         self.states = ["CO", "O", "E"]
@@ -1649,20 +1929,20 @@ class EquationGenerator:
         # ----------------------------------------------------------------------
 
         # String that represents the rate constants of oxygen related processes.
-        self.k_o_ads = "kOAds"
-        self.k_o_des = "kODes"
-        self.k_o_dif = "kODif"
+        self.k_o_ads = "k.O.ads"
+        self.k_o_des = "k.O.des",
+        self.k_o_dif = "k.O.Dif"
 
         # String that represents the rate constants of carbon monoxide related
         # processes.
-        self.k_co_ads = "kCOAds"
-        self.k_co_des = "kCODes"
-        self.k_co_dif = "kCODif"
+        self.k_co_ads = "k.CO.ads"
+        self.k_co_des = "k.CO.des"
+        self.k_co_dif = "k.CO.dif"
 
         # String that represents the rate constants of carbon monoxide - oxygen
         # reaction related processes.
-        self.k_coo_lh = "kCOOLH"
-        self.k_coo_er = "kCOOER"
+        self.k_coo_lh = "k.COO.lh"
+        self.k_coo_er = "k.COO.er"
 
     # --------------------------------------------------------------------------
     # Dunder Methods.
@@ -1672,18 +1952,46 @@ class EquationGenerator:
     # Dunder Variables.
     # --------------------------------------------------------------------------
 
-    __slots__ = ['equations',
-                 'k_o_ads', 'k_o_des', 'k_o_dif', 'k_co_ads', 'k_co_des', 'k_co_dif', 'k_coo_lh', 'k_coo_er',
-                 'o_o_ads', 'o_o_des', 'o_o_dif', 'o_co_ads', 'o_co_des', 'o_co_dif', 'o_coo_lh', 'o_coo_er',
-                 'sites', 'states']
 
 class EquationFormatter:
     """ A static class that contains equation formatting functions that are
         generated by the equation generator.
     """
 
+    # --------------------------------------------------------------------------
+    # CONSTANTS.
+    # --------------------------------------------------------------------------
+
+    CONSTANTS = {"latex":"latex", "mathematica":"mathematica"}
+
+    # --------------------------------------------------------------------------
+    # Get methods.
+    # --------------------------------------------------------------------------
+
     @staticmethod
-    def get_latex_format(state, order=0):
+    def get_formatter(format_string="latex"):
+        """ Gets the pointer to the function of the requested format.
+
+            :param format_string: The string with the name of the requested
+            formatter. NOT case-sensitive.
+
+            :return formatter: The pointer to the function of the formatter.
+        """
+
+        # Verify that the function exists.
+        if format_string.lower() not in EquationFormatter.CONSTANTS.keys():
+            raise ValueError("The requested constants must be in the dictionary: ")
+
+        # Return the function that sets the equation in LaTeX format.
+        if format_string.lower() == EquationFormatter.CONSTANTS["latex"]:
+            return EquationFormatter.get_latex_format
+
+        # Return the function that sets the equation in Mathematica format.
+        if format_string.lower() == EquationFormatter.CONSTANTS["mathematica"]:
+            return EquationFormatter.get_mathematica_format
+
+    @staticmethod
+    def get_latex_format(state, derivative=False, order=0, rate_constant=False):
         """ Gets the string that represents a state in LaTeX format.
 
             :param state: The state for which to get LaTeX format string. It
@@ -1691,9 +1999,15 @@ class EquationFormatter:
             the particle and the second index represents the site where the
             particle is sitting.
 
+            :param derivative: True, if the state must be returned in derivative
+            format. False, otherwise.
+
             :param order: The order to which the state must be expanded. Order
             zero means the state must not be modified. Other orders means the
             state must be mean-field expanded to the given order.
+
+            :param rate_constant: True, if it is the rate constant that must be
+            formatted. False, otherwise.
 
             :return latex_state: The string that represents the state in a
             LaTeX format.
@@ -1778,6 +2092,21 @@ class EquationFormatter:
 
             return state_string0
 
+        def get_rate_constant():
+            """ Formats the rate constant such that it matches the LaTex format.
+
+                :return rate_string0: The formatted rate constant in LaTeX form.
+            """
+
+            # The rate constant list must be a string.
+            rate_constant_list0 = state.split(".")
+
+            # Sub-index the entries.
+            closing_string0 = "}" * (len(rate_constant_list0)-1)
+            rate_string0 = "_{".join(rate_constant_list0) + closing_string0
+
+            return rate_string0
+
         def single_term(term: tuple) -> str:
             """ Gets the string representation of a single term.
 
@@ -1800,18 +2129,27 @@ class EquationFormatter:
         # Auxiliary variables.
         state_string = ""
 
+        # If it is the rate constant the one that is to be formatted.
+        if rate_constant:
+            return get_rate_constant()
+
         if order == 0 or len(state) <= order:
             # Format the string.
             state_string += get_enclosed_state(state)
 
         else:
+            # Format the string.
             state_list = get_nth_order()
             state_string += get_nth_order_string()
+
+        # Format the state in derivative form.
+        if derivative:
+            state_string = "\\frac{d" + state_string + "}{dt}"
 
         return state_string
 
     @staticmethod
-    def get_mathematica_format(state, order=0):
+    def get_mathematica_format(state, derivative=False, order=0, rate_constant=False):
         """ Gets the string that represents a state in Mathematica format.
 
             :param state: The state for which to get Mathematica format string.
@@ -1819,9 +2157,15 @@ class EquationFormatter:
             the particle and the second index represents the site where the
             particle is sitting.
 
+            :param derivative: True, if the state must be returned in derivative
+            format. False, otherwise.
+
             :param order: The order to which the state must be expanded. Order
             zero means the state must not be modified. Other orders means the
             state must be mean-field expanded to the given order.
+
+            :param rate_constant: True, if it is the rate constant that must be
+            formatted. False, otherwise.
 
             :return latex_state: The string that represents the state in a
             Mathematica format.
@@ -1906,6 +2250,21 @@ class EquationFormatter:
 
             return state_string0
 
+        def get_rate_constant():
+            """ Formats the rate constant such that it matches the LaTex format.
+
+                :return rate_string0: The formatted rate constant in LaTeX form.
+            """
+
+            # The rate constant list must be a string.
+            rate_constant_list0 = state.split(".")
+
+            # Join all in uppercase letters.
+            rate_string0 = "".join(rate_constant_list0)
+            rate_string0 = rate_string0.upper()
+
+            return rate_string0
+
         def single_term(term: tuple) -> str:
             """ Gets the string representation of a single term.
 
@@ -1928,26 +2287,33 @@ class EquationFormatter:
         # Auxiliary variables.
         state_string = ""
 
+        # If it is the rate constant the one that is to be formatted.
+        if rate_constant:
+            return get_rate_constant()
+
         if order == 0 or len(state) <= order:
             # Format the string.
             state_string += get_enclosed_state(state)
 
         else:
+            # Format the string.
             state_list = get_nth_order()
             state_string += get_nth_order_string()
+
+        # Format the state in derivative form.
+        if derivative:
+            state_string = "\\D[" + state_string + ", t]"
 
         return state_string
 
 
 if __name__ == "__main__":
     # Test state:
-    test_state = (('CO',1), ('CO',2), ('CO',3), ('CO',4))
+    test_state = (('CO', 1), ('CO', 2), ('CO', 3))
 
     # Create the equation generator.
     tmp = EquationGenerator()
 
-    # Generate the lowest order equations.
-    tmp.get_exact_equations(False)
+    tmp.get_exact_equations()
 
-    # Get the equations in LaTeX format.
-    print(EquationFormatter.get_mathematica_format(test_state, 1))
+    tmp.generate_equations(gather_by_state=True, format_string="mathematica", order=1, save_file_name="tmp.txt")
