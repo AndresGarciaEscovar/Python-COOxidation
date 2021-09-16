@@ -78,16 +78,14 @@ class EquationGenerator:
     # Generate methods.
     # --------------------------------------------------------------------------
 
-    def generate_latex_equations(self, equation, gather_by_state=False, save_file_name=""):
+    def generate_latex_equations(self, gather_by_state=False, save_file_name=""):
         """ Generates the equations in LaTeX format.
-
-            :param equation: A list that represents an equation. Must be in the
-            format
-
-            [state, dictionary of decays, dictionary of creations]
 
             :param gather_by_state: True, if the terms must be factorized by
             state. False, if the terms must be factorized by reaction constant.
+
+            :param save_file_name: The name of the file where the strings will
+            be saved.
 
             :return: A string that represents the equations in LaTeX format.
         """
@@ -100,7 +98,18 @@ class EquationGenerator:
         # Implementation.
         # ----------------------------------------------------------------------
 
-        self._generate_latex_equation(self.equations[0], gather_by_state)
+        # List where the output strings are to be saved.
+        output_strings = []
+
+        # Get all the strings.
+        for equation in self.equations:
+            output_strings.append(self._generate_latex_equation(equation, gather_by_state))
+
+        # Save the strings to a file, if needed.
+        if not save_file_name == "":
+            to_save = "\n".join(output_strings)
+            with open(save_file_name, "w") as fl:
+                fl.write(to_save)
 
     # --------------------------------------------------------------------------
     # Get methods.
@@ -201,13 +210,13 @@ class EquationGenerator:
             str3 = "".join(["-" for _ in range(max_create)])
 
             # Print the formatted states.
-            for state in self.equations:
-                print(f"Initial state is {state[0]}:")
+            for state0 in self.equations:
+                print(f"Initial state is {state0[0]}:")
                 print(f"\t", "|", str1, "|", str2, "|", str3, "|")
-                print(f"\t", "|", f"{keyis:^{max_key}}", "|" , f"{decay:^{max_decay}}", "|" , f"{create:^{max_create}}", "|")
+                print(f"\t", "|", f"{keyis:^{max_key}}", "|", f"{decay:^{max_decay}}", "|", f"{create:^{max_create}}", "|")
                 print(f"\t", "|", str1, "|", str2, "|", str3, "|")
                 for key0 in keys:
-                    print(f"\t", "|", f"{key0:<{max_key}}", "|" , f"{str(state[1][key0]):<{max_decay}}", "|" , f"{str(state[2][key0]):<{max_create}}", "|")
+                    print(f"\t", "|", f"{key0:<{max_key}}", "|", f"{str(state0[1][key0]):<{max_decay}}", "|", f"{str(state0[2][key0]):<{max_create}}", "|")
                     print(f"\t", "|", str1, "|", str2, "|", str3, "|")
                 print("")
 
@@ -315,13 +324,14 @@ class EquationGenerator:
             # Auxiliary variables.
             latex_equation = ""
 
-            print(equation[0])
-
             # Go through each rate constant.
             for key0 in keys:
                 # --------------------------------------------------------------
                 # Decay terms.
                 # --------------------------------------------------------------
+
+                # Auxiliary variables.
+                tmp_dict = {}
 
                 # Get all the decay terms.
                 decay_terms = []
@@ -332,11 +342,20 @@ class EquationGenerator:
 
                 # Only append terms if there are terms to append.
                 if len(decay_terms) > 0:
-                    # Get the correct coefficient for the equation.
-                    number_string = "" if len(decay_terms) == 1 else f"{len(decay_terms)}"
+                    # Make the states a tuple and turn it into a set.
+                    decay_states0 = list(set(tuple(map(tuple, equation[1][key0]))))
+
+                    # Get the number of times a state appears in the state list.
+                    for statei in decay_states0:
+                        tmp_dict[self._get_format_latex(statei)] = tuple(map(tuple, equation[1][key0])).count(statei)
+
+                    decay_states0 = []
+                    for i, statei in enumerate(tmp_dict.keys()):
+                        tmp_string = statei if tmp_dict[statei] == 1 else str(tmp_dict[statei]) + statei
+                        decay_states0.append(tmp_string)
 
                     # Generate the string with the equation.
-                    decay_string = f"{number_string}{get_latex_format(equation[0])}"
+                    decay_string += ".".join(decay_states0)
 
                 # --------------------------------------------------------------
                 # Creation terms.
@@ -347,81 +366,257 @@ class EquationGenerator:
                 creation_terms.extend(equation[2][key0])
 
                 # Get the terms in LaTeX format.
-                creation_string = " + ".join(list(map(get_latex_format, creation_terms)))
+                creation_string = " + ".join(list(map(self._get_format_latex, creation_terms)))
 
                 # --------------------------------------------------------------
                 # Join the two strings; three cases to contemplate.
                 # --------------------------------------------------------------
 
-                # String where the result will be stored.
-                result_string = ""
-
                 # There are decay terms, but no creation terms.
                 if len(decay_terms) > 0 and len(creation_terms) == 0:
-                    pass
+                    # Set the digit string to empty.
+                    digits = ""
+
+                    decay_string = decay_string.split(".")
+
+                    # Get all the digits.
+                    if len(decay_terms) == 1:
+                        # Make the proper adjustments to the string.
+                        for i, character in enumerate(decay_string[0]):
+                            if character == "\\":
+                                decay_string = f"-{digits}{key0}" + decay_string[0][i:]
+                                break
+                            digits += str(character)
+
+                    else:
+                        decay_string = " + ".join(decay_string)
+                        decay_string = f"-{key0}\\left(" + decay_string + "\\right)"
+
+                    # Join the term to the string.
+                    latex_equation += decay_string
 
                 # There are no decay terms, but there are creation terms.
                 elif len(decay_terms) == 0 and len(creation_terms) > 0:
-                    pass
+                    if len(creation_terms) == 1:
+                        creation_string = f"+{key0}{creation_string}"
+                    else:
+                        creation_string = f"+{key0}\\left({creation_string}\\right)"
+
+                    latex_equation += creation_string
 
                 # There are both decay terms and creation terms.
                 elif len(decay_terms) > 0 and len(creation_terms) > 0:
-                    pass
+                    # Set the digit string to empty.
+                    decay_string = " - ".join(decay_string.split("."))
+                    latex_equation += f"+{key0}\\left(" + creation_string + "-" + decay_string + "\\right)"
 
+            # ------------------------------------------------------------------
+            # Finish formatting the equation.
+            # ------------------------------------------------------------------
 
+            # Fix the equation.
+            latex_equation = latex_equation[1:] if latex_equation[0] == "+" else latex_equation
+            latex_equation = " + ".join(latex_equation.split("+"))
+            latex_equation = " - ".join(latex_equation.split("-"))
 
-            return  latex_equation
+            return latex_equation
 
         def get_gathered_by_state():
             """ Returns the LaTeX equation string gathered by state.
 
                 :return: The LaTeX equation string gathered by state.
             """
-            pass
 
-        def get_latex_format(state0):
-            """ Gets the string that represents a state in LaTeX format.
+            # Auxiliary variables.
+            states = []
+            latex_equation = ""
+            equation0 = cp.deepcopy(equation)
 
-                :param state0: The state for which to get LaTeX format string.
+            # Make sure to convert the list equations into tuples.
+            for key in keys:
+                equation0[1][key] = tuple(map(tuple, equation0[1][key]))
+                equation0[2][key] = tuple(map(tuple, equation0[2][key]))
 
-                :return latex_state: The string that represents the state in a
-                LaTeX format.
-            """
+            # Get all the states
+            for key in keys:
+                # Get the states that make the current state decay.
+                for state in equation0[1][key]:
+                    states.append(state)
 
-            # Validate the state.
-            self._validate_state(state0)
+                # Get the states create the current state.
+                for state in equation0[2][key]:
+                    states.append(state)
 
-            # Format the string.
-            latex_states0 = "\\left<" + ", ".join([f"{x[0]}" + "_{" f"{x[1]}" + "}" for x in state0]) + "\\right>"
+            # Make it a tuple.
+            states = set(tuple(states))
 
-            return latex_states0
+            # Look for the state in the original dictionaries.
+            for state in states:
+                # List to store the constants.
+                create_string = ""
+                create_constants = []
+
+                decay_string = ""
+                decay_constants = []
+
+                # Look for the state in the different keys.
+                for key in keys:
+                    # ----------------------------------------------------------
+                    # Decay terms.
+                    # ----------------------------------------------------------
+
+                    if state in equation0[1][key]:
+                        # Count the number of times the state appears in the list.
+                        decay_count = equation0[1][key].count(state)
+
+                        # Append the proper key.
+                        key_string = key if decay_count == 1 else f"{decay_count}{key}"
+
+                        # Append the constant to the list.
+                        decay_constants.append(key_string)
+
+                    # ----------------------------------------------------------
+                    # Creation terms.
+                    # ----------------------------------------------------------
+
+                    if state in equation0[2][key]:
+                        # Count the number of times the state appears in the list.
+                        create_count = equation0[2][key].count(state)
+
+                        # Append the proper key.
+                        key_string = key if create_count == 1 else f"{create_count}{key}"
+
+                        # Append the constant to the list.
+                        create_constants.append(key_string)
+
+                # --------------------------------------------------------------
+                # Join the two strings; three cases to contemplate.
+                # --------------------------------------------------------------
+
+                # Generate the strings.
+                if len(decay_constants) > 0 and len(create_constants) == 0:
+                    # Auxiliary variables.
+                    digits = ""
+
+                    # In case there is a single term.
+                    if len(decay_constants) == 1:
+                        # Get the digits and cut the string, if needed.
+                        for i, digit in enumerate(decay_constants[0]):
+                            # Get the numeric portion of the string.
+                            if digit.isnumeric():
+                                digits += str(digit)
+                                continue
+
+                            # Cut where needed.
+                            decay_constants[0] = decay_constants[0][i:]
+                            break
+
+                        # Format the string.
+                        decay_string += f"-{decay_constants[0]}{self._get_format_latex(state)}"
+
+                    # In case there are more terms.
+                    else:
+                        # Format the string.
+                        decay_string += f"-\\left({'+'.join(decay_constants)}\\right){self._get_format_latex(state)}"
+
+                    # Append it to the general string.
+                    latex_equation += decay_string
+
+                elif len(decay_constants) == 0 and len(create_constants) > 0:
+
+                    # Auxiliary variables.
+                    digits = ""
+
+                    # In case there is a single term.
+                    if len(create_constants) == 1:
+                        # Get the digits and cut the string, if needed.
+                        for i, digit in enumerate(create_constants[0]):
+                            # Get the numeric portion of the string.
+                            if digit.isnumeric():
+                                digits += str(digit)
+                                continue
+
+                            # Cut where needed.
+                            create_constants[0] = create_constants[0][i:]
+                            break
+
+                        # Format the string.
+                        create_string += f"+{create_constants[0]}{self._get_format_latex(state)}"
+
+                    # In case there are more terms.
+                    else:
+                        # Format the string.
+                        create_string += f"+\\left({'+'.join(create_constants)}\\right){self._get_format_latex(state)}"
+
+                    # Append it to the general string.
+                    latex_equation += create_string
+
+                elif len(decay_constants) > 0 and len(create_constants) > 0:
+                    full_string = "\\left(" + "+".join(create_constants) + "-" + "+".join(decay_constants) + "\\right)"
+                    full_string += self._get_format_latex(state)
+
+            # Format the equation further.
+            latex_equation = latex_equation.strip()
+            latex_equation = latex_equation[1:] if latex_equation[0] == "+" else latex_equation
+            latex_equation = " + ".join(latex_equation.split("+"))
+            latex_equation = " - ".join(latex_equation.split("-"))
+
+            return latex_equation
 
         # ----------------------------------------------------------------------
         # Implementation.
         # ----------------------------------------------------------------------
 
         # Auxiliary variables.
-        decay_lengths = {}
 
         # Get the keys of the processes.
         keys = self._get_keys()
 
-        # Generate the dictionary of the length of the decay states.
-        for key in keys:
-            # Do it for all the keys.
-            decay_lengths[key] = len(equation[1][key])
+        # Get the differential of the state.
+        equation_string = "\\frac{d" + self._get_format_latex(equation[0]) + "}{dt} = "
 
-        # Write the results gathered by states.
-        if gather_by_state:
+        # Write the results gathered in the requested order.
+        equation_string += get_gathered_by_state().strip() if gather_by_state else get_gathered_by_constant().strip()
 
-            return
-
-        # Write the results gathered by rate constant.
-        get_gathered_by_constant()
+        return equation_string
 
     # --------------------------------------------------------------------------
     # Get methods.
     # --------------------------------------------------------------------------
+
+    def _get_format_latex(self, state):
+        """ Gets the string that represents a state in LaTeX format.
+
+            :param state: The state for which to get LaTeX format string.
+
+            :return latex_state: The string that represents the state in a
+            LaTeX format.
+        """
+
+        # Validate the state.
+        self._validate_state(state)
+
+        # Format the string.
+        latex_states0 = "\\left<" + ", ".join([f"{x[0]}" + "_{" f"{x[1]}" + "}" for x in state]) + "\\right>"
+
+        return latex_states0
+
+    def _get_format_mathematica(self, state):
+        """ Gets the string that represents a state in Mathematica format.
+
+            :param state: The state for which to get Mathematica format string.
+
+            :return latex_state: The string that represents the state in a
+            Mathematica format.
+        """
+
+        # Validate the state.
+        self._validate_state(state)
+
+        # Format the string.
+        latex_states0 = "P" + ",".join([f"{x[0]}{x[1]}" for x in state]) + "[t]"
+
+        return latex_states0
 
     def _get_keys(self):
         """ Returns the strings that represent the processes that serve as keys
@@ -1482,13 +1677,277 @@ class EquationGenerator:
                  'o_o_ads', 'o_o_des', 'o_o_dif', 'o_co_ads', 'o_co_des', 'o_co_dif', 'o_coo_lh', 'o_coo_er',
                  'sites', 'states']
 
+class EquationFormatter:
+    """ A static class that contains equation formatting functions that are
+        generated by the equation generator.
+    """
+
+    @staticmethod
+    def get_latex_format(state, order=0):
+        """ Gets the string that represents a state in LaTeX format.
+
+            :param state: The state for which to get LaTeX format string. It
+            must be an N-tuple of 2-tuples, where the first index represents
+            the particle and the second index represents the site where the
+            particle is sitting.
+
+            :param order: The order to which the state must be expanded. Order
+            zero means the state must not be modified. Other orders means the
+            state must be mean-field expanded to the given order.
+
+            :return latex_state: The string that represents the state in a
+            LaTeX format.
+        """
+
+        # ----------------------------------------------------------------------
+        # Auxiliary functions.
+        # ----------------------------------------------------------------------
+
+        def get_enclosed_state(state0):
+            """ Given an N-tuple of 2-tuples, returns the given state in a LaTeX
+                format.
+
+                :param state0: An N-tuple of 2-tuples, where the first index
+                of the 2-tuples represents the particle and the second index
+                represents the site where the particle is sitting.
+
+                :return: A string representation of the state.
+            """
+
+            # Enclose the state properly.
+            state_string0 = "\\left<" + ",".join([single_term(term) for term in state0]) + "\\right>"
+
+            return state_string0
+
+        def get_nth_order():
+            """ Gets the list a states, such that the states are n sites long.
+                If the length of the initial state is less than the order of the
+                requested approximation, it returns the state itself.
+
+                :return state_list0: A list of states, each n-sites long or
+                shorter.
+            """
+
+            # Auxiliary variables.
+            state_list0 = []
+
+            # Dont approximate the states that are shorter.
+            if len(state) <= order:
+                return [state]
+
+            # Split the state in the required number of states.
+            for i, _ in enumerate(state):
+                # Do this process until all the possible states are obtained.
+                if i + order > len(state):
+                    break
+
+                # Append the states.
+                state_list0.append(cp.deepcopy(state[i: i + order]))
+
+            return state_list0
+
+        def get_nth_order_string():
+            """ Gets the string for the states expanded to the nth order.
+
+                :return: The formatted string to the nth order.
+            """
+
+            # Auxiliary variables.
+            numerator_states0 = []
+            denominator_states0 = []
+
+            # Run along all the states.
+            for i, state0 in enumerate(state_list):
+
+                # Get the numerator states.
+                numerator_states0.append(state0)
+
+                # Only need to get this terms for contiguous states
+                if i > len(state_list) - 2:
+                    continue
+
+                # Get the intersection of the ith state and the (i+1)th state.
+                denominator_states0.append(tuple(sorted(tuple(set(state_list[i]) & set(state_list[i + 1])), key=lambda x: x[1])))
+
+            # Get the LaTeX representation for the states.
+            numerator_states0 = "".join(list(map(get_enclosed_state, numerator_states0)))
+            denominator_states0 = "".join(list(map(get_enclosed_state, denominator_states0)))
+
+            # Create the string.
+            state_string0 = "\\frac{" + numerator_states0 + "}{" + denominator_states0 + "}" if order > 1 else numerator_states0
+
+            return state_string0
+
+        def single_term(term: tuple) -> str:
+            """ Gets the string representation of a single term.
+
+                :param term: A 2-tuple, where the first index represents the
+                particle and the second index represents the site where the
+                particle is sitting.
+
+                :return: A string representation of the term.
+            """
+
+            # Format the term properly.
+            term_string = f"{term[0]}" + "_{" f"{term[1]}" + "}"
+
+            return term_string
+
+        # ----------------------------------------------------------------------
+        # Implementation.
+        # ----------------------------------------------------------------------
+
+        # Auxiliary variables.
+        state_string = ""
+
+        if order == 0 or len(state) <= order:
+            # Format the string.
+            state_string += get_enclosed_state(state)
+
+        else:
+            state_list = get_nth_order()
+            state_string += get_nth_order_string()
+
+        return state_string
+
+    @staticmethod
+    def get_mathematica_format(state, order=0):
+        """ Gets the string that represents a state in Mathematica format.
+
+            :param state: The state for which to get Mathematica format string.
+            It must be an N-tuple of 2-tuples, where the first index represents
+            the particle and the second index represents the site where the
+            particle is sitting.
+
+            :param order: The order to which the state must be expanded. Order
+            zero means the state must not be modified. Other orders means the
+            state must be mean-field expanded to the given order.
+
+            :return latex_state: The string that represents the state in a
+            Mathematica format.
+        """
+
+        # ----------------------------------------------------------------------
+        # Auxiliary functions.
+        # ----------------------------------------------------------------------
+
+        def get_enclosed_state(state0):
+            """ Given an N-tuple of 2-tuples, returns the given state in a
+                Mathematica format.
+
+                :param state0: An N-tuple of 2-tuples, where the first index
+                of the 2-tuples represents the particle and the second index
+                represents the site where the particle is sitting.
+
+                :return: A string representation of the state.
+            """
+
+            # Enclose the state properly.
+            state_string0 = "P" + "".join([single_term(term) for term in state0]) + "[t]"
+
+            return state_string0
+
+        def get_nth_order():
+            """ Gets the list a states, such that the states are n sites long.
+                If the length of the initial state is less than the order of the
+                requested approximation, it returns the state itself.
+
+                :return state_list0: A list of states, each n-sites long or
+                shorter.
+            """
+
+            # Auxiliary variables.
+            state_list0 = []
+
+            # Dont approximate the states that are shorter.
+            if len(state) <= order:
+                return [state]
+
+            # Split the state in the required number of states.
+            for i, _ in enumerate(state):
+                # Do this process until all the possible states are obtained.
+                if i + order > len(state):
+                    break
+
+                # Append the states.
+                state_list0.append(cp.deepcopy(state[i: i + order]))
+
+            return state_list0
+
+        def get_nth_order_string():
+            """ Gets the string for the states expanded to the nth order.
+
+                :return: The formatted string to the nth order.
+            """
+
+            # Auxiliary variables.
+            numerator_states0 = []
+            denominator_states0 = []
+
+            # Run along all the states.
+            for i, state0 in enumerate(state_list):
+
+                # Get the numerator states.
+                numerator_states0.append(state0)
+
+                # Only need to get this terms for contiguous states
+                if i > len(state_list) - 2:
+                    continue
+
+                # Get the intersection of the ith state and the (i+1)th state.
+                denominator_states0.append(tuple(sorted(tuple(set(state_list[i]) & set(state_list[i + 1])), key=lambda x: x[1])))
+
+            # Get the LaTeX representation for the states.
+            numerator_states0 = "*".join(list(map(get_enclosed_state, numerator_states0)))
+            denominator_states0 = "*".join(list(map(get_enclosed_state, denominator_states0)))
+
+            # Create the string.
+            state_string0 = f"{numerator_states0}/({denominator_states0})" if order > 1 else numerator_states0
+
+            return state_string0
+
+        def single_term(term: tuple) -> str:
+            """ Gets the string representation of a single term.
+
+                :param term: A 2-tuple, where the first index represents the
+                particle and the second index represents the site where the
+                particle is sitting.
+
+                :return: A string representation of the term.
+            """
+
+            # Format the term properly.
+            term_string = f"{term[0]}{term[1]}"
+
+            return term_string
+
+        # ----------------------------------------------------------------------
+        # Implementation.
+        # ----------------------------------------------------------------------
+
+        # Auxiliary variables.
+        state_string = ""
+
+        if order == 0 or len(state) <= order:
+            # Format the string.
+            state_string += get_enclosed_state(state)
+
+        else:
+            state_list = get_nth_order()
+            state_string += get_nth_order_string()
+
+        return state_string
+
 
 if __name__ == "__main__":
+    # Test state:
+    test_state = (('CO',1), ('CO',2), ('CO',3), ('CO',4))
+
     # Create the equation generator.
     tmp = EquationGenerator()
 
     # Generate the lowest order equations.
-    tmp.get_exact_equations()
+    tmp.get_exact_equations(False)
 
     # Get the equations in LaTeX format.
-    tmp.generate_latex_equations(tmp.equations[0], False)
+    print(EquationFormatter.get_mathematica_format(test_state, 1))
