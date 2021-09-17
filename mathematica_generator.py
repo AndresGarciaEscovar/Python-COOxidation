@@ -10,6 +10,7 @@ import numpy as np
 from collections.abc import Iterable
 from itertools import product
 
+
 class EquationGenerator:
     """ Generates the differential equations in different formats. Currently
         only Mathematica and LaTeX are supported.
@@ -472,7 +473,7 @@ class EquationGenerator:
     # Get methods.
     # --------------------------------------------------------------------------
 
-    def get_exact_equations(self, print_equations=False):
+    def get_0th_order_equations(self, print_equations=False):
         """ Gets the lowest order exact equations.
 
             :param print_equations: True, if the equations are to be printed
@@ -674,10 +675,13 @@ class EquationGenerator:
         if print_equations:
             print_states()
 
-    def get_nth_order_equations(self, order=1, print_equations=False):
+    def get_nth_order_equations(self, order=0, print_equations=False):
         """ Gets the equations up to the nth order term, i.e., the equations
             of states from 0 to n-1 order. If the order is the same as the
             number of sites, it gives the EXACT equations for the system.
+
+            :param order: The order to which the equations must be obtained. It
+            must be an integer in the range [0, self.number_of_sites].
 
             :param print_equations: True, if the equations are to be printed
             once the process finishes. False, otherwise.
@@ -759,6 +763,26 @@ class EquationGenerator:
 
             return involved_states0
 
+        def get_lowest_states():
+            """ Gets the states that are involved in the calculation.
+
+                :return involved_states0: A list with the states that are involved in the
+                calculation.
+            """
+
+            # Auxiliary variables.
+            involved_states0 = []
+
+            if order >= self.number_of_sites:
+                pass
+            elif order >= max(self._get_orders()):
+                pass
+            else:
+                pass
+
+
+            return involved_states0
+
         def get_resulting_states():
             """ Gets the resultant states after ALL processes are applied to ALL
                 the states.
@@ -836,26 +860,27 @@ class EquationGenerator:
         # Implementation.
         # ----------------------------------------------------------------------
 
-        # If the order is one, get the exact equations.
-        if order == 1:
-            self.get_exact_equations(print_equations)
-            return
+        # Get the zeroth order equations, these will serve as the basis.
+        if order == 0 or order < self.number_of_sites:
+            self.get_0th_order_equations(print_equations)
+
+            # Get the equations to the lowest order.
+            if order == 0 or order == 1:
+                return
 
         # ----------------------------------------------------------------------
-        # Get the equations for the nth order term.
+        # Get the equations for the nth order term; do not empty the
+        # exact equations, these will serve as the basis.
         # ----------------------------------------------------------------------
 
         # Validate that the order is correct.
         validate_order()
 
-        # First, empty the equations list.
-        self.equations = []
-
         # Get the information of the process functions and process orders.
         process_functions, process_orders = self._get_process_functions()
 
         # Get states for which the equations will be obtained.
-        lowest_states = self._get_states(order)
+        lowest_states = get_lowest_states()
 
         # Get ALL the states that are potentially involved in the calculation.
         involved_states = get_involved_states()
@@ -2151,7 +2176,7 @@ class EquationFormatter:
     # CONSTANTS.
     # --------------------------------------------------------------------------
 
-    CONSTANTS = {"latex":"latex", "mathematica":"mathematica"}
+    CONSTANTS = {"latex": "latex", "mathematica": "mathematica"}
 
     # --------------------------------------------------------------------------
     # Get methods.
@@ -2503,6 +2528,6 @@ if __name__ == "__main__":
     # Create the equation generator.
     tmp = EquationGenerator()
 
-    tmp.get_exact_equations()
+    tmp.get_nth_order_equations(order=1, approximate_to_order=False, print_equations=True)
 
     tmp.generate_equations(gather_by_state=True, format_string="mathematica", order=1, save_file_name="tmp.txt")
