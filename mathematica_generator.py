@@ -5,6 +5,8 @@
 
 # Imports.
 import copy as cp
+import itertools
+
 import numpy as np
 
 from collections.abc import Iterable
@@ -1177,6 +1179,71 @@ class EquationGenerator:
     # --------------------------------------------------------------------------
     # Get methods.
     # --------------------------------------------------------------------------
+
+    def _get_contracted_state(self, states, entry=-1):
+        """ From a list of states, it returns the completely contracted state.
+            For this to happen, the list of states must contain as much states
+            as there arr possible number of states and the indexes of ALL the
+            states must be the same.
+
+            :param states: The list of states that are to be contracted.
+
+            :param entry: The entry of the list to be contracted. It must be a
+            number between zero and the length of one of the states, or a
+            negative number, i.e., an index that indicates the index of the
+            array to contracted.
+
+            :return contracted_state: The contracted state. If it is empty, it
+            means that the state cannot be contracted.
+        """
+
+        # ----------------------------------------------------------------------
+        # Auxiliary functions.
+        # ----------------------------------------------------------------------
+
+        def validate_states(entry0):
+            """ Checks that the states are valid to perform an index
+                contraction operation.
+
+                :param entry0: The entry0 of the list to be contracted. It must
+                be a number between zero and the length of one of the states, or
+                a negative number, i.e., an index that indicates the index of
+                the array to contracted.
+            """
+
+            # Verify it is a list of valid states.
+            for state0 in states:
+                self._validate_state(state0)
+
+            # Verify that the list contains as much states as possible site states.
+            if not len(states) == len(self.states):
+                raise ValueError("When a state is to be contracted, there must be "
+                                 "as many states as particles. Number of requested = "
+                                 f"{len(states)}, possible site states = {len(self.states)}")
+
+            # Verify that the index is within the limits.
+            while entry0 < 0:
+                entry0 += len(states[0])
+
+            # Verify that the index is
+            if entry 0 > len(state0[0])
+
+
+
+        # ----------------------------------------------------------------------
+        # Implementation.
+        # ----------------------------------------------------------------------
+
+        # Validate the states
+        validate_states()
+
+        # Auxiliary variables.
+        states_indexes = []
+        states_particles = []
+
+        # ----------------------------------------------------------------------
+        # Validate the indexes for contraction.
+        # ----------------------------------------------------------------------
 
     def _get_keys(self):
         """ Returns a tuple that contains the strings that represent the
@@ -2527,11 +2594,21 @@ class EquationFormatter:
 
 if __name__ == "__main__":
     # Test state:
-    test_state = (('CO', 1), ('CO', 2), ('CO', 3))
+    state_list0 = [(('E', 1), ('E', 2), ('E', 3)),
+                   (('CO', 1), ('E', 2), ('E', 3)),
+                   (('O', 1), ('E', 2), ('E', 3))
+                   ]
+
 
     # Create the equation generator.
     tmp = EquationGenerator()
 
-    tmp.get_nth_order_equations(order=2, print_equations=False)
+    # for i, state213 in enumerate(list_of_states):
+    #     print(i, state213)
 
-    tmp.generate_equations(gather_by_state=True, format_string="mathematica", order=1, save_file_name="tmp.txt")
+    tmp._get_contracted_state(state_list0, 2)
+
+
+    # tmp.get_nth_order_equations(order=2, print_equations=False)
+    #
+    # tmp.generate_equations(gather_by_state=True, format_string="mathematica", order=1, save_file_name="tmp.txt")
