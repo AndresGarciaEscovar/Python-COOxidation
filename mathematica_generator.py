@@ -85,7 +85,7 @@ class EquationGenerator:
         return cp.deepcopy(self.__k_o_ads)
 
     @k_o_ads.setter
-    def k_o_ads(self, k_o_ads):
+    def k_o_ads(self, _):
         """ Sets the oxygen adsorption parameter.
         """
         self.__k_o_ads = "k.O.ads"
@@ -717,14 +717,94 @@ class EquationGenerator:
             """
 
             # Only proceed if the state is in the process.
-            if not self._get_state1_in_state2(state0[0], state1[0]):
+            if not self._get_state1_in_state2(state0, state1[0]):
                 return
 
-            # Check all the keys.
-            for key1 in keys:
-                # Append the states to the dictionary if needed.
-                if len(state1[0]) >= process_orders[key1] and len(state1[1][key1]) > 0:
-                    state0[1][key1].extend([cp.deepcopy(state1[0]) for _ in state1[1][key1]])
+            # Go through all the process the keys.
+            for key in keys:
+                # Go through all the decay states due to a process.
+                for state0_0 in state1[1][key]:
+                    # Only append the original state has decayed.
+                    if not self._get_state1_in_state2(state0, state0_0):
+                        decay_dictionary[key].append(state1[0])
+
+        def get_filtered_contracted_states(state0, states0):
+            """ Gets a list of all the UNIQUE states, with the number of times
+                it appears in the list.
+
+                :param state0: The target state to be obtained by contraction.
+
+                :param states0: The list of states to be filtered.
+
+                :return filtered_states0: The list of filtered states.
+            """
+
+            # Proceed only if the list length is greater than zero.
+            if len(states0) == 0:
+                return states0
+
+            # Auxiliary variables.
+            state_count0 = []
+
+            # Get a list of all the UNIQUE states and get the count of them.
+            filtered_states0 = sorted(list(set(states0)), key=lambda x: (len(x), x[0][0], x[0][1]))
+
+            # Number of unique states.
+            unique_state_length0 = 0
+
+            # Contract the states if needed.
+            while not unique_state_length0 == len(filtered_states0):
+                # Get the list of all the combinations needed to contract a state.
+                nplets_combinations0 = tuple(itertools.combinations(filtered_states0, len(self.states)))
+
+                # If there are no triplet combinations.
+                if len(nplets_combinations0) == 0:
+                    break
+
+                # Try contract the nplets at both sides.
+                for nplets_combination0 in nplets_combinations0:
+                    contracted0_0 = self._get_contracted_state(nplets_combination0, -1)
+                    contracted0_1 = self._get_contracted_state(nplets_combination0, 0)
+
+                    # If there are contracted indexes towards the right.
+                    if len(contracted0_0[0]) > 1 and self._get_state1_in_state2(state0, contracted0_0[0]):
+                        filtered_states0 = [state0_2 for state0_2 in filtered_states0 if state0_2 not in contracted0_0[1]]
+
+                        # Add the state as needed.
+                        if contracted0_0[0] not in filtered_states0:
+                            filtered_states0.append(contracted0_0[0])
+
+                        break
+
+                    # If there are contracted indexes towards the left.
+                    if len(contracted0_1[0]) > 1 and self._get_state1_in_state2(state0, contracted0_1[0]):
+                        filtered_states0 = [state0_2 for state0_2 in filtered_states0 if state0_2 not in contracted0_1[1]]
+
+                        # Add the state as needed.
+                        if contracted0_1[0] not in filtered_states0:
+                            filtered_states0.append(contracted0_1[0])
+
+                        break
+
+            # ------------------------------------------------------------------
+            # Get the multiplicity of the terms.
+            # ------------------------------------------------------------------
+
+            # Auxiliary variables.
+            tmp_filtered = cp.deepcopy(filtered_states0)
+
+            # Empty the filtered states.
+            filtered_states0 = []
+
+            # Get the new filtered states.
+            for state0 in tmp_filtered:
+                # Get each state's multiplicity.
+                num = 1 if states0.count(state0) == 0 else states0.count(state0)
+
+                # Add to the list.
+                filtered_states0.append(tuple([state0, num]))
+
+            return filtered_states0
 
         def get_involved_states():
             """ Gets the states that are involved in the calculation.
@@ -734,35 +814,37 @@ class EquationGenerator:
             """
 
             # Auxiliary variables.
-            involved_orders0 = []
+            involved_orders0 = [order]
             involved_states0 = []
+            orders0 = []
 
             # ------------------------------------------------------------------
             # Get the orders involved.
             # ------------------------------------------------------------------
 
             # Get the orders of the processes.
-            orders0 = self._get_orders()
+            orders0.extend(self._get_orders())
 
             # Get the order of the states for which the gains/decays will happen.
-            length_states0 = tuple(set(tuple(map(len, lowest_states))))
+            length_states0 = set(tuple(map(len, lowest_states)))
 
             # Get the orders of the states involved in the calculations.
             for order0 in orders0:
+                # State of the current order will always be involved.
+                involved_orders0.append(order0)
+
                 # Get the specific order of each state.
                 for length_state0 in length_states0:
                     # Use the criteria to add the states.
-                    involved_orders0.append(length_state0 + order0 - 1)
+                    involved_orders0.extend([i for i in range(order0, order0 + length_state0)])
 
-            # Filter the states, so that they are all unique.
-            involved_orders0 = [order1 if order1 < self.number_of_sites else self.number_of_sites for order1 in involved_orders0]
-            involved_orders0 = tuple(involved_orders0)
+            # Filter the involved orders.
             involved_orders0 = set(involved_orders0)
-            involved_orders0 = tuple(involved_orders0)
+            involved_orders0 = [i for i in involved_orders0 if order <= i <= self.number_of_sites]
 
             # Get ALL the involved states.
-            for order0_1 in involved_orders0:
-                involved_states0.extend(self._get_states(order0_1))
+            for order0 in involved_orders0:
+                involved_states0.extend(self._get_states(order0))
 
             return involved_states0
 
@@ -862,33 +944,33 @@ class EquationGenerator:
         decay_dictionary = {}
         create_dictionary = {}
 
+        # Decay states
+
         # Get the keys.
         keys = self._get_keys()
 
         # Get the resulting states from making the operations.
         resultant_states = get_resulting_states()
 
-        # TODO: Work in the order reducer.
+        # Go through each lowest order state.
+        for state_0 in lowest_states:
 
-        # ----------------------------------------------------------------------
-        # Get the resulting states.
-        # ----------------------------------------------------------------------
+            # Empty the dictionaries.
+            empty_dictionaries()
 
-        # Empty the decay and creation dictionaries.
-        empty_dictionaries()
+            # Get the decay states.
+            for state_1 in resultant_states:
+                # Get the decay states for the lowest order state.
+                get_decay_states(state_0, state_1)
 
-        # Check how each state can be generated.
-        for low_state in lowest_states:
-            # Set the format of the state to the final state.
-            low_state = [low_state, cp.deepcopy(decay_dictionary), cp.deepcopy(create_dictionary)]
-
-            # Check every state.
-            for resultant_state in resultant_states:
-                # Get the decay states.
-                get_decay_states(low_state, resultant_state)
-
-            # Add the equation to the list.
-            # self.equations.append(cp.deepcopy(low_state))
+            # Get the unique and filtered states.
+            print(state_0)
+            for key in keys:
+                decay_dictionary[key] = get_filtered_contracted_states(state_0, decay_dictionary[key])
+                print("\t",key)
+                for state_1 in decay_dictionary[key]:
+                    print("\t\t", state_1[0], ", ", state_1[1])
+            print("")
 
     # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
     # Private Interface.
@@ -1188,13 +1270,13 @@ class EquationGenerator:
 
             :param states: The list of states that are to be contracted.
 
-            :param entry: The entry of the list to be contracted. It must be a
-            number between zero and the length of one of the states, or a
-            negative number, i.e., an index that indicates the index of the
-            array to contracted.
+            :param entry: The entry of the list to be contracted. It must be an
+            integer number between zero and the length of one of the states, or
+            a negative integer number, i.e., an index that indicates the index
+            of the array to contracted.
 
-            :return contracted_state: The contracted state. If it is empty, it
-            means that the state cannot be contracted.
+            :return contracted_state: The contracted state; if return value is
+            an empty tuple, it means that the state cannot be contracted.
         """
 
         # ----------------------------------------------------------------------
@@ -1208,7 +1290,11 @@ class EquationGenerator:
                 :param entry0: The entry0 of the list to be contracted. It must
                 be a number between zero and the length of one of the states, or
                 a negative number, i.e., an index that indicates the index of
-                the array to contracted.
+                the array to contracted. The length of the states to be
+                contracted must be the same.
+
+                :return True, if the state is valid for contraction. False,
+                otherwise.
             """
 
             # Verify it is a list of valid states.
@@ -1225,25 +1311,84 @@ class EquationGenerator:
             while entry0 < 0:
                 entry0 += len(states[0])
 
-            # Verify that the index is
-            if entry 0 > len(state0[0])
+            # Raise an error if the entry is not valid.
+            if entry0 >= len(states[0]):
+                raise ValueError("The requested entry for contraction must be a negative "
+                                 f"integer or a positive integer less than {len(states[0])}."
+                                 f" Current value: {entry}")
 
+            # ----------------------------------------------------------------------
+            # Return if the index is valid.
+            # ----------------------------------------------------------------------
 
+            # All the states must have the same length to continue the process.
+            if not len(set((map(lambda x: len(x), states)))) == 1:
+                return False
+
+            return True
 
         # ----------------------------------------------------------------------
         # Implementation.
         # ----------------------------------------------------------------------
 
         # Validate the states
-        validate_states()
+        if not validate_states(entry):
+            return tuple([]), states
 
         # Auxiliary variables.
         states_indexes = []
         states_particles = []
 
+        # Get the indexes and particles of the states.
+        for i, state in enumerate(states):
+            tmp_particles = tuple([entry[0] for entry in state])
+            tmp_indexes = tuple([entry[1] for entry in state])
+
+            states_indexes.append(tmp_indexes)
+            states_particles.append(tmp_particles)
+
         # ----------------------------------------------------------------------
         # Validate the indexes for contraction.
         # ----------------------------------------------------------------------
+
+        # Convert the particles array into a numpy array.
+        states_particles = np.array(states_particles, dtype=str)
+
+        # If there are different indexes do not continue.
+        if not len(set(states_indexes)) == 1:
+            tuple([]), states
+
+        # Turn the columns into rows.
+        tmp_states_particles = np.transpose(states_particles)
+
+        # Check that the desired row contains all the states.
+        if not set(tmp_states_particles[entry]) == set(self.states):
+            tuple([]), states
+
+        # Delete the given row.
+        tmp_states_particles = np.delete(tmp_states_particles, obj=entry, axis=0)
+
+        # Check that the rest of the rest of the entries have the same element.
+        if not all(map(lambda x: len(set(x)) == 1, tmp_states_particles)):
+            tuple([]), states
+
+        # Conver the indexes into a numpy array.
+        states_indexes = np.array(states_indexes[0], dtype=int)
+
+        # Delete the given row.
+        states_indexes = np.delete(states_indexes, obj=entry, axis=0)
+
+        # Get the contracted state.
+        states_particles = tmp_states_particles.transpose()[0]
+
+        # Create the contracted state.
+        contracted_state = tuple(tuple([state0, states_indexes[i]]) for i, state0 in enumerate(states_particles))
+
+        # Remember to use the probability identity.
+        if len(contracted_state) == 0:
+            contracted_state = (1,)
+
+        return contracted_state, states
 
     def _get_keys(self):
         """ Returns a tuple that contains the strings that represent the
@@ -1436,33 +1581,25 @@ class EquationGenerator:
         self._validate_state(state1)
         self._validate_state(state2)
 
-        # Determine if they are the same.
-        is_sub_state = state1 == state2
-
-        # If the states are equal no need to continue.
-        if is_sub_state:
-            return is_sub_state
-
         # If the state1 is longer than state 2, the state cannot be a
         # subtate of state2.
         if len(state1) > len(state2):
             return False
 
+        # If the states are equal no need to continue.
+        if state1 == state2:
+            return True
+
+        substate1 = sorted(state1, key=lambda x: (x[1], x[0]))
+        substate2 = list(map(tuple, itertools.combinations(state2, len(substate1))))
+
         # Otherwise, ALL the entries in state1 must be in state2.
-        for i, entry in enumerate(state1):
-            # The first entry can determine the state.
-            if i == 0:
-                is_sub_state = any(map(lambda x: entry == x, state2))
-                continue
+        for substate in substate2:
+            # If an equality is found.
+            if substate1 == sorted(substate, key=lambda x: (x[1], x[0])):
+                return True
 
-            # If an entry is not in the state, it cannot be a substate.
-            if not is_sub_state:
-                break
-
-            # Check all the entries.
-            is_sub_state = is_sub_state and any(map(lambda x: entry == x, state2))
-
-        return is_sub_state
+        return False
 
     # --------------------------------------------------------------------------
     # Carbon monoxide exclusive methods.
@@ -2110,7 +2247,7 @@ class EquationGenerator:
         if not all(map(lambda x: isinstance(x, (tuple,)), state)):
             tmp_types = [str(type(x)) for x in state]
             raise TypeError(f"A state must be a collection of tuples, at least one elements is not "
-                            f"a tuple. Types of state: {tmp_types}")
+                            f"a tuple. State: {state}, Types of state: {tmp_types}")
 
         # Check that each entry in the state is 2 sites long.
         if not all(map(lambda x: len(x) == 2, state)):
@@ -2590,25 +2727,3 @@ class EquationFormatter:
             state_string = "D[" + state_string + ", t]"
 
         return state_string
-
-
-if __name__ == "__main__":
-    # Test state:
-    state_list0 = [(('E', 1), ('E', 2), ('E', 3)),
-                   (('CO', 1), ('E', 2), ('E', 3)),
-                   (('O', 1), ('E', 2), ('E', 3))
-                   ]
-
-
-    # Create the equation generator.
-    tmp = EquationGenerator()
-
-    # for i, state213 in enumerate(list_of_states):
-    #     print(i, state213)
-
-    tmp._get_contracted_state(state_list0, 2)
-
-
-    # tmp.get_nth_order_equations(order=2, print_equations=False)
-    #
-    # tmp.generate_equations(gather_by_state=True, format_string="mathematica", order=1, save_file_name="tmp.txt")
