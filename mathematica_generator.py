@@ -205,19 +205,19 @@ class EquationGenerator:
     # --------------------------------------------------------------------------
 
     @property
-    def k_coo_el(self):
+    def k_coo_er(self):
         """ Gets the carbon monoxide - oxygen  gas-phase reaction order.
         """
-        return cp.deepcopy(self.__k_coo_el)
+        return cp.deepcopy(self.__k_coo_er)
 
-    @k_coo_el.setter
-    def k_coo_el(self, _):
+    @k_coo_er.setter
+    def k_coo_er(self, _):
         """ Sets the carbon monoxide - oxygen  gas-phase reaction parameter.
         """
-        self.__k_coo_el = "k.COO.el"
+        self.__k_coo_er = "k.COO.el"
 
-    @k_coo_el.deleter
-    def k_coo_el(self):
+    @k_coo_er.deleter
+    def k_coo_er(self):
         pass
 
     # --------------------------------------------------------------------------
@@ -349,19 +349,19 @@ class EquationGenerator:
     # --------------------------------------------------------------------------
 
     @property
-    def o_coo_el(self):
+    def o_coo_er(self):
         """ Gets the carbon monoxide - oxygen  gas-phase reaction order.
         """
-        return cp.deepcopy(self.__o_coo_el)
+        return cp.deepcopy(self.__o_coo_er)
 
-    @o_coo_el.setter
-    def o_coo_el(self, _):
+    @o_coo_er.setter
+    def o_coo_er(self, _):
         """ Sets the carbon monoxide - oxygen  gas-phase reaction parameter.
         """
-        self.__o_coo_el = 1
+        self.__o_coo_er = 1
 
-    @o_coo_el.deleter
-    def o_coo_el(self):
+    @o_coo_er.deleter
+    def o_coo_er(self):
         pass
 
     # --------------------------------------------------------------------------
@@ -702,13 +702,45 @@ class EquationGenerator:
                 decay_dictionary[key0] = []
                 create_dictionary[key0] = []
 
+        def get_creation_states(state0, state1):
+            """ Appends the states that create state0 for each process.
+
+                :param state0: The list that contains the information of the
+                state0, that is the state which is tested for creation.
+
+                :param state1: The list that contains the information of the
+                state which must contain state0.
+
+                [original_state, decay_dictionary]
+            """
+
+            # A state cannot be created by itself.
+            if self._get_state1_in_state2(state0, state1[0]):
+                print("Rejected:")
+                print(state0)
+                print(state1[0])
+                print("")
+                return
+
+            print("Accepted:")
+            print(state0)
+            print(state1[0])
+            print("")
+
+            # # Go through all the process the keys.
+            # for key0 in keys:
+            #     # Go through all the creation states due to a process.
+            #     for state0_0 in state1[1][key0]:
+            #         # Only append if the original state has decayed.
+            #         if self._get_state1_in_state2(state0, state0_0):
+            #             create_dictionary[key0].append(cp.deepcopy(state1[0]))
+            #             break
+
         def get_decay_states(state0, state1):
             """ Appends the states to which the state0 decays for each process.
 
                 :param state0: The list that contains the information of the
                 state0, that is the state which is tested for decay.
-
-                [original_state, decay_dictionary, create_dictionary]
 
                 :param state1: The list that contains the information of the
                 state which must contain state0.
@@ -721,12 +753,12 @@ class EquationGenerator:
                 return
 
             # Go through all the process the keys.
-            for key in keys:
+            for key0 in keys:
                 # Go through all the decay states due to a process.
-                for state0_0 in state1[1][key]:
-                    # Only append the original state has decayed.
+                for state0_0 in state1[1][key0]:
+                    # Only append if the original state has decayed.
                     if not self._get_state1_in_state2(state0, state0_0):
-                        decay_dictionary[key].append(state1[0])
+                        decay_dictionary[key0].append(cp.deepcopy(state1[0]))
 
         def get_filtered_contracted_states(state0, states0):
             """ Gets a list of all the UNIQUE states, with the number of times
@@ -739,18 +771,18 @@ class EquationGenerator:
                 :return filtered_states0: The list of filtered states.
             """
 
+            print(state0)
+
             # Proceed only if the list length is greater than zero.
             if len(states0) == 0:
                 return states0
 
-            # Auxiliary variables.
-            state_count0 = []
-
             # Get a list of all the UNIQUE states and get the count of them.
-            filtered_states0 = sorted(list(set(states0)), key=lambda x: (len(x), x[0][0], x[0][1]))
+            filtered_states0 = cp.deepcopy(states0)
+            filtered_states0 = sorted(list(set(filtered_states0)), key=lambda x: (len(x), x[0][0], x[0][1]))
 
             # Number of unique states.
-            unique_state_length0 = 0
+            unique_state_length0 = -1
 
             # Contract the states if needed.
             while not unique_state_length0 == len(filtered_states0):
@@ -836,11 +868,11 @@ class EquationGenerator:
                 # Get the specific order of each state.
                 for length_state0 in length_states0:
                     # Use the criteria to add the states.
-                    involved_orders0.extend([i for i in range(order0, order0 + length_state0)])
+                    involved_orders0.extend([k for k in range(order0, order0 + length_state0)])
 
             # Filter the involved orders.
             involved_orders0 = set(involved_orders0)
-            involved_orders0 = [i for i in involved_orders0 if order <= i <= self.number_of_sites]
+            involved_orders0 = [k for k in involved_orders0 if order <= k <= self.number_of_sites]
 
             # Get ALL the involved states.
             for order0 in involved_orders0:
@@ -871,8 +903,8 @@ class EquationGenerator:
                 return involved_states0
 
             # Get ALL the states up to the lowest order possible.
-            for i in range(2, order + 1):
-                for involved_state0 in self._get_states(i):
+            for k in range(2, order + 1):
+                for involved_state0 in self._get_states(k):
                     involved_states0.append(involved_state0)
 
             return involved_states0
@@ -890,8 +922,8 @@ class EquationGenerator:
                 decay_dictionary_state0 = {}
 
                 # Get the states to which each state decays due to a process.
-                for i, process0 in enumerate(process_functions):
-                    decay_dictionary_state0[keys[i]] = process0[2](state0)
+                for k, process0 in enumerate(process_functions):
+                    decay_dictionary_state0[keys[k]] = process0[2](state0)
 
                 # Append the results.
                 resultant_states0.append([state0, decay_dictionary_state0])
@@ -907,17 +939,17 @@ class EquationGenerator:
             if not isinstance(order, (int,)) or order <= 0:
                 raise ValueError(f"The order parameter must be an integer number greater than zero. Current value: {order}.")
 
-        # ----------------------------------------------------------------------
-        # Implementation.
-        # ----------------------------------------------------------------------
-
-        # Get the zeroth order equations, these will serve as the basis.
-        if order == 0 or order < self.number_of_sites:
-            self.get_0th_order_equations(print_equations)
-
-            # Get the equations to the lowest order.
-            if order == 0 or order == 1:
-                return
+        # # ----------------------------------------------------------------------
+        # # Implementation.
+        # # ----------------------------------------------------------------------
+        #
+        # # Get the zeroth order equations, these will serve as the basis.
+        # if order == 0 or order < self.number_of_sites:
+        #     self.get_0th_order_equations(print_equations)
+        #
+        #     # Get the equations to the lowest order.
+        #     if order == 0 or order == 1:
+        #         return
 
         # ----------------------------------------------------------------------
         # Get the equations for the nth order term; do not empty the
@@ -944,33 +976,30 @@ class EquationGenerator:
         decay_dictionary = {}
         create_dictionary = {}
 
-        # Decay states
-
         # Get the keys.
         keys = self._get_keys()
 
         # Get the resulting states from making the operations.
-        resultant_states = get_resulting_states()
+        resulting_states = get_resulting_states()
 
         # Go through each lowest order state.
-        for state_0 in lowest_states:
+        for i, state_0 in enumerate(lowest_states):
 
             # Empty the dictionaries.
             empty_dictionaries()
 
             # Get the decay states.
-            for state_1 in resultant_states:
+            for j, state_1 in enumerate(resulting_states):
                 # Get the decay states for the lowest order state.
-                get_decay_states(state_0, state_1)
+                # get_decay_states(state_0, state_1)
 
-            # Get the unique and filtered states.
-            print(state_0)
+                # Get the create states for the lowest order state.
+                get_creation_states(state_0, state_1)
+
             for key in keys:
-                decay_dictionary[key] = get_filtered_contracted_states(state_0, decay_dictionary[key])
-                print("\t",key)
-                for state_1 in decay_dictionary[key]:
-                    print("\t\t", state_1[0], ", ", state_1[1])
-            print("")
+                # decay_dictionary[key] = get_filtered_contracted_states(state_0, decay_dictionary[key])
+                # create_dictionary[key] = get_filtered_contracted_states(state_0, cp.deepcopy(create_dictionary[key]))
+                pass
 
     # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
     # Private Interface.
@@ -1581,8 +1610,7 @@ class EquationGenerator:
         self._validate_state(state1)
         self._validate_state(state2)
 
-        # If the state1 is longer than state 2, the state cannot be a
-        # subtate of state2.
+        # State 1 cannot be a substate of state 2.
         if len(state1) > len(state2):
             return False
 
