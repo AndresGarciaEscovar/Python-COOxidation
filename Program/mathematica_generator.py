@@ -1,6 +1,4 @@
-""" Writes the equations for carbon monoxide - oxygen associative reaction on
-    ruthenium (111); J. Chem. Phys. 143, 204702 (2015).
-    https://doi.org/10.1063/1.4936354
+"""
 """
 
 # Imports.
@@ -17,354 +15,16 @@ class EquationGenerator:
     """ Generates the differential equations in different formats. Currently
         only Mathematica and LaTeX are supported.
 
-        :param self.k_coo_er: String that represents the rate constants of
-        carbon monoxide - oxygen gaseous associative desorption of surface
-        oxygen; i.e., Elay-Rideal reaction
-
-        :param self.k_coo_lh: String that represents the rate constants of
-        carbon monoxide - oxygen neighboring pair associative desorption;
-        i.e., Langmuir-Hinshelwoodd reaction.
-
-        :param self.k_co_ads: String that represents the rate constants of
-        adsorption of carbon monoxide.
-
-        :param self.k_co_des: String that represents the rate constants of
-        desorption of carbon monoxide.
-
-        :param self.k_co_dif: String that represents the rate constants of
-        diffusion of carbon monoxide.
-
-        :param self.k_o_ads: String that represents the rate constants of
-        adsorption of oxygen.
-
-        :param self.k_o_des: String that represents the rate constants of
-        desorption of oxygen.
-
-        :param self.k_o_dif: String that represents the rate constants of
-        diffusion of oxygen.
-
-        :param self.o_coo_er: An integer that represents the minimum length of
-        the state for carbon monoxide - oxygen gaseous associative desorption of
-        surface oxygen; i.e., Elay-Rideal reaction.
-
-        :param self.o_coo_lh: An integer that represents the minimum length of
-        the state for carbon monoxide - oxygen neighboring pair associative
-        desorption; i.e., Langmuir-Hinshelwoodd reaction.
-
-        :param self.o_co_ads: An integer that represents the minimum length of
-        the state for carbon monoxide adsorption.
-
-        :param self.o_co_des: An integer that represents the minimum length of
-        the state for carbon monoxide desorption.
-
-        :param self.o_co_dif: An integer that epresents the minimum length of the state for
-        carbon monoxide diffusion.
-
-        :param self.o_o_ads: An integer that represents the minimum length of
-        the state for oxygen adsoprtion.
-
-        :param self.o_o_des: An integer tnat represents the minimum length of
-        the state for oxygen desoprtion.
-
-        :param self.o_o_dif: An integer that represents the minimum length of
-        the state for oxygen diffusion.
+        :param self.equations: The list where the equations will be saved.
 
         :param self.sites: The maximum number of sites
 
-        :param  self.states:
+        :param  self.states: The UNIQUE states in which each side can be in.
     """
 
     # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
     # Getters, Setters and Deleters.
     # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-
-    @property
-    def k_o_ads(self):
-        """ Gets the oxygen adsorption order.
-        """
-        return cp.deepcopy(self.__k_o_ads)
-
-    @k_o_ads.setter
-    def k_o_ads(self, _):
-        """ Sets the oxygen adsorption parameter.
-        """
-        self.__k_o_ads = "k.O.ads"
-
-    @k_o_ads.deleter
-    def k_o_ads(self):
-        pass
-
-    # --------------------------------------------------------------------------
-
-    @property
-    def k_o_des(self):
-        """ Gets the oxygen desorption order.
-        """
-        return cp.deepcopy(self.__k_o_des)
-
-    @k_o_des.setter
-    def k_o_des(self, _):
-        """ Sets the oxygen desorption parameter.
-        """
-        self.__k_o_des = "k.O.des"
-
-    @k_o_des.deleter
-    def k_o_des(self):
-        pass
-
-    # --------------------------------------------------------------------------
-
-    @property
-    def k_o_dif(self):
-        """ Gets the oxygen diffusion order.
-        """
-        return cp.deepcopy(self.__k_o_dif)
-
-    @k_o_dif.setter
-    def k_o_dif(self, _):
-        """ Sets the oxygen diffusion parameter.
-        """
-        self.__k_o_dif = "k.O.dif"
-
-    @k_o_dif.deleter
-    def k_o_dif(self):
-        pass
-
-    # --------------------------------------------------------------------------
-
-    @property
-    def k_co_ads(self):
-        """ Gets the carbon monoxide adsorption order.
-        """
-        return cp.deepcopy(self.__k_co_ads)
-
-    @k_co_ads.setter
-    def k_co_ads(self, _):
-        """ Sets the carbon monoxide adsorption parameter.
-        """
-        self.__k_co_ads = "k.CO.ads"
-
-    @k_co_ads.deleter
-    def k_co_ads(self):
-        pass
-
-    # --------------------------------------------------------------------------
-
-    @property
-    def k_co_des(self):
-        """ Gets the carbon monoxide desorption order.
-        """
-        return cp.deepcopy(self.__k_co_des)
-
-    @k_co_des.setter
-    def k_co_des(self, _):
-        """ Sets the carbon monoxide desorption parameter.
-        """
-        self.__k_co_des = "k.CO.des"
-
-    @k_co_des.deleter
-    def k_co_des(self):
-        pass
-
-    # --------------------------------------------------------------------------
-
-    @property
-    def k_co_dif(self):
-        """ Gets the carbon monoxide diffusion order.
-        """
-        return cp.deepcopy(self.__k_co_dif)
-
-    @k_co_dif.setter
-    def k_co_dif(self, _):
-        """ Sets the carbon monoxide diffusion parameter.
-        """
-        self.__k_co_dif = "k.CO.dif"
-
-    @k_co_dif.deleter
-    def k_co_dif(self):
-        pass
-
-    # --------------------------------------------------------------------------
-
-    @property
-    def k_coo_lh(self):
-        """ Gets the carbon monoxide - oxygen reaction order.
-        """
-        return cp.deepcopy(self.__k_coo_lh)
-
-    @k_coo_lh.setter
-    def k_coo_lh(self, _):
-        """ Sets the carbon monoxide - oxygen reaction parameter.
-        """
-        self.__k_coo_lh = "k.COO.lh"
-
-    @k_coo_lh.deleter
-    def k_coo_lh(self):
-        pass
-
-    # --------------------------------------------------------------------------
-
-    @property
-    def k_coo_er(self):
-        """ Gets the carbon monoxide - oxygen  gas-phase reaction order.
-        """
-        return cp.deepcopy(self.__k_coo_er)
-
-    @k_coo_er.setter
-    def k_coo_er(self, _):
-        """ Sets the carbon monoxide - oxygen  gas-phase reaction parameter.
-        """
-        self.__k_coo_er = "k.COO.el"
-
-    @k_coo_er.deleter
-    def k_coo_er(self):
-        pass
-
-    # --------------------------------------------------------------------------
-
-    @property
-    def o_o_ads(self):
-        """ Gets the oxygen adsorption order.
-        """
-        return cp.deepcopy(self.__o_o_ads)
-
-    @o_o_ads.setter
-    def o_o_ads(self, _):
-        """ Sets the oxygen adsorption parameter.
-        """
-        self.__o_o_ads = 2
-
-    @o_o_ads.deleter
-    def o_o_ads(self):
-        pass
-
-    # --------------------------------------------------------------------------
-
-    @property
-    def o_o_des(self):
-        """ Gets the oxygen desorption order.
-        """
-        return cp.deepcopy(self.__o_o_des)
-
-    @o_o_des.setter
-    def o_o_des(self, _):
-        """ Sets the oxygen desorption parameter.
-        """
-        self.__o_o_des = 2
-
-    @o_o_des.deleter
-    def o_o_des(self):
-        pass
-
-    # --------------------------------------------------------------------------
-
-    @property
-    def o_o_dif(self):
-        """ Gets the oxygen diffusion order.
-        """
-        return cp.deepcopy(self.__o_o_dif)
-
-    @o_o_dif.setter
-    def o_o_dif(self, _):
-        """ Sets the oxygen diffusion parameter.
-        """
-        self.__o_o_dif = 2
-
-    @o_o_dif.deleter
-    def o_o_dif(self):
-        pass
-
-    # --------------------------------------------------------------------------
-
-    @property
-    def o_co_ads(self):
-        """ Gets the carbon monoxide adsorption order.
-        """
-        return cp.deepcopy(self.__o_co_ads)
-
-    @o_co_ads.setter
-    def o_co_ads(self, _):
-        """ Sets the carbon monoxide adsorption parameter.
-        """
-        self.__o_co_ads = 1
-
-    @o_co_ads.deleter
-    def o_co_ads(self):
-        pass
-
-    # --------------------------------------------------------------------------
-
-    @property
-    def o_co_des(self):
-        """ Gets the carbon monoxide desorption order.
-        """
-        return cp.deepcopy(self.__o_co_des)
-
-    @o_co_des.setter
-    def o_co_des(self, _):
-        """ Sets the carbon monoxide desorption parameter.
-        """
-        self.__o_co_des = 1
-
-    @o_co_des.deleter
-    def o_co_des(self):
-        pass
-
-    # --------------------------------------------------------------------------
-
-    @property
-    def o_co_dif(self):
-        """ Gets the carbon monoxide diffusion order.
-        """
-        return cp.deepcopy(self.__o_co_dif)
-
-    @o_co_dif.setter
-    def o_co_dif(self, _):
-        """ Sets the carbon monoxide diffusion parameter.
-        """
-        self.__o_co_dif = 2
-
-    @o_co_dif.deleter
-    def o_co_dif(self):
-        pass
-
-    # --------------------------------------------------------------------------
-
-    @property
-    def o_coo_lh(self):
-        """ Gets the carbon monoxide - oxygen reaction order.
-        """
-        return cp.deepcopy(self.__o_coo_lh)
-
-    @o_coo_lh.setter
-    def o_coo_lh(self, _):
-        """ Sets the carbon monoxide - oxygen reaction parameter.
-        """
-        self.__o_coo_lh = 1
-
-    @o_coo_lh.deleter
-    def o_coo_lh(self):
-        pass
-
-    # --------------------------------------------------------------------------
-
-    @property
-    def o_coo_er(self):
-        """ Gets the carbon monoxide - oxygen  gas-phase reaction order.
-        """
-        return cp.deepcopy(self.__o_coo_er)
-
-    @o_coo_er.setter
-    def o_coo_er(self, _):
-        """ Sets the carbon monoxide - oxygen  gas-phase reaction parameter.
-        """
-        self.__o_coo_er = 1
-
-    @o_coo_er.deleter
-    def o_coo_er(self):
-        pass
-
-    # --------------------------------------------------------------------------
 
     @property
     def number_of_sites(self):
@@ -401,15 +61,15 @@ class EquationGenerator:
             object of UNIQUE objects that allow a string representation.
         """
 
-        # Verify that the states allow a string representation and are unique
+        # Verify that the states variable can be iterated through.
         if not isinstance(states, Iterable):
             raise ValueError(f"The states variable must be an iterable object, current type: {type(states)}")
 
-        # Convert the iterable to a tuple of strings.
+        # Verify the states allow a string representation.
         tmp_states = tuple(map(str, states))
 
         # Check that the elements are unique.
-        if not len(tmp_states) == len(tuple(set(states))):
+        if not len(tmp_states) == len(set(states)):
             raise ValueError(f"The states a system can take must be unique: {states}")
 
         self.__states = tmp_states
@@ -967,10 +627,10 @@ class EquationGenerator:
 
         # Get ALL the states that are potentially involved in the calculation.
         involved_states = get_involved_states()
-
-        # ----------------------------------------------------------------------
-        # Get the generated states by each process.
-        # ----------------------------------------------------------------------
+        #
+        # # ----------------------------------------------------------------------
+        # # Get the generated states by each process.
+        # # ----------------------------------------------------------------------
 
         # Auxiliary variables.
         decay_dictionary = {}
@@ -989,12 +649,13 @@ class EquationGenerator:
             empty_dictionaries()
 
             # Get the decay states.
-            for j, state_1 in enumerate(resulting_states):
+            # for j, state_1 in enumerate(resulting_states):
                 # Get the decay states for the lowest order state.
                 # get_decay_states(state_0, state_1)
 
                 # Get the create states for the lowest order state.
-                get_creation_states(state_0, state_1)
+                # get_creation_states(state_0, state_1)
+                # pass
 
             for key in keys:
                 # decay_dictionary[key] = get_filtered_contracted_states(state_0, decay_dictionary[key])
@@ -1655,6 +1316,7 @@ class EquationGenerator:
 
                 :param state0: The state to be appended.
             """
+
             # Get the final state.
             final_state = tuple((state1, tmp_numbering[j]) for j, state1 in enumerate(state0))
 
@@ -2286,6 +1948,7 @@ class EquationGenerator:
         if not 1 <= len(state) <= self.number_of_sites:
             raise ValueError(f"The current length of the state list is not valid, it must be"
                              f"in the range [1, {self.number_of_sites}].  Current legth: {len(state)}.")
+
         # ----------------------------------------------------------------------
         # Set the auxiliary variables.
         # ----------------------------------------------------------------------
@@ -2334,72 +1997,31 @@ class EquationGenerator:
     # Constructor.
     # --------------------------------------------------------------------------
 
-    def __init__(self):
-        """ Creates a MathematicaGenerator object and initializes its
-            properties.
+    def __init__(self, number_of_sites, states):
+        """ Creates an EquationGenerator object and initializes its properties.
+
+            :param sites: The number of sites that the system has.
+
+            :param states: A list of unique strings, that represent the names of
+            the statistically independent variables that each site of the system
+            can take.
         """
-
-        # ----------------------------------------------------------------------
-        # Define order of the process; i.e., minimum length of the state for the
-        # process to happen.
-        # ----------------------------------------------------------------------
-
-        # Represents the minimum length of the state for oxygen related
-        # processes.
-        self.o_o_ads = 2
-        self.o_o_des = 2
-        self.o_o_dif = 2
-
-        # Represents the minimum length of the state for carbon monoxide related
-        # processes.
-        self.o_co_ads = 1
-        self.o_co_des = 1
-        self.o_co_dif = 2
-
-        # Represents the minimum length of the state for carbon monoxide -
-        # oxygen reaction related processes.
-        self.o_coo_lh = 2
-        self.o_coo_er = 1
 
         # ----------------------------------------------------------------------
         # Define the default model parameters.
         # ----------------------------------------------------------------------
 
         # Define the maximum number of sites.
-        self.number_of_sites = 3
+        self.number_of_sites = number_of_sites
 
         # Define the possible unique states each site of the system can take.
-        self.states = ["CO", "O", "E"]
+        self.states = states
 
         # Array where the equations are saved.
         self.equations = []
 
-        # ----------------------------------------------------------------------
-        # Define the strings for the constant names.
-        # ----------------------------------------------------------------------
-
-        # String that represents the rate constants of oxygen related processes.
-        self.k_o_ads = "k.O.ads"
-        self.k_o_des = "k.O.des",
-        self.k_o_dif = "k.O.Dif"
-
-        # String that represents the rate constants of carbon monoxide related
-        # processes.
-        self.k_co_ads = "k.CO.ads"
-        self.k_co_des = "k.CO.des"
-        self.k_co_dif = "k.CO.dif"
-
-        # String that represents the rate constants of carbon monoxide - oxygen
-        # reaction related processes.
-        self.k_coo_lh = "k.COO.lh"
-        self.k_coo_er = "k.COO.er"
-
     # --------------------------------------------------------------------------
     # Dunder Methods.
-    # --------------------------------------------------------------------------
-
-    # --------------------------------------------------------------------------
-    # Dunder Variables.
     # --------------------------------------------------------------------------
 
 
