@@ -1,17 +1,19 @@
 """
 """
 
+
+
 # Imports.
 import copy as cp
 import itertools
-
 import numpy as np
 
+from abc import ABC, abstractmethod
 from collections.abc import Iterable
 from itertools import product
 
 
-class EquationGenerator:
+class EquationGenerator(ABC):
     """ Generates the differential equations in different formats. Currently
         only Mathematica and LaTeX are supported.
 
@@ -952,6 +954,28 @@ class EquationGenerator:
     # Get methods.
     # --------------------------------------------------------------------------
 
+    @abstractmethod
+    def _get_associated_operations(self):
+        """ Returns a tuple with the 3-tuples that contain the operations that
+            can be applied to the states of the system, the order of the process
+            and the string representation of the state.
+
+            :return process_information: A tuple with the 3-tuples that contain
+            the operations that can be applied to the states of the system, the
+            order of the process and the string representation of the state, in
+            the order:
+
+            (process order, process rate constant, pointer to function)
+        """
+
+        # Define the operations.
+        process_information = (
+            # (process order, process rate constant, process function)
+            (None, None, None),
+        )
+
+        return process_information
+
     def _get_contracted_state(self, states, entry=-1):
         """ From a list of states, it returns the completely contracted state.
             For this to happen, the list of states must contain as much states
@@ -965,13 +989,28 @@ class EquationGenerator:
             a negative integer number, i.e., an index that indicates the index
             of the array to contracted.
 
-            :return contracted_state: The contracted state; if return value is
-            an empty tuple, it means that the state cannot be contracted.
+            :return: A tuple with the contracted state and the original states
+            that were contracted; if the return value is an empty tuple, it
+            means that the state cannot be contracted.
         """
 
         # ----------------------------------------------------------------------
         # Auxiliary functions.
         # ----------------------------------------------------------------------
+
+        def get_states_and_indexes():
+            """ Decomposes the states into individual particles and indexes
+                tuples, then appends them to the indexes and particles list.
+            """
+
+            # Go through each state.
+            for i, state in enumerate(states):
+                # Get the particles and indexes of the state.
+                tmp_particles0, tmp_indexes0 = self._get_state_elements(state)
+
+                # Append them to their respective lists.
+                states_indexes.append(tmp_indexes0)
+                states_particles.append(list(tmp_particles0))
 
         def validate_states(entry0):
             """ Checks that the states are valid to perform an index
@@ -993,26 +1032,25 @@ class EquationGenerator:
 
             # Verify that the list contains as much states as possible site states.
             if not len(states) == len(self.states):
-                raise ValueError("When a state is to be contracted, there must be "
-                                 "as many states as particles. Number of requested = "
-                                 f"{len(states)}, possible site states = {len(self.states)}")
+                raise ValueError("When a state is to be contracted, there must be as many states as there are"
+                                 f" particles. Number of requested = {len(states)}, possible site states ="
+                                 f" {len(self.states)}")
 
             # Verify that the index is within the limits.
-            while entry0 < 0:
+            while entry0 < 0 and isinstance(entry, int):
                 entry0 += len(states[0])
 
             # Raise an error if the entry is not valid.
-            if entry0 >= len(states[0]):
-                raise ValueError("The requested entry for contraction must be a negative "
-                                 f"integer or a positive integer less than {len(states[0])}."
-                                 f" Current value: {entry}")
+            if entry0 >= len(states[0]) or not isinstance(entry, int):
+                raise ValueError("The requested entry for contraction must be a negative integer or a positive"
+                                 f" integer less than {len(states[0])}. Current value: {entry}, Type: {type(entry)}.")
 
             # ----------------------------------------------------------------------
             # Return if the index is valid.
             # ----------------------------------------------------------------------
 
             # All the states must have the same length to continue the process.
-            if not len(set((map(lambda x: len(x), states)))) == 1:
+            if not len(set(map(lambda x: len(x), states))) == 1:
                 return False
 
             return True
@@ -1029,133 +1067,168 @@ class EquationGenerator:
         states_indexes = []
         states_particles = []
 
-        # Get the indexes and particles of the states.
-        for i, state in enumerate(states):
-            tmp_particles = tuple([entry[0] for entry in state])
-            tmp_indexes = tuple([entry[1] for entry in state])
-
-            states_indexes.append(tmp_indexes)
-            states_particles.append(tmp_particles)
+        # Get the states and indexes.
+        get_states_and_indexes()
 
         # ----------------------------------------------------------------------
         # Validate the indexes for contraction.
         # ----------------------------------------------------------------------
 
-        # Convert the particles array into a numpy array.
-        states_particles = np.array(states_particles, dtype=str)
-
         # If there are different indexes do not continue.
         if not len(set(states_indexes)) == 1:
-            tuple([]), states
+            return tuple([]), states
 
-        # Turn the columns into rows.
-        tmp_states_particles = np.transpose(states_particles)
+        # Get the row to be contracted.
+        tmp_particles = [states[i][entry][0] for i, _ in enumerate(self.states)]
 
         # Check that the desired row contains all the states.
-        if not set(tmp_states_particles[entry]) == set(self.states):
-            tuple([]), states
+        if not set(tmp_particles) == set(self.states):
+            return tuple([]), states
 
-        # Delete the given row.
-        tmp_states_particles = np.delete(tmp_states_particles, obj=entry, axis=0)
+        # Turn the particles states into a list.
+        states_particles = list(map(list, states_particles))
+
+        # Remove the given entry.
+        for j, _ in enumerate(self.states):
+            states_particles[j].pop(entry)
+        states_particles = list(map(tuple, states_particles))
 
         # Check that the rest of the rest of the entries have the same element.
-        if not all(map(lambda x: len(set(x)) == 1, tmp_states_particles)):
-            tuple([]), states
+        if not len(set(states_particles)) == 1:
+            return tuple([]), states
 
-        # Conver the indexes into a numpy array.
-        states_indexes = np.array(states_indexes[0], dtype=int)
-
-        # Delete the given row.
-        states_indexes = np.delete(states_indexes, obj=entry, axis=0)
-
-        # Get the contracted state.
-        states_particles = tmp_states_particles.transpose()[0]
-
-        # Create the contracted state.
-        contracted_state = tuple(tuple([state0, states_indexes[i]]) for i, state0 in enumerate(states_particles))
+        # Remove the contracted index.
+        states_indexes = list(states_indexes[0])
+        states_indexes.pop(entry)
 
         # Remember to use the probability identity.
-        if len(contracted_state) == 0:
-            contracted_state = (1,)
+        if len(states_indexes) == 0:
+            return (1,), states
+
+        # Get the contracted state.
+        contracted_state = tuple((state_0, states_indexes[i]) for i, state_0 in enumerate(states_particles[0]))
 
         return contracted_state, states
 
-    def _get_keys(self):
-        """ Returns a tuple that contains the strings that represent the
-            processes that serve as keys to the dictionaries of processes.
+    def _get_decay_states(self, state, operations):
+        """ Given a state and a set of operations, it returns the states that
+            are a generated when ALL the possible operations are performed on
+            a given state.
 
-            :return keys: The strings that represent the processes that serve as
-            keys to the dictionaries of processes.
+            :param state: The state on which to operate.
+
+            :param operations: A dictionary with all the possible operations of
+            the system.
+
+            :return: A 2-tuple that contains the original state and a dictionary
+            with all the possible states generated by the specific collection of
+            operations.
         """
 
-        # Get the process functions.
-        functions, _ = self._get_process_functions()
+        # Validate the state.
+        self._validate_state(state)
 
-        # The keys are in the second column.
-        keys = tuple([key[1] for key in functions])
+        # Auxiliary variables.
+        keys = operations.keys()
 
-        return keys
+        # Initialize a dictionary.
+        decay_states = {}
 
+        # For each process.
+        for key in keys:
+            # Get all the decay states.
+            decay_states[key] = operations[key](state)
+
+        return state, decay_states
+
+    def _get_is_substate(self, state1, state2):
+        """ Determines if state 1 is a substate, or proper substate, of state 2;
+            they must be in the same format; order matters in this case.
+
+            :param state1: The state that is to be found within state2.
+
+            :param state2: The state where state1 is going to be searched.
+
+            :return: True if state1 is a substate, or proper substate, of
+            state2. False, otherwise.
+        """
+
+        # Validate the states.
+        self._validate_state(state1)
+        self._validate_state(state2)
+
+        # State 1 cannot be a substate of state 2.
+        if len(state1) > len(state2):
+            return False
+
+        # If the states are equal no need to continue.
+        if state1 == state2:
+            return True
+
+        substate1 = sorted(state1, key=lambda x: (x[1], x[0]))
+        substate2 = list(map(tuple, itertools.combinations(state2, len(substate1))))
+
+        # Otherwise, ALL the entries in state1 must be in state2.
+        for substate in substate2:
+            # If an equality is found.
+            if substate1 == sorted(substate, key=lambda x: (x[1], x[0])):
+                return True
+
+        return False
+
+    def _get_multiplicity(self, state_dictionary):
+        """ Given the decay/created states dictionary, it returns a dictionary
+            with the UNIQUE states for each process and their multiplicity.
+
+            :param state_dictionary: The dictionary of processes associated with
+            a state.
+
+            :return new_dictionary: A dictionary with the UNIQUE states for each
+            process and their multiplicity.
+        """
+
+        # Auxiliary variables.
+        keys = state_dictionary.keys()
+
+        # Define the dictionary that contains the UNIQUE processes and their
+        # multiplicity.
+        new_dictionary = {}
+
+        print(state_dictionary)
+
+        # For each process.
+        for key in keys:
+            # Get the unique states.
+            unique_states = set(state_dictionary[key])
+
+
+    @abstractmethod
     def _get_numbering(self, state):
-        """ Returns a 2-tuple that contains the possible numbering schemes that
-            the given state can take. The numbering scheme used is that of
-            incremental consecutive numbering.
+        """ Returns a tuple with the possible numbering a state of length N can
+            have. The format of a SINGLE state must be given in the format:
+
+            ( (particle_at_site1, numbering_scheme1),
+                            .
+                            .
+                            .
+              (particle_at_siteN, numbering_schemeN),
+            )
 
             :param state: The state to be numbered.
 
-            :return: The list of possible numbered states in the given scheme.
+            :return: The list of possible numbered states in the given format.
         """
-
-        # ----------------------------------------------------------------------
-        # Auxiliary functions.
-        # ----------------------------------------------------------------------
-
-        def validate_unnumbered_state(state0):
-            """ Validates that the length of the state is consistent.
-
-                :param state0: The state to be validated.
-            """
-
-            # Validate the state.
-            if 0 == len(state0) or len(state0) > self.number_of_sites:
-                raise ValueError(f"The state must contain at least one site and at most {self.number_of_sites}. "
-                                 f"Requested state sites: {len(state0)}")
-
-        # ----------------------------------------------------------------------
-        # Implementation.
-        # ----------------------------------------------------------------------
-
-        # Validate the state.
-        validate_unnumbered_state(state)
-
-        # Auxiliary variables.
-        all_states = []
-
-        # Explore all the possibilities.
-        for i in range(self.number_of_sites):
-            # Only attempt if there are enough sites.
-            if i + len(state) > self.number_of_sites:
-                break
-
-            # Make a deep copy of the state.
-            tmp_state = cp.deepcopy(state)
-
-            # Get the numbering list.
-            tmp_list = list(range(i, i+len(state)))
-
-            # Add the state to the list of possible states.
-            all_states.append(tuple([(tmp_state[j], x + 1) for j, x in enumerate(tmp_list)]))
-
-        return all_states
+        pass
 
     def _get_states(self, order=1):
-        """ Given the order, it returns a tuple of ALL the possible combinations
+        """ Given the order, it returns a list of ALL the possible combinations
             of the system variables, i.e., all the possible combinations of the
-            variables in N slots, where N=order; non-numbered.
+            variables in N slots, where N=order; NON-NUMBERED.
 
-            :param order: The order of the requested possible variables.
+            :param order: The order of the requested states.
 
-            :return all_states: All the variables of the given order.
+            :return all_states: A list of all the possible states of the given
+            order.
         """
 
         # ----------------------------------------------------------------------
@@ -1182,33 +1255,20 @@ class EquationGenerator:
         # Validate that the order is valid.
         validate_order()
 
-        # Obtain all the possible states.
-        all_states = [cp.deepcopy(self.states) for _ in range(order)]
-        all_states = product(*all_states)
+        # Get an iterator to get the states.
+        all_states = product(*[cp.deepcopy(self.states) for _ in range(order)])
 
-        # ----------------------------------------------------------------------
-        # Number the states properly.
-        # ----------------------------------------------------------------------
-
-        # Get a copy of ALL the possible states.
-        tmp_states = cp.deepcopy(all_states)
-
-        # Number the states.
-        all_states = []
-        for state in tmp_states:
-            all_states.extend(self._get_numbering(state))
-
-        # Turn the states into a tuple.
-        all_states = tuple(all_states)
+        # Make the states into a list.
+        all_states = list(all_states)
 
         return all_states
 
-    def _get_state_numpy(self, state):
-        """ Gets the representation of the given state in numpy form. First
-            it verifies that the state is a valid state.
+    def _get_state_elements(self, state):
+        """ Gets two tuples one with the elements of the given state; one with
+            all the particles and the other one with the indexes.
 
             :param state: The representation of the state, that must be in
-            numpy form.
+            the standard form.
 
             :return: A 2-tuple that contains the particles in the state and its
             numerical indexes in the order:
@@ -1220,47 +1280,12 @@ class EquationGenerator:
         self._validate_state(state)
 
         # Get the numpy representation of the particles of the state.
-        particle_list = np.array([cp.deepcopy(entry[0]) for entry in state], dtype=str)
+        particle_list = tuple(entry[0] for entry in state)
 
         # Get the numpy representation of the indexes of the state.
-        index_list = np.array([cp.deepcopy(entry[1]) for entry in state], dtype=int)
+        index_list = tuple(entry[1] for entry in state)
 
         return particle_list, index_list
-
-    def _get_state1_in_state2(self, state1, state2):
-        """ Determines if state 1 is a sub-state of state 2. Order matters in
-            this case.
-
-            :param state1: The state that is evaluated to be a sub-state.
-
-            :param state2: The state where state1 is going to be searched.
-
-            :return: True if state1 is a substate, or the same, as state2.
-            False, otherwise.
-        """
-
-        # Validate the states.
-        self._validate_state(state1)
-        self._validate_state(state2)
-
-        # State 1 cannot be a substate of state 2.
-        if len(state1) > len(state2):
-            return False
-
-        # If the states are equal no need to continue.
-        if state1 == state2:
-            return True
-
-        substate1 = sorted(state1, key=lambda x: (x[1], x[0]))
-        substate2 = list(map(tuple, itertools.combinations(state2, len(substate1))))
-
-        # Otherwise, ALL the entries in state1 must be in state2.
-        for substate in substate2:
-            # If an equality is found.
-            if substate1 == sorted(substate, key=lambda x: (x[1], x[0])):
-                return True
-
-        return False
 
     # --------------------------------------------------------------------------
     # Validation methods.

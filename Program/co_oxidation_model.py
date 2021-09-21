@@ -10,7 +10,7 @@ import numpy as np
 from .mathematica_generator import EquationGenerator
 
 
-class COOxidation(EquationGenerator):
+class COOxidationEquationGenerator(EquationGenerator):
     """ Writes the equations in various formats, to different orders for the
         carbon monoxide - oxygen associative reaction on ruthenium (111);
         J. Chem. Phys. 143, 204702 (2015). https://doi.org/10.1063/1.4936354
@@ -393,17 +393,75 @@ class COOxidation(EquationGenerator):
 
         # Define the operations.
         process_information = (
-            (self.o_o_ads, self.k_o_ads, self._oxygen_adsorb),
-            (self.o_o_des, self.k_o_des, self._oxygen_desorb),
-            (self.o_o_dif, self.k_o_dif, self._oxygen_diffusion),
-            (self.o_co_ads, self.k_co_ads, self._carbon_monoxide_adsorb),
-            (self.o_co_des, self.k_co_des, self._carbon_monoxide_desorb),
-            (self.o_co_dif, self.k_co_dif, self._carbon_monoxide_diffusion),
-            (self.o_coo_lh, self.k_coo_lh, self._lh_reaction),
-            (self.o_coo_er, self.k_coo_er, self._er_reaction)
+            (self.o_o_ads, self.k_o_ads, self._oxygen_adsorb,),
+            (self.o_o_des, self.k_o_des, self._oxygen_desorb,),
+            (self.o_o_dif, self.k_o_dif, self._oxygen_diffusion,),
+            (self.o_co_ads, self.k_co_ads, self._carbon_monoxide_adsorb,),
+            (self.o_co_des, self.k_co_des, self._carbon_monoxide_desorb,),
+            (self.o_co_dif, self.k_co_dif, self._carbon_monoxide_diffusion,),
+            (self.o_coo_lh, self.k_coo_lh, self._lh_reaction,),
+            (self.o_coo_er, self.k_coo_er, self._er_reaction,)
         )
 
         return process_information
+
+    def _get_numbering(self, state):
+        """ Returns a tuple with the possible numbering a state of length N can
+            have. The format of a SINGLE state must be given in the format:
+
+            ( (particle_at_site1, numbering_scheme1),
+                            .
+                            .
+                            .
+              (particle_at_siteN, numbering_schemeN),
+            )
+
+            :param state: The state to be numbered.
+
+            :return: The list of possible numbered states in the given format.
+        """
+
+        # ----------------------------------------------------------------------
+        # Auxiliary functions.
+        # ----------------------------------------------------------------------
+
+        def validate_unnumbered_state(state0):
+            """ Validates that the length of the state is consistent.
+
+                :param state0: The state to be validated.
+            """
+
+            # Validate the state.
+            if len(state0) == 0 or len(state0) > self.number_of_sites:
+                raise ValueError(f"The state must contain at least one site and at most {self.number_of_sites}. "
+                                 f"Requested state sites: {len(state0)}")
+
+        # ----------------------------------------------------------------------
+        # Implementation.
+        # ----------------------------------------------------------------------
+
+        # Validate the state.
+        validate_unnumbered_state(state)
+
+        # Auxiliary variables.
+        all_states = []
+
+        # Explore all the possibilities.
+        for i in range(self.number_of_sites):
+            # Only attempt if there are enough sites.
+            if i + len(state) > self.number_of_sites:
+                break
+
+            # Make a deep copy of the state.
+            tmp_state = cp.deepcopy(state)
+
+            # Get the numbering list.
+            tmp_list = list(range(i, i + len(state)))
+
+            # Add the state to the list of possible states.
+            all_states.append(tuple((tmp_state[j], x + 1) for j, x in enumerate(tmp_list)))
+
+        return all_states
 
     def _get_process_functions(self):
         """ Returns all the pointers to the functions that operate on the
@@ -418,7 +476,7 @@ class COOxidation(EquationGenerator):
         operations = self._get_associated_operations()
 
         # Get the rate strings tuple.
-        process_functions = tuple(((operation[1], operation[2], ) for operation in operations))
+        process_functions = tuple((operation[1], operation[2],) for operation in operations)
 
         # Convert it into a dictionary.
         process_functions = dict(process_functions)
@@ -439,7 +497,7 @@ class COOxidation(EquationGenerator):
         operations = self._get_associated_operations()
 
         # Get the rate strings tuple.
-        rates_orders = tuple(((operation[1], operation[0], ) for operation in operations))
+        rates_orders = tuple((operation[1], operation[0], ) for operation in operations)
 
         # Convert it into a dictionary.
         rates_orders = dict(rates_orders)
@@ -458,7 +516,7 @@ class COOxidation(EquationGenerator):
         operations = self._get_associated_operations()
 
         # Get the rate strings tuple.
-        rates_strings = tuple([operation[1] for operation in operations])
+        rates_strings = tuple(operation[1] for operation in operations)
 
         return rates_strings
 
@@ -513,7 +571,7 @@ class COOxidation(EquationGenerator):
         # ----------------------------------------------------------------------
 
         # Get the numpy decomposition of the state.
-        tmp_particles, tmp_indexes = self._get_state_numpy(initial_state)
+        tmp_particles, tmp_indexes = self._get_state_elements(initial_state)
 
         # ----------------------------------------------------------------------
         # Get the resulting states.
@@ -522,7 +580,7 @@ class COOxidation(EquationGenerator):
         # Check all the possible sites.
         for i, state in enumerate(tmp_particles):
             # Always get a copy of the initial state first.
-            tmp_state_0 = cp.deepcopy(tmp_particles)
+            tmp_state_0 = cp.deepcopy(list(tmp_particles))
 
             # Adsorption is only possible if the site is empty.
             if state == 'E':
@@ -579,7 +637,7 @@ class COOxidation(EquationGenerator):
         # ----------------------------------------------------------------------
 
         # Get the numpy decomposition of the state.
-        tmp_particles, tmp_indexes = self._get_state_numpy(initial_state)
+        tmp_particles, tmp_indexes = self._get_state_elements(initial_state)
 
         # ----------------------------------------------------------------------
         # Get the resulting states.
@@ -588,7 +646,7 @@ class COOxidation(EquationGenerator):
         # Check all the possible sites.
         for i, state in enumerate(tmp_particles):
             # Always get a copy of the initial state first.
-            tmp_state_0 = cp.deepcopy(tmp_particles)
+            tmp_state_0 = cp.deepcopy(list(tmp_particles))
 
             # Desorption is only possible if the site contains a carbon monoxide.
             if state == 'CO':
@@ -646,20 +704,20 @@ class COOxidation(EquationGenerator):
         # ----------------------------------------------------------------------
 
         # Get the numpy decomposition of the state.
-        tmp_particles, tmp_indexes = self._get_state_numpy(initial_state)
+        tmp_particles, tmp_indexes = self._get_state_elements(initial_state)
 
         # ----------------------------------------------------------------------
         # Get the resulting states.
         # ----------------------------------------------------------------------
 
         # Check all the possible sites.
-        for i, state in enumerate(tmp_particles):
+        for i, state in enumerate(list(tmp_particles)):
             # Get out of the loop before the last element.
             if i == len(tmp_particles) - 1:
                 break
 
             # Always get a copy of the initial state first.
-            tmp_state_0 = cp.deepcopy(tmp_particles)
+            tmp_state_0 = cp.deepcopy(list(tmp_particles))
 
             # Can only diffuse to adjacent sites.
             indexes_valid = tmp_indexes[i] + 1 == tmp_indexes[i + 1]
@@ -726,7 +784,7 @@ class COOxidation(EquationGenerator):
         # ----------------------------------------------------------------------
 
         # Get the numpy decomposition of the state.
-        tmp_particles, tmp_indexes = self._get_state_numpy(initial_state)
+        tmp_particles, tmp_indexes = self._get_state_elements(initial_state)
 
         # ----------------------------------------------------------------------
         # Get the resulting states.
@@ -739,7 +797,7 @@ class COOxidation(EquationGenerator):
                 break
 
             # Always get a copy of the initial state first.
-            tmp_state_0 = cp.deepcopy(tmp_particles)
+            tmp_state_0 = cp.deepcopy(list(tmp_particles))
 
             # Can only associate with adjacent sites.
             indexes_valid = tmp_indexes[i] + 1 == tmp_indexes[i + 1]
@@ -802,7 +860,7 @@ class COOxidation(EquationGenerator):
         # ----------------------------------------------------------------------
 
         # Get the numpy decomposition of the state.
-        tmp_particles, tmp_indexes = self._get_state_numpy(initial_state)
+        tmp_particles, tmp_indexes = self._get_state_elements(initial_state)
 
         # ----------------------------------------------------------------------
         # Get the resulting states.
@@ -815,7 +873,7 @@ class COOxidation(EquationGenerator):
                 break
 
             # Always get a copy of the initial state first.
-            tmp_state_0 = cp.deepcopy(tmp_particles)
+            tmp_state_0 = cp.deepcopy(list(tmp_particles))
 
             # Can only associate with adjacent sites.
             indexes_valid = tmp_indexes[i] + 1 == tmp_indexes[i + 1]
@@ -877,7 +935,7 @@ class COOxidation(EquationGenerator):
         # ----------------------------------------------------------------------
 
         # Get the numpy decomposition of the state.
-        tmp_particles, tmp_indexes = self._get_state_numpy(initial_state)
+        tmp_particles, tmp_indexes = self._get_state_elements(initial_state)
 
         # ----------------------------------------------------------------------
         # Get the resulting states.
@@ -890,7 +948,7 @@ class COOxidation(EquationGenerator):
                 break
 
             # Always get a copy of the initial state first.
-            tmp_state_0 = cp.deepcopy(tmp_particles)
+            tmp_state_0 = cp.deepcopy(list(tmp_particles))
 
             # Can only diffuse to adjacent sites.
             indexes_valid = tmp_indexes[i] + 1 == tmp_indexes[i + 1]
@@ -958,7 +1016,7 @@ class COOxidation(EquationGenerator):
         # ----------------------------------------------------------------------
 
         # Get the numpy decomposition of the state.
-        tmp_particles, tmp_indexes = self._get_state_numpy(initial_state)
+        tmp_particles, tmp_indexes = self._get_state_elements(initial_state)
 
         # ----------------------------------------------------------------------
         # Get the resulting states.
@@ -971,7 +1029,7 @@ class COOxidation(EquationGenerator):
                 break
 
             # Always get a copy of the initial state first.
-            tmp_state_0 = cp.deepcopy(tmp_particles)
+            tmp_state_0 = cp.deepcopy(list(tmp_particles))
 
             # Can only react with adjacent sites.
             indexes_valid = tmp_indexes[i] + 1 == tmp_indexes[i + 1]
@@ -1034,7 +1092,7 @@ class COOxidation(EquationGenerator):
         # ----------------------------------------------------------------------
 
         # Get the numpy decomposition of the state.
-        tmp_particles, tmp_indexes = self._get_state_numpy(initial_state)
+        tmp_particles, tmp_indexes = self._get_state_elements(initial_state)
 
         # ----------------------------------------------------------------------
         # Get the resulting states.
@@ -1043,7 +1101,7 @@ class COOxidation(EquationGenerator):
         # Check all the possible sites.
         for i, state in enumerate(tmp_particles):
             # Always get a copy of the initial state first.
-            tmp_state_0 = cp.deepcopy(tmp_particles)
+            tmp_state_0 = cp.deepcopy(list(tmp_particles))
 
             # An Elay-Rideal reaction is only possible if the site contains oxygen.
             if state == 'O':
@@ -1069,7 +1127,7 @@ class COOxidation(EquationGenerator):
         """
 
         # Initialize the super class.
-        super(COOxidation, self).__init__(sites, ('CO', 'O', 'E'))
+        super(COOxidationEquationGenerator, self).__init__(sites, ('CO', 'O', 'E'))
 
         # ----------------------------------------------------------------------
         # Define order of the process; i.e., minimum length of the state for the
