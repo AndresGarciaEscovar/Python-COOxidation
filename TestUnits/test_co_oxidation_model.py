@@ -736,10 +736,10 @@ class TestCOOxidationEquationGenerator(unittest.TestCase):
         }
 
         decay_dict_resultant0 = {
-            'k.O.ads': [((('CO', 1), ('O', 2), ('O', 3)), 2), ((('O', 1), ('O', 2), ('O', 3)),1)],
+            'k.O.ads': [((('CO', 1), ('O', 2), ('O', 3)), 2), ((('O', 1), ('O', 2), ('O', 3)), 1)],
             'k.O.des': [],
             'k.O.dif': [],
-            'k.CO.ads': [((('CO', 1), ('CO', 2), ('E', 3)) , 1), ((('CO', 1), ('E', 2), ('CO', 3)), 1)],
+            'k.CO.ads': [((('CO', 1), ('CO', 2), ('E', 3)), 1), ((('CO', 1), ('E', 2), ('CO', 3)), 1)],
             'k.CO.des': [((('E', 1), ('E', 2), ('E', 3)), 1)],
             'k.CO.dif': [((('E', 1), ('CO', 2)), 1), ((('E', 1), ('CO', 2), ('E', 3)), 2)],
             'k.COO.lh': [],
@@ -748,6 +748,14 @@ class TestCOOxidationEquationGenerator(unittest.TestCase):
 
         # Get the dictionary of states.
         decay_dict_resultant1 = system._get_multiplicity(decay_dict0)
+
+        # Get the keys.
+        keys = decay_dict_resultant0.keys()
+
+        # Make the comparison.
+        for key in keys:
+            self.assertEqual(len(decay_dict_resultant0[key]), len(decay_dict_resultant1[key]))
+            self.assertEqual(set(decay_dict_resultant0[key]), set(decay_dict_resultant1[key]))
 
     def test_get_numbering(self):
         """ Tests that the _get_numbering function is working properly.
