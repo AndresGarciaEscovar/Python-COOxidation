@@ -11,5 +11,4 @@ if __name__ == "__main__":
     system = Co(number_of_sites, states)
 
     # system.get_nth_order_equations(system.number_of_sites)
-    operations = system._get_associated_operations()
-    system.get_nth_order_equations(operations, order=2)
+    system.get_nth_order_equations(order=1)
