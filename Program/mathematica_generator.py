@@ -1,7 +1,5 @@
+""" The class that serves as the base to create an equation generator.
 """
-"""
-
-
 
 # Imports.
 import copy as cp
@@ -92,7 +90,7 @@ class EquationGenerator(ABC):
     # Get methods.
     # --------------------------------------------------------------------------
 
-    def get_nth_order_equations(self, processes, order=0, print_equations=False):
+    def get_nth_order_equations(self, order=0, print_equations=False):
         """ Gets the nth order equations for the system in the format
                 (state, decay_states, create_states),
             where "decay_states" and "create_states" are the dictionaries that
@@ -102,10 +100,6 @@ class EquationGenerator(ABC):
 
             :param order: The lowest order to which the equations must be
             given.
-
-            :param processes: The information of the processes. This must be
-            a tuple of tuples, such that the inner tuples are in the format
-            (process order, process rate constant, pointer to function).
 
             :param print_equations: If the table of equations must be printed.
         """
@@ -131,7 +125,18 @@ class EquationGenerator(ABC):
         process_dict = self._get_process_functions()
 
         # Get the decay states for each of the right-hand states.
-        decay_states = map(lambda x: decay_func, processes)
+        decay_states = list(map(lambda x: decay_func(x, process_dict), states_right_hand))
+
+        # ----------------------------------------------------------------------
+        # Get the decay state(s) of the left-hand states.
+        # ----------------------------------------------------------------------
+
+        # Get both the decay and creation dictionaries for each state.
+        for state_left_hand in states_left_hand:
+            decay_dictionary = self._get_decay_products(state_left_hand, decay_states)
+            create_dictionary = self._get_create_products(state_left_hand, decay_states)
+
+            # TODO: Continue here!
 
     # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
     # Private Interface.
