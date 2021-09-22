@@ -111,11 +111,7 @@ class EquationGenerator(ABC):
         """
 
         # ----------------------------------------------------------------------
-        # Auxiliary functions.
-        # ----------------------------------------------------------------------
-
-        # ----------------------------------------------------------------------
-        # Implementation.
+        # Get the states to perform the calculation.
         # ----------------------------------------------------------------------
 
         # Get the lowest order states.
@@ -123,6 +119,19 @@ class EquationGenerator(ABC):
 
         # Get the other involved states.
         states_right_hand = self._get_states_right(order)
+
+        # ----------------------------------------------------------------------
+        # Get the decay states.
+        # ----------------------------------------------------------------------
+
+        # An alias to the function to make it shorter.
+        decay_func = self._get_decay_states
+
+        # Dictionary of processes.
+        process_dict = self._get_process_functions()
+
+        # Get the decay states for each of the right-hand states.
+        decay_states = map(lambda x: decay_func, processes)
 
     # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
     # Private Interface.
@@ -407,6 +416,66 @@ class EquationGenerator(ABC):
             :return: The list of possible numbered states in the given format.
         """
         pass
+
+    @abstractmethod
+    def _get_process_functions(self):
+        """ Returns all the pointers to the functions that operate on the
+            different states to, potentially, modify them.
+
+            :return process_functions: A dictionary, whose keys are the string
+            represenation of the rates, with the functions that will potentially
+            modify a state.
+        """
+
+        # Get the associated operations.
+        operations = self._get_associated_operations()
+
+        # Get the rate strings tuple.
+        process_functions = tuple((operation[1], operation[2],) for operation in operations)
+
+        # Convert it into a dictionary.
+        process_functions = dict(process_functions)
+
+        return process_functions
+
+    @abstractmethod
+    def _get_process_orders(self):
+        """ Returns all the dictionary of integers that represent the minimum
+            number of sites required for the given processes to take place.
+
+            :return rates_order: A dictionary, whose keys are the string
+            represenation of the rates, with the integers that represent the
+            minimum number of sites required for the given processes to take
+            place.
+        """
+
+        # Get the associated operations.
+        operations = self._get_associated_operations()
+
+        # Get the rate strings tuple.
+        rates_orders = tuple((operation[1], operation[0], ) for operation in operations)
+
+        # Convert it into a dictionary.
+        rates_orders = dict(rates_orders)
+
+        return rates_orders
+
+    @abstractmethod
+    def _get_process_rates(self):
+        """ Returns all the string representation of the rates associated with
+            the class.
+
+            :return rates_strings: A tuple with the string rates associated with
+            the class.
+        """
+
+        # Get the associated operations.
+        operations = self._get_associated_operations()
+
+        # Get the rate strings tuple.
+        rates_strings = tuple(operation[1] for operation in operations)
+
+        return rates_strings
 
     def _get_states(self, order=1):
         """ Given the order, it returns a list of ALL the possible combinations
