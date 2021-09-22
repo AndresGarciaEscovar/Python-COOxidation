@@ -16,6 +16,573 @@ class TestCOOxidationEquationGenerator(unittest.TestCase):
         class are working properly.
     """
 
+    # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+    # Methods Tests.
+    # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+    # --------------------------------------------------------------------------
+    # Get Methods Tests.
+    # --------------------------------------------------------------------------
+
+    def test_get_contracted_state(self):
+        """ Tests that the _get_contracted_states function is working properly.
+        """
+
+        # Define the states and the number of sites.
+        states = {'E', 'CO', 'O'}
+        number_of_sites = 6
+
+        # Create a CO oxidation system with six sites.
+        system = Co(number_of_sites, states)
+
+        # ----------------------------------------------------------------------
+        # Define the states to be contracted and test the function.
+        # ----------------------------------------------------------------------
+
+        # Define the collection of states to be contracted.
+        states = (
+            (('CO', 2), ('E', 3), ('CO', 4), ('O', 5)),
+            (('CO', 2), ('E', 3), ('O', 4), ('O', 5)),
+            (('CO', 2), ('E', 3), ('E', 4), ('O', 5)),
+        )
+
+        # The state that must result from the contraction.
+        resulting_state = (('CO', 2), ('E', 3), ('O', 5))
+
+        # Apply the contraction function to the second index.
+        contracted_state, original_states = system._get_contracted_state(states, 2)
+
+        # The resulting state must be the same as the contracted state.
+        self.assertTupleEqual(resulting_state, contracted_state)
+        self.assertTupleEqual(states, original_states)
+
+        # ----------------------------------------------------------------------
+        # Not good states to contract.
+        # ----------------------------------------------------------------------
+
+        # Define the collection of states to be contracted.
+        states = (
+            (('CO', 2), ('E', 3), ('CO', 4), ('O', 5)),
+            (('CO', 2), ('E', 3), ('O', 4), ('O', 6)),
+            (('CO', 2), ('E', 3), ('E', 4), ('O', 5)),
+        )
+
+        # The state that must result from the contraction.
+        resulting_state = tuple([])
+
+        # Apply the contraction function to the second index.
+        contracted_state, original_states = system._get_contracted_state(states, 2)
+
+        # The resulting state must be the same as the contracted state.
+        self.assertTupleEqual(contracted_state, resulting_state)
+        self.assertTupleEqual(states, original_states)
+
+        # ----------------------------------------------------------------------
+        # Cannot contract the given index.
+        # ----------------------------------------------------------------------
+
+        # Define the collection of states to be contracted.
+        states = (
+            (('CO', 2), ('E', 3), ('CO', 4), ('O', 5)),
+            (('CO', 2), ('E', 3), ('O', 4), ('O', 5)),
+            (('CO', 2), ('E', 3), ('E', 4), ('O', 5)),
+        )
+
+        # The state that must result from the contraction.
+        resulting_state = tuple([])
+
+        # Apply the contraction function to the second index.
+        contracted_state, original_states = system._get_contracted_state(states, 1)
+
+        # The resulting state must be the same as the contracted state.
+        self.assertTupleEqual(contracted_state, resulting_state)
+        self.assertTupleEqual(states, original_states)
+
+        # ----------------------------------------------------------------------
+        # Index contracts to one.
+        # ----------------------------------------------------------------------
+
+        # Define the collection of states to be contracted.
+        states = (
+            (('CO', 4),),
+            (('O', 4),),
+            (('E', 4),),
+        )
+
+        # The state that must result from the contraction.
+        resulting_state = (1,)
+
+        # Apply the contraction function to the second index.
+        contracted_state, original_states = system._get_contracted_state(states, 0)
+
+        # The resulting state must be the same as the contracted state.
+        self.assertTupleEqual(contracted_state, resulting_state)
+        self.assertTupleEqual(states, original_states)
+
+    def test_get_decay_states(self):
+        """ Tests that the _get_decay_states function is working properly.
+        """
+
+        # Define the states and the number of sites.
+        states = {'E', 'CO', 'O'}
+        number_of_sites = 6
+
+        # Create a CO oxidation system with six sites.
+        system = Co(number_of_sites, states)
+
+        # ----------------------------------------------------------------------
+        # Test that the correct dictionary is returned for one-site state.
+        # ----------------------------------------------------------------------
+
+        # Define the state that will be operated on by the different processes.
+        state = (('E', 1),)
+
+        # Set the decay dictionary.
+        decay_dict = {
+            'k.O.ads': [],
+            'k.O.des': [],
+            'k.O.dif': [],
+            'k.CO.ads': [(('CO', 1),)],
+            'k.CO.des': [],
+            'k.CO.dif': [],
+            'k.COO.lh': [],
+            'k.COO.el': []
+        }
+
+        # Get the dictionary of states.
+        states_of_decay = system._get_decay_states(state, system._get_process_functions())
+
+        # Original state must also be returned.
+        self.assertEqual(state, states_of_decay[0])
+
+        # Dictionaries must be the same.
+        self.assertEqual(decay_dict, states_of_decay[1])
+
+        # ----------------------------------------------------------------------
+        # Test that the correct dictionary is returned for two-site states.
+        # ----------------------------------------------------------------------
+
+        # Define the state that will be operated on by the different processes.
+        state = (('E', 1), ('O', 2),)
+
+        # Set the decay dictionary.
+        decay_dict = {
+            'k.O.ads': [],
+            'k.O.des': [],
+            'k.O.dif': [(('O', 1), ('E', 2),)],
+            'k.CO.ads': [(('CO', 1), ('O', 2),)],
+            'k.CO.des': [],
+            'k.CO.dif': [],
+            'k.COO.lh': [],
+            'k.COO.el': [(('E', 1), ('E', 2),)]
+        }
+
+        # Get the dictionary of states.
+        states_of_decay = system._get_decay_states(state, system._get_process_functions())
+
+        # Original state must also be returned.
+        self.assertEqual(state, states_of_decay[0])
+
+        # Dictionaries must be the same.
+        self.assertEqual(decay_dict, states_of_decay[1])
+
+        # ----------------------------------------------------------------------
+        # Test that the correct dictionary is returned for three-site states.
+        # ----------------------------------------------------------------------
+
+        # Define the state that will be operated on by the different processes.
+        state = (('CO', 1), ('E', 2), ('E', 3))
+
+        # Set the decay dictionary.
+        decay_dict = {
+            'k.O.ads': [(('CO', 1), ('O', 2), ('O', 3))],
+            'k.O.des': [],
+            'k.O.dif': [],
+            'k.CO.ads': [(('CO', 1), ('CO', 2), ('E', 3)), (('CO', 1), ('E', 2), ('CO', 3))],
+            'k.CO.des': [(('E', 1), ('E', 2), ('E', 3))],
+            'k.CO.dif': [(('E', 1), ('CO', 2), ('E', 3))],
+            'k.COO.lh': [],
+            'k.COO.el': []
+        }
+
+        # Get the dictionary of states.
+        states_of_decay = system._get_decay_states(state, system._get_process_functions())
+
+        # Original state must also be returned.
+        self.assertEqual(state, states_of_decay[0])
+
+        # Dictionaries must be the same.
+        self.assertEqual(decay_dict, states_of_decay[1])
+
+    def test_get_is_substate(self):
+        """ Tests that the _get_is_substate function is working properly.
+        """
+
+        # Define the states and the number of sites.
+        states = {'E', 'CO', 'O'}
+        number_of_sites = 6
+
+        # Create a CO oxidation system with six sites.
+        system = Co(number_of_sites, states)
+
+        # ----------------------------------------------------------------------
+        # Test for consistency.
+        # ----------------------------------------------------------------------
+
+        # Get the states to be examined.
+        state1 = (('CO', 1), ('CO', 2),)
+        state2 = (('CO', 1), ('CO', 2), ('E', 3),)
+
+        # State 1 is a substate of state 2.
+        self.assertTrue(system._get_is_substate(state1, state2))
+
+        # State 2 is NOT a substate of state 1.
+        self.assertFalse(system._get_is_substate(state2, state1))
+
+        # ----------------------------------------------------------------------
+        # Same states with the entries mixed.
+        # ----------------------------------------------------------------------
+
+        # Get the states to be examined.
+        state1 = (('CO', 2), ('CO', 1),)
+        state2 = (('E', 3), ('CO', 1), ('CO', 2),)
+
+        # State 1 is a substate of state 2.
+        self.assertTrue(system._get_is_substate(state1, state2))
+
+        # State 2 is NOT a substate of state 1.
+        self.assertFalse(system._get_is_substate(state2, state1))
+
+        # ----------------------------------------------------------------------
+        # State 1 cannot be a substate of state 2s.
+        # ----------------------------------------------------------------------
+
+        # Get the states to be examined.
+        state1 = (('CO', 1), ('CO', 2),)
+        state2 = (('CO', 1), ('CO', 5), ('E', 6),)
+
+        # State 1 is NOT substate of state 2.
+        self.assertFalse(system._get_is_substate(state1, state2))
+
+        # State 2 is NOT a substate of state 1.
+        self.assertFalse(system._get_is_substate(state2, state1))
+
+    def test_get_multiplicity(self):
+        """ Tests that the _get_multiplicity function is working properly.
+        """
+
+        # Define the states and the number of sites.
+        states = {'E', 'CO', 'O'}
+        number_of_sites = 6
+
+        # Create a CO oxidation system with six sites.
+        system = Co(number_of_sites, states)
+
+        # ----------------------------------------------------------------------
+        # Test that the correct dictionary is returned for three-site states.
+        # ----------------------------------------------------------------------
+
+        # Set the (fictitious) decay dictionary.
+        decay_dict0 = {
+            'k.O.ads': [(('CO', 1), ('O', 2), ('O', 3)), (('O', 1), ('O', 2), ('O', 3)),
+                        (('CO', 1), ('O', 2), ('O', 3))],
+            'k.O.des': [],
+            'k.O.dif': [],
+            'k.CO.ads': [(('CO', 1), ('CO', 2), ('E', 3)), (('CO', 1), ('E', 2), ('CO', 3))],
+            'k.CO.des': [(('E', 1), ('E', 2), ('E', 3))],
+            'k.CO.dif': [(('E', 1), ('CO', 2)), (('E', 1), ('CO', 2), ('E', 3)), (('E', 1), ('CO', 2), ('E', 3))],
+            'k.COO.lh': [],
+            'k.COO.el': []
+        }
+
+        decay_dict_resultant0 = {
+            'k.O.ads': [((('CO', 1), ('O', 2), ('O', 3)), 2), ((('O', 1), ('O', 2), ('O', 3)), 1)],
+            'k.O.des': [],
+            'k.O.dif': [],
+            'k.CO.ads': [((('CO', 1), ('CO', 2), ('E', 3)), 1), ((('CO', 1), ('E', 2), ('CO', 3)), 1)],
+            'k.CO.des': [((('E', 1), ('E', 2), ('E', 3)), 1)],
+            'k.CO.dif': [((('E', 1), ('CO', 2)), 1), ((('E', 1), ('CO', 2), ('E', 3)), 2)],
+            'k.COO.lh': [],
+            'k.COO.el': []
+        }
+
+        # Get the dictionary of states.
+        decay_dict_resultant1 = system._get_multiplicity(decay_dict0)
+
+        # Get the keys.
+        keys = decay_dict_resultant0.keys()
+
+        # Make the comparison.
+        for key in keys:
+            self.assertEqual(len(decay_dict_resultant0[key]), len(decay_dict_resultant1[key]))
+            self.assertEqual(set(decay_dict_resultant0[key]), set(decay_dict_resultant1[key]))
+
+    def test_get_numbering(self):
+        """ Tests that the _get_numbering function is working properly.
+        """
+
+        # Define the states and the number of sites.
+        states = {'E', 'CO', 'O'}
+        number_of_sites = 6
+
+        # Create a CO oxidation system with six sites.
+        system = Co(number_of_sites, states)
+
+        # ----------------------------------------------------------------------
+        # Get requested states for a 2 state site.
+        # ----------------------------------------------------------------------
+
+        # Get the state to be labeled.
+        state = ('CO', 'CO')
+
+        # Get the outcomes.
+        outcomes_0 = system._get_numbering(state)
+
+        # These are the states that must come out.
+        outcomes_1 = [(('CO', 1), ('CO', 2),), (('CO', 2), ('CO', 3),),
+                      (('CO', 3), ('CO', 4),), (('CO', 4), ('CO', 5),),
+                      (('CO', 5), ('CO', 6),)
+                      ]
+
+        # Check that all the states are unique.
+        self.assertEqual(len(outcomes_0), len(set(outcomes_0)))
+        self.assertEqual(len(outcomes_1), len(set(outcomes_1)))
+
+        # Check that all the outcomes are in the list.
+        for outcome_0 in outcomes_0:
+            self.assertTrue(outcome_0 in outcomes_1)
+
+        # ----------------------------------------------------------------------
+        # Get requested states for a 3 state site.
+        # ----------------------------------------------------------------------
+
+        # Get the state to be labeled.
+        state = ('CO', 'CO', 'E')
+
+        # Get the outcomes.
+        outcomes_0 = system._get_numbering(state)
+
+        # These are the states that must come out.
+        outcomes_1 = [(('CO', 1), ('CO', 2), ('E', 3),),
+                      (('CO', 2), ('CO', 3), ('E', 4),),
+                      (('CO', 3), ('CO', 4), ('E', 5),),
+                      (('CO', 4), ('CO', 5), ('E', 6),)
+                      ]
+
+        # Check that all the states are unique.
+        self.assertEqual(len(outcomes_0), len(set(outcomes_0)))
+        self.assertEqual(len(outcomes_1), len(set(outcomes_1)))
+
+        # Check that all the outcomes are in the list.
+        for outcome_0 in outcomes_0:
+            self.assertTrue(outcome_0 in outcomes_1)
+
+        # ----------------------------------------------------------------------
+        # Get requested states for a 7 state site; not possible.
+        # ----------------------------------------------------------------------
+
+        # Get the state to be labeled with an excess of entries.
+        state = ('CO', 'CO', 'E', 'E', 'E', 'E', 'E',)
+
+        # The request must fail.
+        try:
+            # Get the outcomes.
+            system._get_numbering(state)
+            self.assertTrue(False)
+        except ValueError:
+            self.assertTrue(True)
+
+        # Get the state to be labeled with zero entries.
+        state = []
+
+        # The request must fail.
+        try:
+            # Get the outcomes.
+            system._get_numbering(state)
+            self.assertTrue(False)
+        except ValueError:
+            self.assertTrue(True)
+
+    def test_get_states(self):
+        """ Tests that the _get_states function is working properly.
+        """
+
+        # Define the states and the number of sites.
+        states = {'E', 'CO', 'O'}
+        number_of_sites = 6
+
+        # Create a CO oxidation system with six sites.
+        system = Co(number_of_sites, states)
+
+        # ----------------------------------------------------------------------
+        # Get requested states for a 2 state site.
+        # ----------------------------------------------------------------------
+
+        # Define the order.
+        order = 2
+
+        # Get the states.
+        outcomes_0 = system._get_states(order)
+
+        # These are the states that must come out.
+        outcomes_1 = [('CO', 'CO',), ('CO', 'O',), ('CO', 'E',),
+                      ('O', 'CO',), ('O', 'O',), ('O', 'E',),
+                      ('E', 'CO',), ('E', 'O',), ('E', 'E',)
+                      ]
+
+        # Check that all the states are unique.
+        self.assertEqual(len(outcomes_0), len(set(outcomes_0)))
+        self.assertEqual(len(outcomes_1), len(set(outcomes_1)))
+
+        # Check that all the outcomes are in the list.
+        for outcome_0 in outcomes_0:
+            self.assertTrue(outcome_0 in outcomes_1)
+
+    def test_get_states_left(self):
+        """ Tests that the _get_states_left function is working properly.
+        """
+
+        # Define the states and the number of sites.
+        states = {'E', 'CO', 'O'}
+        number_of_sites = 3
+
+        # Create a CO oxidation system with six sites.
+        system = Co(number_of_sites, states)
+
+        # ----------------------------------------------------------------------
+        # Get lowest level states requested states for zeroth order.
+        # ----------------------------------------------------------------------
+
+        # Define the order.
+        order = 0
+
+        # Get the states.
+        outcomes_0 = system._get_states_left(order)
+
+        # These are the states that must come out.
+        outcomes_1 = [(('CO', 1,),), (('CO', 2,),), (('CO', 3,),),
+                      (('O', 1,),), (('O', 2,),), (('O', 3,),),
+                      (('E', 1,),), (('E', 2,),), (('E', 3,),)
+                      ]
+
+        # Check that all the states are unique.
+        self.assertEqual(len(outcomes_0), len(set(outcomes_0)))
+        self.assertEqual(len(outcomes_1), len(outcomes_0))
+        self.assertEqual(len(outcomes_1), len(set(outcomes_1)))
+
+        # Check that all the outcomes are in the list.
+        for outcome_0 in outcomes_0:
+            self.assertTrue(outcome_0 in outcomes_1)
+
+        # ----------------------------------------------------------------------
+        # Get lowest level states requested states for first order.
+        # ----------------------------------------------------------------------
+
+        # Define the order.
+        order = 1
+
+        # Get the states.
+        outcomes_0 = system._get_states_left(order)
+
+        # These are the states that must come out.
+        outcomes_1 = [(('CO', 1,),), (('CO', 2,),), (('CO', 3,),),
+                      (('O', 1,),), (('O', 2,),), (('O', 3,),),
+                      (('E', 1,),), (('E', 2,),), (('E', 3,),)
+                      ]
+
+        # Check that all the states are unique.
+        self.assertEqual(len(outcomes_0), len(set(outcomes_0)))
+        self.assertEqual(len(outcomes_1), len(outcomes_0))
+        self.assertEqual(len(outcomes_1), len(set(outcomes_1)))
+
+        # Check that all the outcomes are in the list.
+        for outcome_0 in outcomes_0:
+            self.assertTrue(outcome_0 in outcomes_1)
+
+        # ----------------------------------------------------------------------
+        # Get lowest level states requested states for second order.
+        # ----------------------------------------------------------------------
+
+        # Define the order.
+        order = 2
+
+        # Get the states.
+        outcomes_0 = system._get_states_left(order)
+
+        # These are the states that must come out.
+        outcomes_1 = [(('CO', 1,),), (('CO', 2,),), (('CO', 3,),),
+                      (('O', 1,),), (('O', 2,),), (('O', 3,),),
+                      (('E', 1,),), (('E', 2,),), (('E', 3,),),
+                      (('CO', 1,), ('CO', 2,),), (('CO', 2,), ('CO', 3,),),
+                      (('CO', 1,), ('O', 2,),), (('CO', 2,), ('O', 3,),),
+                      (('CO', 1,), ('E', 2,),), (('CO', 2,), ('E', 3,),),
+                      (('O', 1,), ('CO', 2,),), (('O', 2,), ('CO', 3,),),
+                      (('O', 1,), ('O', 2,),), (('O', 2,), ('O', 3,),),
+                      (('O', 1,), ('E', 2,),), (('O', 2,), ('E', 3,),),
+                      (('E', 1,), ('CO', 2,),), (('E', 2,), ('CO', 3,),),
+                      (('E', 1,), ('O', 2,),), (('E', 2,), ('O', 3,),),
+                      (('E', 1,), ('E', 2,),), (('E', 2,), ('E', 3,),)
+                      ]
+
+        # Check that all the states are unique.
+        self.assertEqual(len(outcomes_0), len(set(outcomes_0)))
+        self.assertEqual(len(outcomes_1), len(outcomes_0))
+        self.assertEqual(len(outcomes_1), len(set(outcomes_1)))
+
+        # Check that all the outcomes are in the list.
+        for outcome_0 in outcomes_0:
+            self.assertTrue(outcome_0 in outcomes_1)
+
+    def test_get_states_right(self):
+        """ Tests that the _get_states_right function is working properly.
+        """
+
+        # Define the states and the number of sites.
+        states = {'E', 'CO', 'O'}
+        number_of_sites = 3
+
+        # Create a CO oxidation system with six sites.
+        system = Co(number_of_sites, states)
+
+        # ----------------------------------------------------------------------
+        # Get requested states for the first and zeroth order equations.
+        # ----------------------------------------------------------------------
+
+        # Define the order.
+        order = 0
+
+        # Get the states.
+        outcomes_0_0 = system._get_states_right(order)
+        outcomes_0_1 = system._get_states_right(order + 1)
+
+        # These are the states that must come out.
+        outcomes_1 = [(('CO', 1,), ('CO', 2,),), (('CO', 2,), ('CO', 3,),),
+                      (('CO', 1,), ('O', 2,),), (('CO', 2,), ('O', 3,),),
+                      (('CO', 1,), ('E', 2,),), (('CO', 2,), ('E', 3,),),
+                      (('O', 1,), ('CO', 2,),), (('O', 2,), ('CO', 3,),),
+                      (('O', 1,), ('O', 2,),), (('O', 2,), ('O', 3,),),
+                      (('O', 1,), ('E', 2,),), (('O', 2,), ('E', 3,),),
+                      (('E', 1,), ('CO', 2,),), (('E', 2,), ('CO', 3,),),
+                      (('E', 1,), ('O', 2,),), (('E', 2,), ('O', 3,),),
+                      (('E', 1,), ('E', 2,),), (('E', 2,), ('E', 3,),)
+                      ]
+
+        # Check that all the states are unique.
+        self.assertEqual(len(outcomes_0_0), len(set(outcomes_0_0)))
+        self.assertEqual(len(outcomes_0_1), len(set(outcomes_0_1)))
+        self.assertEqual(len(outcomes_1), len(outcomes_0_0))
+        self.assertEqual(len(outcomes_1), len(outcomes_0_1))
+        self.assertEqual(len(outcomes_1), len(set(outcomes_1)))
+
+        # Check that all the outcomes are in the list.
+        for j, outcome_0 in enumerate(outcomes_0_0):
+            self.assertTrue(outcome_0 in outcomes_1)
+            self.assertTrue(outcomes_0_1[j] in outcomes_1)
+
+    # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+    # General Properties Tests.
+    # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
     # --------------------------------------------------------------------------
     # Model Consistency Tests.
     # --------------------------------------------------------------------------
@@ -67,6 +634,10 @@ class TestCOOxidationEquationGenerator(unittest.TestCase):
 
         # Make sure they are all unique.
         self.assertEqual(len(process_functions), len(set(process_functions)))
+
+    # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+    # Processes Tests
+    # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
     # --------------------------------------------------------------------------
     # Carbon Monoxide Processes Tests.
@@ -460,423 +1031,6 @@ class TestCOOxidationEquationGenerator(unittest.TestCase):
 
         # Check that there NO outcomes.
         self.assertEqual(len(outcomes_1), 0)
-
-    # --------------------------------------------------------------------------
-    # Other Methods Tests.
-    # --------------------------------------------------------------------------
-
-    def test_get_contracted_state(self):
-        """ Tests that the _get_contracted_states function is working properly.
-        """
-
-        # Define the states and the number of sites.
-        states = {'E', 'CO', 'O'}
-        number_of_sites = 6
-
-        # Create a CO oxidation system with six sites.
-        system = Co(number_of_sites, states)
-
-        # ----------------------------------------------------------------------
-        # Define the states to be contracted and test the function.
-        # ----------------------------------------------------------------------
-
-        # Define the collection of states to be contracted.
-        states = (
-            (('CO', 2), ('E', 3), ('CO', 4), ('O', 5)),
-            (('CO', 2), ('E', 3), ('O', 4), ('O', 5)),
-            (('CO', 2), ('E', 3), ('E', 4), ('O', 5)),
-        )
-
-        # The state that must result from the contraction.
-        resulting_state = (('CO', 2), ('E', 3), ('O', 5))
-
-        # Apply the contraction function to the second index.
-        contracted_state, original_states = system._get_contracted_state(states, 2)
-
-        # The resulting state must be the same as the contracted state.
-        self.assertTupleEqual(resulting_state, contracted_state)
-        self.assertTupleEqual(states, original_states)
-
-        # ----------------------------------------------------------------------
-        # Not good states to contract.
-        # ----------------------------------------------------------------------
-
-        # Define the collection of states to be contracted.
-        states = (
-            (('CO', 2), ('E', 3), ('CO', 4), ('O', 5)),
-            (('CO', 2), ('E', 3), ('O', 4), ('O', 6)),
-            (('CO', 2), ('E', 3), ('E', 4), ('O', 5)),
-        )
-
-        # The state that must result from the contraction.
-        resulting_state = tuple([])
-
-        # Apply the contraction function to the second index.
-        contracted_state, original_states = system._get_contracted_state(states, 2)
-
-        # The resulting state must be the same as the contracted state.
-        self.assertTupleEqual(contracted_state, resulting_state)
-        self.assertTupleEqual(states, original_states)
-
-        # ----------------------------------------------------------------------
-        # Cannot contract the given index.
-        # ----------------------------------------------------------------------
-
-        # Define the collection of states to be contracted.
-        states = (
-            (('CO', 2), ('E', 3), ('CO', 4), ('O', 5)),
-            (('CO', 2), ('E', 3), ('O', 4), ('O', 5)),
-            (('CO', 2), ('E', 3), ('E', 4), ('O', 5)),
-        )
-
-        # The state that must result from the contraction.
-        resulting_state = tuple([])
-
-        # Apply the contraction function to the second index.
-        contracted_state, original_states = system._get_contracted_state(states, 1)
-
-        # The resulting state must be the same as the contracted state.
-        self.assertTupleEqual(contracted_state, resulting_state)
-        self.assertTupleEqual(states, original_states)
-
-        # ----------------------------------------------------------------------
-        # Index contracts to one.
-        # ----------------------------------------------------------------------
-
-        # Define the collection of states to be contracted.
-        states = (
-            (('CO', 4),),
-            (('O', 4),),
-            (('E', 4),),
-        )
-
-        # The state that must result from the contraction.
-        resulting_state = (1,)
-
-        # Apply the contraction function to the second index.
-        contracted_state, original_states = system._get_contracted_state(states, 0)
-
-        # The resulting state must be the same as the contracted state.
-        self.assertTupleEqual(contracted_state, resulting_state)
-        self.assertTupleEqual(states, original_states)
-
-    def test_get_decay_states(self):
-        """ Tests that the _get_decay_states function is working properly.
-        """
-
-        # Define the states and the number of sites.
-        states = {'E', 'CO', 'O'}
-        number_of_sites = 6
-
-        # Create a CO oxidation system with six sites.
-        system = Co(number_of_sites, states)
-
-        # ----------------------------------------------------------------------
-        # Test that the correct dictionary is returned for one-site state.
-        # ----------------------------------------------------------------------
-
-        # Define the state that will be operated on by the different processes.
-        state = (('E', 1),)
-
-        # Set the decay dictionary.
-        decay_dict = {
-            'k.O.ads':  [],
-            'k.O.des':  [],
-            'k.O.dif':  [],
-            'k.CO.ads': [(('CO', 1),)],
-            'k.CO.des': [],
-            'k.CO.dif': [],
-            'k.COO.lh': [],
-            'k.COO.el': []
-        }
-
-        # Get the dictionary of states.
-        states_of_decay = system._get_decay_states(state, system._get_process_functions())
-
-        # Original state must also be returned.
-        self.assertEqual(state, states_of_decay[0])
-
-        # Dictionaries must be the same.
-        self.assertEqual(decay_dict, states_of_decay[1])
-
-        # ----------------------------------------------------------------------
-        # Test that the correct dictionary is returned for two-site states.
-        # ----------------------------------------------------------------------
-
-        # Define the state that will be operated on by the different processes.
-        state = (('E', 1), ('O', 2),)
-
-        # Set the decay dictionary.
-        decay_dict = {
-            'k.O.ads': [],
-            'k.O.des': [],
-            'k.O.dif': [(('O', 1), ('E', 2),)],
-            'k.CO.ads': [(('CO', 1), ('O', 2),)],
-            'k.CO.des': [],
-            'k.CO.dif': [],
-            'k.COO.lh': [],
-            'k.COO.el': [(('E', 1), ('E', 2),)]
-        }
-
-        # Get the dictionary of states.
-        states_of_decay = system._get_decay_states(state, system._get_process_functions())
-
-        # Original state must also be returned.
-        self.assertEqual(state, states_of_decay[0])
-
-        # Dictionaries must be the same.
-        self.assertEqual(decay_dict, states_of_decay[1])
-
-        # ----------------------------------------------------------------------
-        # Test that the correct dictionary is returned for three-site states.
-        # ----------------------------------------------------------------------
-
-        # Define the state that will be operated on by the different processes.
-        state = (('CO', 1), ('E', 2), ('E', 3))
-
-        # Set the decay dictionary.
-        decay_dict = {
-            'k.O.ads':  [(('CO', 1), ('O', 2), ('O', 3))],
-            'k.O.des':  [],
-            'k.O.dif':  [],
-            'k.CO.ads': [(('CO', 1), ('CO', 2), ('E', 3)), (('CO', 1), ('E', 2), ('CO', 3))],
-            'k.CO.des': [(('E', 1), ('E', 2), ('E', 3))],
-            'k.CO.dif': [(('E', 1), ('CO', 2), ('E', 3))],
-            'k.COO.lh': [],
-            'k.COO.el': []
-        }
-
-        # Get the dictionary of states.
-        states_of_decay = system._get_decay_states(state, system._get_process_functions())
-
-        # Original state must also be returned.
-        self.assertEqual(state, states_of_decay[0])
-
-        # Dictionaries must be the same.
-        self.assertEqual(decay_dict, states_of_decay[1])
-
-    def test_get_is_substate(self):
-        """ Tests that the _get_is_substate function is working properly.
-        """
-
-        # Define the states and the number of sites.
-        states = {'E', 'CO', 'O'}
-        number_of_sites = 6
-
-        # Create a CO oxidation system with six sites.
-        system = Co(number_of_sites, states)
-
-        # ----------------------------------------------------------------------
-        # Test for consistency.
-        # ----------------------------------------------------------------------
-
-        # Get the states to be examined.
-        state1 = (('CO', 1), ('CO', 2),)
-        state2 = (('CO', 1), ('CO', 2), ('E', 3),)
-
-        # State 1 is a substate of state 2.
-        self.assertTrue(system._get_is_substate(state1, state2))
-
-        # State 2 is NOT a substate of state 1.
-        self.assertFalse(system._get_is_substate(state2, state1))
-
-        # ----------------------------------------------------------------------
-        # Same states with the entries mixed.
-        # ----------------------------------------------------------------------
-
-        # Get the states to be examined.
-        state1 = (('CO', 2), ('CO', 1),)
-        state2 = (('E', 3), ('CO', 1), ('CO', 2),)
-
-        # State 1 is a substate of state 2.
-        self.assertTrue(system._get_is_substate(state1, state2))
-
-        # State 2 is NOT a substate of state 1.
-        self.assertFalse(system._get_is_substate(state2, state1))
-
-        # ----------------------------------------------------------------------
-        # State 1 cannot be a substate of state 2s.
-        # ----------------------------------------------------------------------
-
-        # Get the states to be examined.
-        state1 = (('CO', 1), ('CO', 2), )
-        state2 = (('CO', 1), ('CO', 5), ('E', 6),)
-
-        # State 1 is NOT substate of state 2.
-        self.assertFalse(system._get_is_substate(state1, state2))
-
-        # State 2 is NOT a substate of state 1.
-        self.assertFalse(system._get_is_substate(state2, state1))
-
-    def test_get_multiplicity(self):
-        """ Tests that the _get_multiplicity function is working properly.
-        """
-
-        # Define the states and the number of sites.
-        states = {'E', 'CO', 'O'}
-        number_of_sites = 6
-
-        # Create a CO oxidation system with six sites.
-        system = Co(number_of_sites, states)
-
-        # ----------------------------------------------------------------------
-        # Test that the correct dictionary is returned for three-site states.
-        # ----------------------------------------------------------------------
-
-        # Set the (fictitious) decay dictionary.
-        decay_dict0 = {
-            'k.O.ads': [(('CO', 1), ('O', 2), ('O', 3)), (('O', 1), ('O', 2), ('O', 3)), (('CO', 1), ('O', 2), ('O', 3))],
-            'k.O.des': [],
-            'k.O.dif': [],
-            'k.CO.ads': [(('CO', 1), ('CO', 2), ('E', 3)), (('CO', 1), ('E', 2), ('CO', 3))],
-            'k.CO.des': [(('E', 1), ('E', 2), ('E', 3))],
-            'k.CO.dif': [(('E', 1), ('CO', 2)), (('E', 1), ('CO', 2), ('E', 3)), (('E', 1), ('CO', 2), ('E', 3))],
-            'k.COO.lh': [],
-            'k.COO.el': []
-        }
-
-        decay_dict_resultant0 = {
-            'k.O.ads': [((('CO', 1), ('O', 2), ('O', 3)), 2), ((('O', 1), ('O', 2), ('O', 3)), 1)],
-            'k.O.des': [],
-            'k.O.dif': [],
-            'k.CO.ads': [((('CO', 1), ('CO', 2), ('E', 3)), 1), ((('CO', 1), ('E', 2), ('CO', 3)), 1)],
-            'k.CO.des': [((('E', 1), ('E', 2), ('E', 3)), 1)],
-            'k.CO.dif': [((('E', 1), ('CO', 2)), 1), ((('E', 1), ('CO', 2), ('E', 3)), 2)],
-            'k.COO.lh': [],
-            'k.COO.el': []
-        }
-
-        # Get the dictionary of states.
-        decay_dict_resultant1 = system._get_multiplicity(decay_dict0)
-
-        # Get the keys.
-        keys = decay_dict_resultant0.keys()
-
-        # Make the comparison.
-        for key in keys:
-            self.assertEqual(len(decay_dict_resultant0[key]), len(decay_dict_resultant1[key]))
-            self.assertEqual(set(decay_dict_resultant0[key]), set(decay_dict_resultant1[key]))
-
-    def test_get_numbering(self):
-        """ Tests that the _get_numbering function is working properly.
-        """
-
-        # Define the states and the number of sites.
-        states = {'E', 'CO', 'O'}
-        number_of_sites = 6
-
-        # Create a CO oxidation system with six sites.
-        system = Co(number_of_sites, states)
-
-        # ----------------------------------------------------------------------
-        # Get requested states for a 2 state site.
-        # ----------------------------------------------------------------------
-
-        # Get the state to be labeled.
-        state = ('CO', 'CO')
-
-        # Get the outcomes.
-        outcomes_0 = system._get_numbering(state)
-
-        # These are the states that must come out.
-        outcomes_1 = [(('CO', 1), ('CO', 2),), (('CO', 2), ('CO', 3),),
-                      (('CO', 3), ('CO', 4),), (('CO', 4), ('CO', 5),),
-                      (('CO', 5), ('CO', 6),)
-                      ]
-
-        # Check that all the states are unique.
-        self.assertEqual(len(outcomes_0), len(set(outcomes_0)))
-        self.assertEqual(len(outcomes_1), len(set(outcomes_1)))
-
-        # Check that all the outcomes are in the list.
-        for outcome_0 in outcomes_0:
-            self.assertTrue(outcome_0 in outcomes_1)
-
-        # ----------------------------------------------------------------------
-        # Get requested states for a 3 state site.
-        # ----------------------------------------------------------------------
-
-        # Get the state to be labeled.
-        state = ('CO', 'CO', 'E')
-
-        # Get the outcomes.
-        outcomes_0 = system._get_numbering(state)
-
-        # These are the states that must come out.
-        outcomes_1 = [(('CO', 1), ('CO', 2), ('E', 3),),
-                      (('CO', 2), ('CO', 3), ('E', 4),),
-                      (('CO', 3), ('CO', 4), ('E', 5),),
-                      (('CO', 4), ('CO', 5), ('E', 6),)
-                      ]
-
-        # Check that all the states are unique.
-        self.assertEqual(len(outcomes_0), len(set(outcomes_0)))
-        self.assertEqual(len(outcomes_1), len(set(outcomes_1)))
-
-        # Check that all the outcomes are in the list.
-        for outcome_0 in outcomes_0:
-            self.assertTrue(outcome_0 in outcomes_1)
-
-        # ----------------------------------------------------------------------
-        # Get requested states for a 7 state site; not possible.
-        # ----------------------------------------------------------------------
-
-        # Get the state to be labeled with an excess of entries.
-        state = ('CO', 'CO', 'E', 'E', 'E', 'E', 'E',)
-
-        # The request must fail.
-        try:
-            # Get the outcomes.
-            system._get_numbering(state)
-            self.assertTrue(False)
-        except ValueError:
-            self.assertTrue(True)
-
-        # Get the state to be labeled with zero entries.
-        state = []
-
-        # The request must fail.
-        try:
-            # Get the outcomes.
-            system._get_numbering(state)
-            self.assertTrue(False)
-        except ValueError:
-            self.assertTrue(True)
-
-    def test_get_states(self):
-        """ Tests that the _get_states function is working properly.
-        """
-
-        # Define the states and the number of sites.
-        states = {'E', 'CO', 'O'}
-        number_of_sites = 6
-
-        # Create a CO oxidation system with six sites.
-        system = Co(number_of_sites, states)
-
-        # ----------------------------------------------------------------------
-        # Get requested states for a 2 state site.
-        # ----------------------------------------------------------------------
-
-        # Define the order.
-        order = 2
-
-        # Get the states.
-        outcomes_0 = system._get_states(order)
-
-        # These are the states that must come out.
-        outcomes_1 = [('CO', 'CO',), ('CO', 'O',), ('CO', 'E',),
-                      ('O', 'CO',), ('O', 'O',), ('O', 'E',),
-                      ('E', 'CO',), ('E', 'O',), ('E', 'E',)
-                      ]
-
-        # Check that all the states are unique.
-        self.assertEqual(len(outcomes_0), len(set(outcomes_0)))
-        self.assertEqual(len(outcomes_1), len(set(outcomes_1)))
-
-        # Check that all the outcomes are in the list.
-        for outcome_0 in outcomes_0:
-            self.assertTrue(outcome_0 in outcomes_1)
 
 
 if __name__ == '__main__':

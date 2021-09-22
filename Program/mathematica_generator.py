@@ -88,51 +88,6 @@ class EquationGenerator(ABC):
     # Generate methods.
     # --------------------------------------------------------------------------
 
-    def generate_equations(self, gather_by_state=False, format_string="latex", order=0, save_file_name="equations"):
-        """ Generates the equations in LaTeX format.
-
-            :param gather_by_state: True, if the terms must be factorized by
-            state. False, if the terms must be factorized by reaction constant.
-
-            :param format_string: The type of formatting that must be applied to
-            the strings. LaTeX is the default setting.
-
-            :param order: The order to which approximate the terms. Must
-            be an integer greater than or equal to zero.
-
-            :param save_file_name: The name of the file where the strings will
-            be saved.
-
-            :return: A string that represents the equations in LaTeX format.
-        """
-
-        # ----------------------------------------------------------------------
-        # Implementation.
-        # ----------------------------------------------------------------------
-
-        # List where the output strings are to be saved.
-        output_strings = []
-
-        # ----------------------------------------------------------------------
-        # Get the equations.
-        # ----------------------------------------------------------------------
-
-        # Get all the strings.
-        for equation in self.equations:
-            # Save the output string to the list to be saved, if needed.
-            output_strings.append(self._generate_equation(equation, gather_by_state, format_string, order))
-
-        # ----------------------------------------------------------------------
-        # Save the strings to a file.
-        # ----------------------------------------------------------------------
-
-        # Join the equations to save.
-        to_save = "\n\n".join(output_strings)
-
-        # Save it to the requested file.
-        with open(save_file_name, "w") as fl:
-            fl.write(to_save)
-
     # --------------------------------------------------------------------------
     # Get methods.
     # --------------------------------------------------------------------------
@@ -159,98 +114,15 @@ class EquationGenerator(ABC):
         # Auxiliary functions.
         # ----------------------------------------------------------------------
 
-        def get_states_left():
-            """ Gets ALL the lowest order states for which the equations will be
-                obtained.
-
-                :return states0: The lowest order states for which the equations will be
-                obtained.
-            """
-
-            # Validate the order.
-            if order < 0 or not isinstance(order, int):
-                raise ValueError("The order must be an integer greater than zero.")
-
-            # Auxiliary variables.
-            states0 = []
-            states0_0 = []
-
-            # Order 0 and 1 are the same.
-            if order == 0:
-                # Only get the first order states.
-                states0_0 = self._get_states(1)
-
-            # Highest order possible means the EXACTLY solvable system.
-            elif order >= self.number_of_sites:
-                # Only the higher order states.
-                states0_0 = self._get_states(self.number_of_sites)
-
-            # Get all the states up to the given order.
-            else:
-                # Get the states from 1 to the given order.
-                for i in range(1, order + 1):
-                    states0_0.extend(self._get_states(i))
-
-            # Get the numbering.
-            for state0 in states0_0:
-                states0.extend(self._get_numbering(state0))
-
-            return states0
-
-        def get_states_right():
-            """ Gets ALL order states that will be involved in creating or
-                decaying to the lowest order states.
-
-                :return states0: The states that will be involved in creating or
-                decaying to the lowest order states
-            """
-
-            # Auxiliary variables.
-            states0 = []
-            states0_0 = []
-
-            # Get the orders of the processes.
-            process_orders0 = set(process0[0] for process0 in processes)
-
-            # If the order is zero or one.
-            if order == 0 or order == 1:
-                # Get the lowest needed orders for the processes.
-                for i in process_orders0:
-                    states0_0.extend(self._get_states(i))
-
-            # Highest order possible means the EXACTLY solvable system.
-            elif order >= self.number_of_sites:
-                # Only the higher order states are needed.
-                states0_0 = self._get_states(self.number_of_sites)
-
-            # Get all the states up to the given order.
-            else:
-
-                # Get ALL the needed orders.
-                needed_orders0 = []
-                # For all the process orders.
-                for process_order0 in process_orders0:
-                    # For the orders involved in the calculation.
-                    for j in range(2, order + 1):
-                        # Get the length of the states that will affect the states.
-                        needed_orders0.extend([i for i in range(j, process_order0 + j)])
-
-                # Get the maximum number of sites needed.
-                order0 = max(needed_orders0)
-                order0 = min(self.number_of_sites, order0)
-
-                # Get all the needed states.
-                states0_0.extend(self._get_states(order0))
-
         # ----------------------------------------------------------------------
         # Implementation.
         # ----------------------------------------------------------------------
 
         # Get the lowest order states.
-        states_left_hand = get_states_left()
+        states_left_hand = self._get_states_left(order)
 
         # Get the other involved states.
-        states_right_hand = get_states_right()
+        states_right_hand = self._get_states_right(order)
 
     # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
     # Private Interface.
@@ -579,6 +451,118 @@ class EquationGenerator(ABC):
 
         return all_states
 
+    def _get_states_left(self, order):
+        """ Returns a list of the numbered lowest order states for the
+            equations to be written in; i.e., the states that have the
+            differential operator d/dt.
+
+            :param order: The order to which the equation is to be written.
+
+            :return states: A list of the non-numbered lowest order states for
+            the equations to be written in.
+        """
+
+        # ----------------------------------------------------------------------
+        # Auxiliary functions.
+        # ----------------------------------------------------------------------
+
+        def validate_order():
+            """ Validates that the order is an integer greater than or equal to
+                zero.
+            """
+
+            # If the order is not valid.
+            if order < 0 or not isinstance(order, (int,)):
+                raise ValueError(f"The order must be an integer number greater than or equal to zero."
+                                 f" Current order = {order}, Type: {type(order)}")
+
+        # ----------------------------------------------------------------------
+        # Implementation.
+        # ----------------------------------------------------------------------
+
+        # Validate the order.
+        validate_order()
+
+        # Auxiliary variables.
+        states = []
+        states_0 = []
+
+        # Fix the order, if needed.
+        order0 = 1 if order == 0 else order
+        order0 = order0 if order < self.number_of_sites else self.number_of_sites
+
+        # Up until the requested order.
+        for i in range(1, order0 + 1):
+            # Get the un-numbered states.
+            states_0.extend(self._get_states(i))
+
+        # For every un-numbered state.
+        for state_0 in states_0:
+            # Get the numbered states.
+            states.extend(self._get_numbering(state_0))
+
+        return states
+
+    def _get_states_right(self, order):
+        """ Returns a list of the numbered states that will potentially appear
+            in the derivative term.
+
+            :param order: The order to which the equation is to be written.
+
+            :return states: A list of the non-numbered lowest order states for
+            the equations to be written in.
+        """
+
+        # ----------------------------------------------------------------------
+        # Auxiliary functions.
+        # ----------------------------------------------------------------------
+
+        def validate_order():
+            """ Validates that the order is an integer greater than or equal to
+                zero.
+            """
+
+            # If the order is not valid.
+            if order < 0 or not isinstance(order, (int,)):
+                raise ValueError(f"The order must be a number greater than or equal to zero."
+                                 f" Current order = {order}, Type = {type(order)}")
+
+        # ----------------------------------------------------------------------
+        # Implementation.
+        # ----------------------------------------------------------------------
+
+        # Validate the order.
+        validate_order()
+
+        # Auxiliary variables.
+        orders = []
+        states = []
+
+        # Fix the order, if needed.
+        order0 = 1 if order == 0 else order
+        order0 = order0 if order < self.number_of_sites else self.number_of_sites
+
+        # Get the orders of the process.
+        processes_orders = list(set(order_0[0] for order_0 in self._get_associated_operations()))
+
+        # For each length of states.
+        for order_0 in range(1, order0 + 1):
+            orders.extend([order_0 + order_1 - 1 for order_1 in processes_orders])
+
+        # Order vectors cannot be longer than the total number of sites.
+        maximum_order = max(orders)
+        maximum_order = min(maximum_order, self.number_of_sites)
+
+        # Get the states of the maximum order.
+        states_0 = self._get_states(maximum_order)
+
+        # For every non-numbered state
+        for state0 in states_0:
+            # Number the states associated with the non-numbered state.
+            states.extend(self._get_numbering(state0))
+
+        return states
+
     def _get_state_elements(self, state):
         """ Gets two tuples one with the elements of the given state; one with
             all the particles and the other one with the indexes.
@@ -690,7 +674,7 @@ class EquationGenerator(ABC):
     def __init__(self, number_of_sites, states):
         """ Creates an EquationGenerator object and initializes its properties.
 
-            :param sites: The number of sites that the system has.
+            :param number_of_sites: The number of sites that the system has.
 
             :param states: A list of unique strings, that represent the names of
             the statistically independent variables that each site of the system
