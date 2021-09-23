@@ -5,10 +5,11 @@
 # Imports: General.
 import copy as cp
 import itertools
+import os
 
-import numpy as np
+# Imports: User-defined.
+from Program.Formatters.formatter_latex import LaTeXFormatter
 
-# Imports: Inherited and auxiliary user-defined classes.
 from .mathematica_generator import EquationGenerator
 
 
@@ -371,6 +372,81 @@ class COOxidationEquationGenerator(EquationGenerator):
     # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
     # Public Interface.
     # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+    def get_equations_in_format(self, file_name="equations", format_type="latex", order=0, save_path=None, together=False):
+        """ Generates the equations in the requested format, with the terms
+            approximated to the given order.
+
+            :param file_name: The name of the file where the equations are to be
+            saved; must be extensionless. Named equations by default.
+
+            :param format_type: A string that represents the format of the requested
+            equations. NOT case sensitive, e.g., "A" = "a".
+
+            :param order: The order to which the equations must be approximated.
+            Zeroth order, or less, means that the equations will be written in
+            an exact way.
+
+            :param save_path: The path where a file with the equations is to be
+            created, if at all. None, by default.
+
+            :param together: If the equations must be printed in a stand-alone
+            format of gathered format.
+        """
+
+        # ----------------------------------------------------------------------
+        # Auxiliary functions.
+        # ----------------------------------------------------------------------
+
+        def validate_parameters():
+            """ Validates that the parameters are consistent.
+
+                :return save_path0: The valid an correct save path for the file.
+                In case there is no save path parameter, it defaults to the
+                current folder.
+            """
+
+            # Get the format in all lowercase characters.
+            format_type0 = format_type.lower().strip()
+
+            # Validate the order.
+            if not isinstance(order, (int,)):
+                raise TypeError("The order parameter must be an integer.")
+
+            # Get a proper file path.
+            cwd = os.path.dirname(__file__)
+            cwd += "" if cwd[-1] == os.sep else os.sep
+            save_path0 = cwd if save_path is None else save_path.strip()
+
+            # Check that it is, indeed, a directory.
+            if not os.path.isdir(save_path0):
+                raise ValueError(f"The entered path is not valid, i.e., NOT a directory: {save_path0}")
+
+            return save_path0
+
+        # ----------------------------------------------------------------------
+        # Implementation.
+        # ----------------------------------------------------------------------
+
+        # Validate the parameters before proceeding.
+        save_path = validate_parameters()
+
+        # Check if there are equations.
+        if len(self.equations) == 0:
+            # Give the user a message.
+            print("There are currently no equations to show.")
+            return
+
+        # Auxiliary variables.
+        equation_strings = []
+
+        # Get the requested formatter.
+        format0 = format_type.strip().lower()
+
+        # For every equation.
+        for equation in self.equations:
+            # Get the particular equation.
+            equation_strings.append(LaTeXFormatter.get_equation(equation, order))
 
     # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
     # Private Interface.
