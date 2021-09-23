@@ -556,7 +556,10 @@ class TestCOOxidationEquationGenerator(unittest.TestCase):
         outcomes_0_1 = system._get_states_right(order + 1)
 
         # These are the states that must come out.
-        outcomes_1 = [(('CO', 1,), ('CO', 2,),), (('CO', 2,), ('CO', 3,),),
+        outcomes_1 = [(('CO', 1,),), (('CO', 2,),), (('CO', 3,),),
+                      (('O', 1,),), (('O', 2,),), (('O', 3,),),
+                      (('E', 1,),), (('E', 2,),), (('E', 3,),),
+                      (('CO', 1,), ('CO', 2,),), (('CO', 2,), ('CO', 3,),),
                       (('CO', 1,), ('O', 2,),), (('CO', 2,), ('O', 3,),),
                       (('CO', 1,), ('E', 2,),), (('CO', 2,), ('E', 3,),),
                       (('O', 1,), ('CO', 2,),), (('O', 2,), ('CO', 3,),),
@@ -565,6 +568,60 @@ class TestCOOxidationEquationGenerator(unittest.TestCase):
                       (('E', 1,), ('CO', 2,),), (('E', 2,), ('CO', 3,),),
                       (('E', 1,), ('O', 2,),), (('E', 2,), ('O', 3,),),
                       (('E', 1,), ('E', 2,),), (('E', 2,), ('E', 3,),)
+                      ]
+
+        # Check that all the states are unique.
+        self.assertEqual(len(outcomes_0_0), len(set(outcomes_0_0)))
+        self.assertEqual(len(outcomes_0_1), len(set(outcomes_0_1)))
+        self.assertEqual(len(outcomes_1), len(outcomes_0_0))
+        self.assertEqual(len(outcomes_1), len(outcomes_0_1))
+        self.assertEqual(len(outcomes_1), len(set(outcomes_1)))
+
+        # Check that all the outcomes are in the list.
+        for j, outcome_0 in enumerate(outcomes_0_0):
+            self.assertTrue(outcome_0 in outcomes_1)
+            self.assertTrue(outcomes_0_1[j] in outcomes_1)
+
+        # ----------------------------------------------------------------------
+        # Get requested states for the exact equations.
+        # ----------------------------------------------------------------------
+
+        # Define the order.
+        order = 34
+
+        # Get the states.
+        outcomes_0_0 = system._get_states_right(3)
+        outcomes_0_1 = system._get_states_right(order)
+
+        # These are the states that must come out.
+        outcomes_1 = [
+                      (('CO', 1,), ('CO', 2,), ('CO', 3,),),
+                      (('CO', 1,), ('CO', 2,), ('O', 3,),),
+                      (('CO', 1,), ('CO', 2,), ('E', 3,),),
+                      (('CO', 1,), ('O', 2,), ('CO', 3,),),
+                      (('CO', 1,), ('O', 2,), ('O', 3,),),
+                      (('CO', 1,), ('O', 2,), ('E', 3,),),
+                      (('CO', 1,), ('E', 2,), ('CO', 3,),),
+                      (('CO', 1,), ('E', 2,), ('O', 3,),),
+                      (('CO', 1,), ('E', 2,), ('E', 3,),),
+                      (('O', 1,), ('CO', 2,), ('CO', 3,),),
+                      (('O', 1,), ('CO', 2,), ('O', 3,),),
+                      (('O', 1,), ('CO', 2,), ('E', 3,),),
+                      (('O', 1,), ('O', 2,), ('CO', 3,),),
+                      (('O', 1,), ('O', 2,), ('O', 3,),),
+                      (('O', 1,), ('O', 2,), ('E', 3,),),
+                      (('O', 1,), ('E', 2,), ('CO', 3,),),
+                      (('O', 1,), ('E', 2,), ('O', 3,),),
+                      (('O', 1,), ('E', 2,), ('E', 3,),),
+                      (('E', 1,), ('CO', 2,), ('CO', 3,),),
+                      (('E', 1,), ('CO', 2,), ('O', 3,),),
+                      (('E', 1,), ('CO', 2,), ('E', 3,),),
+                      (('E', 1,), ('O', 2,), ('CO', 3,),),
+                      (('E', 1,), ('O', 2,), ('O', 3,),),
+                      (('E', 1,), ('O', 2,), ('E', 3,),),
+                      (('E', 1,), ('E', 2,), ('CO', 3,),),
+                      (('E', 1,), ('E', 2,), ('O', 3,),),
+                      (('E', 1,), ('E', 2,), ('E', 3,),)
                       ]
 
         # Check that all the states are unique.
