@@ -539,6 +539,76 @@ class EquationGenerator(ABC):
         # Reduce the entries of the dictionary.
         decay_dictionary = self._reduce_to_unique_states(decay_dictionary, state)
 
+        # Reduce the entries of the dictionary.
+        decay_dictionary = self._get_multiplicity(decay_dictionary)
+
+        # Print the dictionary.
+        # TODO: REMOVE THIS FUNCTION!
+        print("\nDecay Dictionary:")
+        print_dictionary(decay_dictionary)
+
+    def _get_products_create(self, state, states_decay):
+        """ Given a state and the list of states, whose decay states due to the
+            different process must be included, it returns of the states that
+            make the first state decay.
+
+            :param state: The state whose decay process are to be obtained.
+
+            :param states_decay: A list of states and their decay products. It
+            must be in the format.
+                (state, 2-tuple with state and dictionary with decay states)
+
+            :return: A 2-tuple with the state and a dictionary with the UNIQUE
+            lowest order states that will make it decay through a given process.
+        """
+
+        #-----------------------------------------------------------------------
+        # Auxiliary functions.
+        # ----------------------------------------------------------------------
+
+        def print_dictionary(dictionary_to_print):
+            # TODO: REMOVE THIS FUNCTION!
+            keys0 = states_decay[0][1].keys()
+            print(state)
+            for key0 in keys0:
+                dictionary_to_print[key0] = sorted(dictionary_to_print[key0], key=lambda x: (len(x),))
+                print(f"\t{key0:>{max(map(len, keys0))}}:")
+                for state0 in dictionary_to_print[key0]:
+                    print("\t\t", state0)
+
+        # ----------------------------------------------------------------------
+        # Implementation.
+        # ----------------------------------------------------------------------
+
+        # Get the keys to the dictionary.
+        keys = states_decay[0][1].keys()
+
+        # Start an empty dictionary of lists, from the keys.
+        decay_dictionary = {key: [] for key in keys}
+
+        # For all the decay states.
+        for state_decay in states_decay:
+            # Only substates are possible..
+            if not self._get_is_substate(state, state_decay[0]):
+                continue
+
+            # For all the processes.
+            for key in keys:
+                # For all the states formed by a particular process.
+                for state_0 in state_decay[1][key]:
+                    # Only if the state does not appear in the original.
+                    if self._get_is_substate(state, state_0):
+                        continue
+
+                    # Add the state to the dictionary.
+                    decay_dictionary[key].append(state_decay[0])
+
+        # Reduce the entries of the dictionary.
+        decay_dictionary = self._reduce_to_unique_states(decay_dictionary, state)
+
+        # Reduce the entries of the dictionary.
+        decay_dictionary = self._get_multiplicity(decay_dictionary)
+
         # Print the dictionary.
         # TODO: REMOVE THIS FUNCTION!
         print("\nDecay Dictionary:")
@@ -627,10 +697,15 @@ class EquationGenerator(ABC):
         order0 = 1 if order == 0 else order
         order0 = order0 if order < self.number_of_sites else self.number_of_sites
 
-        # Up until the requested order.
-        for i in range(1, order0 + 1):
-            # Get the un-numbered states.
-            states_0.extend(self._get_states(i))
+        # Get the states up to the given order.
+        if order0 < self.number_of_sites:
+            # Up until the requested order.
+            for i in range(1, order0 + 1):
+                # Get the un-numbered states.
+                states_0.extend(self._get_states(i))
+        else:
+            # Exact Equations.
+            states_0.extend(self._get_states(self.number_of_sites))
 
         # For every un-numbered state.
         for state_0 in states_0:
@@ -679,22 +754,28 @@ class EquationGenerator(ABC):
         order0 = 1 if order == 0 else order
         order0 = order0 if order < self.number_of_sites else self.number_of_sites
 
-        # Get the orders of the process.
-        processes_orders = list(set(order_0[0] for order_0 in self._get_associated_operations()))
+        # Get the states up to the given order.
+        if order0 < self.number_of_sites:
+            # Get the orders of the process.
+            processes_orders = list(set(order_0[0] for order_0 in self._get_associated_operations()))
 
-        # For each length of states.
-        for order_0 in range(1, order0 + 1):
-            # Get the maximum order.
-            orders.extend([order_0 + order_1 - 1 for order_1 in processes_orders])
+            # For each length of states.
+            for order_0 in range(1, order0 + 1):
+                # Get the maximum order.
+                orders.extend([order_0 + order_1 - 1 for order_1 in processes_orders])
 
-        # Order vectors cannot be longer than the total number of sites.
-        maximum_order = max(orders)
-        maximum_order = min(maximum_order, self.number_of_sites)
+            # Order vectors cannot be longer than the total number of sites.
+            maximum_order = max(orders)
+            maximum_order = min(maximum_order, self.number_of_sites)
 
-        # For all the orders, up to the maximum order.
-        for i in range(1, maximum_order + 1):
-            # Get the states.
-            states_0.extend(self._get_states(i))
+            # For all the orders, up to the maximum order.
+            for i in range(1, maximum_order + 1):
+                # Get the states.
+                states_0.extend(self._get_states(i))
+
+        else:
+            # Exact Equations.
+            states_0.extend(self._get_states(self.number_of_sites))
 
         # For every non-numbered state
         for state0 in states_0:

@@ -593,14 +593,6 @@ class COOxidationEquationGenerator(EquationGenerator):
 
             return [], []
 
-        def print_states0():
-            # TODO: REMOVE THIS FUNCTION!
-            print(target_state)
-            for key0 in keys:
-                print(f"\t{key0:>{max(map(len, keys))}}:")
-                for statea123 in sorted(state_dictionary0[key0], key=lambda x: (len(x), x[0][1], x[0][0],)):
-                    print("\t\t", statea123)
-
         def subindexes_in_subtates(state0, state1):
             """ Determines if the indexes of state0 are a subset o the indexes
                 in state1.
