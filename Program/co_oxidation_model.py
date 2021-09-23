@@ -4,6 +4,8 @@
 
 # Imports: General.
 import copy as cp
+import itertools
+
 import numpy as np
 
 # Imports: Inherited and auxiliary user-defined classes.
@@ -216,7 +218,7 @@ class COOxidationEquationGenerator(EquationGenerator):
     def k_coo_er(self, _):
         """ Sets the carbon monoxide - oxygen  gas-phase reaction parameter.
         """
-        self.__k_coo_er = "k.COO.el"
+        self.__k_coo_er = "k.COO.er"
 
     @k_coo_er.deleter
     def k_coo_er(self):
@@ -521,6 +523,161 @@ class COOxidationEquationGenerator(EquationGenerator):
         return rates_strings
 
     # --------------------------------------------------------------------------
+    # Other Methods.
+    # --------------------------------------------------------------------------
+
+    def _reduce_to_unique_states(self, state_dictionary, target_state):
+        """ Given a dictionary of states, it attempts to contract all the keys.
+
+            :param state_list: The dictionary of states to be reduced.
+
+            :param target_state: The state that is being targeted to appear in
+            the reduced list.
+
+            :return: A list of the reduced states in the format
+                    (state, multiplicity).
+        """
+
+        # ----------------------------------------------------------------------
+        # Auxiliary functions.
+        # ----------------------------------------------------------------------
+
+        def add_remove_states(combinations0):
+            """ From the list of UNIQUE states to be examined for contraction,
+                returns the index to be added and the indexes to be contracted.
+                Contractions are preferred occur in the last index.
+
+                :param: combinations0: The combinations of the states in lists of
+                length len(self.states).
+
+                :return: A 2-tuple where the first entry is the state that
+                resulted from the contraction and the other entry is the list of
+                states that generated the contracted state.
+            """
+
+            # ------------------------------------------------------------------
+            # Try to contract on the right end.
+            # ------------------------------------------------------------------
+
+            # Apply the contraction to the right end of all the combinations.
+            contracted_states0 = list(map(lambda x: self._get_contracted_state(x, -1), combinations0))
+
+            # Choose only the ones that yield a non-empty state.
+            contracted_states0 = [contracted_state for contracted_state in contracted_states0 if len(contracted_state[0]) > 0]
+
+            # For every contracted state.
+            for contracted_state0 in contracted_states0:
+                # If the contracted state is compatible with the first state.
+                if subindexes_in_subtates(target_state, contracted_state0[0]):
+                    return contracted_state0[0], contracted_state0[1]
+
+            # ------------------------------------------------------------------
+            # Try to contract on the left end.
+            # ------------------------------------------------------------------
+
+            # Apply the contraction to the left end of all the combinations.
+            contracted_states0 = list(map(lambda x: self._get_contracted_state(x, 0), combinations0))
+
+            # Choose only the ones that yield a non-empty state.
+            contracted_states0 = [contracted_state0 for contracted_state0 in contracted_states0 if len(contracted_state0[0]) > 0]
+
+            # For every contracted state.
+            for contracted_state0 in contracted_states0:
+                # If the contracted state is compatible with the first state.
+                if subindexes_in_subtates(target_state, contracted_state0[0]):
+                    return contracted_state0[0], contracted_state0[1]
+
+            # ------------------------------------------------------------------
+            # Contraction not possible at either end.
+            # ------------------------------------------------------------------
+
+            return [], []
+
+        def print_states0():
+            # TODO: REMOVE THIS FUNCTION!
+            print(target_state)
+            for key0 in keys:
+                print(f"\t{key0:>{max(map(len, keys))}}:")
+                for statea123 in sorted(state_dictionary0[key0], key=lambda x: (len(x), x[0][1], x[0][0],)):
+                    print("\t\t", statea123)
+
+        def subindexes_in_subtates(state0, state1):
+            """ Determines if the indexes of state0 are a subset o the indexes
+                in state1.
+
+                :param state0: The state whose indexes are to be verified as
+                being a subset of the indexes of state 1.
+
+                :param state1: The state whose indexes are to be verified
+                against those of state0.
+
+                :return: True, if the indexes of state0 are a proper subset of
+                the indexes of state1. False, otherwise.
+            """
+
+            # Get the set of all the indexes in state0.
+            indexes0 = set(index[1] for index in state0)
+
+            # Get the set of all the indexes in state0.
+            indexes1 = set(index[1] for index in state1)
+
+            return indexes0.issubset(indexes1)
+
+        # ----------------------------------------------------------------------
+        # Implementation.
+        # ----------------------------------------------------------------------
+
+        # Get the keys.
+        keys = state_dictionary.keys()
+
+        # Get a deep copy of the state_dictionary.
+        state_dictionary0 = cp.deepcopy(state_dictionary)
+
+        # For all the lists of states.
+        for key in keys:
+            # Auxiliary variables.
+            length_after = 0
+            length_before = 0
+            enter = True
+
+            # While this is true.
+            while not length_after == length_before or enter:
+                # Makes the cycle enter once.
+                enter = False
+
+                # Get the unique elements of the list.
+                unique_elements = list(set(state_dictionary0[key]))
+
+                # Get the length of the unique elements.
+                length_before = len(unique_elements)
+
+                # Get different state combinations from the unique state, to analyze for contraction.
+                combinations = list(itertools.combinations(unique_elements, len(self.states)))
+
+                # No need to continue if there are not enough combinations.
+                if len(combinations) == 0:
+                    break
+
+                # Get the state to add or remove.
+                state_to_add, states_to_remove = add_remove_states(combinations)
+
+                if len(state_to_add) > 0:
+                    # For every state to remove.
+                    for state_to_remove in states_to_remove:
+                        # For the repeated states.
+                        while state_dictionary0[key].count(state_to_remove) > 0:
+                            # Remove the state.
+                            state_dictionary0[key].remove(state_to_remove)
+
+                # Get the unique elements again.
+                unique_elements = list(set(state_dictionary0[key]))
+
+                # Get the length after.
+                length_after = len(unique_elements)
+
+        return state_dictionary0
+
+    # --------------------------------------------------------------------------
     # Carbon monoxide exclusive methods.
     # --------------------------------------------------------------------------
 
@@ -636,7 +793,7 @@ class COOxidationEquationGenerator(EquationGenerator):
         # Get the list of states and the numbering.
         # ----------------------------------------------------------------------
 
-        # Get the numpy decomposition of the state.
+        # Get the decomposition of the state.
         tmp_particles, tmp_indexes = self._get_state_elements(initial_state)
 
         # ----------------------------------------------------------------------
