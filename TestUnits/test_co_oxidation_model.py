@@ -803,7 +803,7 @@ class TestCOOxidationEquationGenerator(unittest.TestCase):
             self.assertTrue(outcome_1 in outcomes_0)
 
         # ----------------------------------------------------------------------
-        # diffusion of carbon monoxide, with O particles.
+        # Diffusion of carbon monoxide, with O particles.
         # ----------------------------------------------------------------------
 
         # Define a valid mock state.
@@ -828,6 +828,19 @@ class TestCOOxidationEquationGenerator(unittest.TestCase):
 
         # Define a valid mock state.
         mock_state = (('O', 1), ('E', 2), ('O', 3),)
+
+        # Apply the carbon monoxide diffusion operation to the state.
+        outcomes_1 = system._carbon_monoxide_diffusion(mock_state)
+
+        # Check that there NO outcomes.
+        self.assertEqual(len(outcomes_1), 0)
+
+        # ----------------------------------------------------------------------
+        # Diffusion of carbon monoxide with only one state.
+        # ----------------------------------------------------------------------
+
+        # Define a valid mock state.
+        mock_state = (('E', 1),)
 
         # Apply the carbon monoxide diffusion operation to the state.
         outcomes_1 = system._carbon_monoxide_diffusion(mock_state)
