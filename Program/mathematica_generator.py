@@ -27,6 +27,28 @@ class EquationGenerator(ABC):
     # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
     @property
+    def equations(self):
+        """ Gets the equations of the system.
+        """
+        return self.__equations
+
+    @equations.setter
+    def equations(self, equations):
+        """ Sets the number of sites in the lattice.
+        """
+
+        # Verify that the parameter is a list.
+        if not isinstance(equations, (list,)):
+            raise ValueError("The equations variable must be a list.")
+
+        self.__equations = equations
+
+    @equations.deleter
+    def equations(self):
+        pass
+
+    # --------------------------------------------------------------------------
+    @property
     def number_of_sites(self):
         """ Gets the number of sites in the lattice.
         """
@@ -83,10 +105,6 @@ class EquationGenerator(ABC):
     # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
     # --------------------------------------------------------------------------
-    # Generate Methods.
-    # --------------------------------------------------------------------------
-
-    # --------------------------------------------------------------------------
     # Get Methods.
     # --------------------------------------------------------------------------
 
@@ -103,6 +121,13 @@ class EquationGenerator(ABC):
 
             :param print_equations: If the table of equations must be printed.
         """
+
+        # ----------------------------------------------------------------------
+        # ALWAYS
+        # ----------------------------------------------------------------------
+
+        # Empty the equations list.
+        self.equations = []
 
         # ----------------------------------------------------------------------
         # Get the states to perform the calculation.
@@ -133,8 +158,115 @@ class EquationGenerator(ABC):
 
         # Get both the decay and creation dictionaries for each state.
         for state_left_hand in states_left_hand:
+            # Get the list of decay states.
             decay_dictionary = self._get_products_decay(state_left_hand, decay_states)
-            # create_dictionary = self._get_products_create(state_left_hand, decay_states)
+
+            # Get the list of create states.
+            create_dictionary = self._get_products_create(state_left_hand, decay_states)
+
+            # Append it to the equations.
+            self.equations.append((state_left_hand, create_dictionary, decay_dictionary,))
+
+        # Print the equations if needed.
+        _ = self.print_equation_states() if print_equations else None
+
+    # --------------------------------------------------------------------------
+    # Other Methods.
+    # --------------------------------------------------------------------------
+
+    def print_equation_states(self):
+        """ Prints the states of the equations to the screen.
+        """
+
+        # ----------------------------------------------------------------------
+        # Auxiliary functions.
+        # ----------------------------------------------------------------------
+
+        def set_maximum_lengths(equation0, keys0):
+            """ Sets the lengths of the for each component.
+
+                :param equation0: The equation that is being formatted. Must
+                be in the format.
+
+                :param keys0: The keys that are to be
+            """
+
+            # ------------------------------------------------------------------
+            # Sets the width of the create column.
+            # -------------------------------------------------------------------
+
+            # Get the maximum length of the decay products.
+            string_list = [str(equation0[2][key0]) for key0 in keys]
+            len_create0 = max(map(len, string_list))
+
+            # ------------------------------------------------------------------
+            # Sets the width of the decay column.
+            # -------------------------------------------------------------------
+
+            # Get the maximum length of the decay products.
+            string_list = [str(equation0[1][key0]) for key0 in keys]
+            len_decay0 = max(map(len, string_list))
+
+            # ------------------------------------------------------------------
+            # Sets the key column.
+            # -------------------------------------------------------------------
+
+            # Get the maximum length of the keys.
+            keys0 = [x for x in keys]
+            len_keys0 = max(map(len, keys0))
+
+            return len_create0, len_decay0, len_keys0
+
+        # ----------------------------------------------------------------------
+        # Implementation.
+        # ----------------------------------------------------------------------
+
+        # Check that the equations list is not empty.
+        if len(self.equations) == 0:
+            print("There are no equations to print.")
+
+        # Get the keys.
+        keys = [str(key) for key in self._get_process_functions().keys()]
+
+        # Auxiliary variables.
+        string_create = "Create Processes"
+        string_decay = "Decay Processes"
+        string_key = "Key"
+
+        # For every equation in the equations list.
+        for equation in self.equations:
+
+            # Print the state.
+            print("State: ", equation[0])
+
+            # Get the width of the key column.
+            cw1 = max(len(string_key), max(map(len, keys)))
+
+            # Get the width of the create process column.
+            tmp_create = {key: ", ".join([str(state) for state in equation[1][key]]) for key in keys}
+            cw2 = max(len(string_create), max(map(len, [tmp_create[key] for key in keys])))
+
+            # Get the width of the decay process column.
+            tmp_decay = {key: ", ".join([str(state) for state in equation[2][key]]) for key in keys}
+            cw3 = max(len(string_decay), max(map(len, [tmp_decay[key] for key in keys])))
+
+            # Format the separator string.
+            decay_string = ("|", ("-" * cw1), "|", ("-" * cw2), "|", ("-" * cw3), "|",)
+
+            # Print the header.
+            print(*decay_string)
+            print("|", f"{string_key:^{cw1}}", "|", f"{string_create:^{cw2}}", "|", f"{string_decay:^{cw3}}", "|", )
+            print(*decay_string)
+
+            # For every key.
+            for key in keys:
+                # Print the table entry.
+                print("|", f"{key:^{cw1}}", "|", f"{tmp_create[key]:<{cw2}}", "|", f"{tmp_decay[key]:<{cw3}}", "|", )
+
+                # Remember to print the separator.
+                print(*decay_string)
+
+            print("")
 
     # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
     # Private Interface.
@@ -480,6 +612,57 @@ class EquationGenerator(ABC):
 
         return rates_strings
 
+    def _get_products_create(self, state, states_decay):
+        """ Given a state and the list of states, whose decay states due to the
+            different process must be included, it returns of the states that
+            create the given state.
+
+            :param state: The state that must be created from the other states.
+
+            :param states_decay: A list of states and their decay products. It
+            must be in the format.
+                (state, 2-tuple with state and dictionary with decay states)
+
+            :return: A 2-tuple with the state and a dictionary with the UNIQUE
+            lowest order states that will create the state through a given
+            process.
+        """
+
+        # ----------------------------------------------------------------------
+        # Implementation.
+        # ----------------------------------------------------------------------
+
+        # Get the keys to the dictionary.
+        keys = states_decay[0][1].keys()
+
+        # Start an empty dictionary of lists, from the keys.
+        create_dictionary = {key: [] for key in keys}
+
+        # For all the decay states.
+        for state_decay in states_decay:
+            # Only non-substates are possible..
+            if self._get_is_substate(state, state_decay[0]):
+                continue
+
+            # For all the processes.
+            for key in keys:
+                # For all the states formed by a particular process.
+                for state_0 in state_decay[1][key]:
+                    # Only possible if the state appears in the original.
+                    if not self._get_is_substate(state, state_0):
+                        continue
+
+                    # Add the state to the dictionary.
+                    create_dictionary[key].append(state_decay[0])
+
+        # Reduce the entries of the dictionary.
+        create_dictionary = self._reduce_to_unique_states(create_dictionary, state)
+
+        # Reduce the entries of the dictionary.
+        create_dictionary = self._get_multiplicity(create_dictionary)
+
+        return create_dictionary
+
     def _get_products_decay(self, state, states_decay):
         """ Given a state and the list of states, whose decay states due to the
             different process must be included, it returns of the states that
@@ -495,20 +678,6 @@ class EquationGenerator(ABC):
             lowest order states that will make it decay through a given process.
         """
 
-        #-----------------------------------------------------------------------
-        # Auxiliary functions.
-        # ----------------------------------------------------------------------
-
-        def print_dictionary(dictionary_to_print):
-            # TODO: REMOVE THIS FUNCTION!
-            keys0 = states_decay[0][1].keys()
-            print(state)
-            for key0 in keys0:
-                dictionary_to_print[key0] = sorted(dictionary_to_print[key0], key=lambda x: (len(x),))
-                print(f"\t{key0:>{max(map(len, keys0))}}:")
-                for state0 in dictionary_to_print[key0]:
-                    print("\t\t", state0)
-
         # ----------------------------------------------------------------------
         # Implementation.
         # ----------------------------------------------------------------------
@@ -542,77 +711,7 @@ class EquationGenerator(ABC):
         # Reduce the entries of the dictionary.
         decay_dictionary = self._get_multiplicity(decay_dictionary)
 
-        # Print the dictionary.
-        # TODO: REMOVE THIS FUNCTION!
-        print("\nDecay Dictionary:")
-        print_dictionary(decay_dictionary)
-
-    def _get_products_create(self, state, states_decay):
-        """ Given a state and the list of states, whose decay states due to the
-            different process must be included, it returns of the states that
-            make the first state decay.
-
-            :param state: The state whose decay process are to be obtained.
-
-            :param states_decay: A list of states and their decay products. It
-            must be in the format.
-                (state, 2-tuple with state and dictionary with decay states)
-
-            :return: A 2-tuple with the state and a dictionary with the UNIQUE
-            lowest order states that will make it decay through a given process.
-        """
-
-        #-----------------------------------------------------------------------
-        # Auxiliary functions.
-        # ----------------------------------------------------------------------
-
-        def print_dictionary(dictionary_to_print):
-            # TODO: REMOVE THIS FUNCTION!
-            keys0 = states_decay[0][1].keys()
-            print(state)
-            for key0 in keys0:
-                dictionary_to_print[key0] = sorted(dictionary_to_print[key0], key=lambda x: (len(x),))
-                print(f"\t{key0:>{max(map(len, keys0))}}:")
-                for state0 in dictionary_to_print[key0]:
-                    print("\t\t", state0)
-
-        # ----------------------------------------------------------------------
-        # Implementation.
-        # ----------------------------------------------------------------------
-
-        # Get the keys to the dictionary.
-        keys = states_decay[0][1].keys()
-
-        # Start an empty dictionary of lists, from the keys.
-        decay_dictionary = {key: [] for key in keys}
-
-        # For all the decay states.
-        for state_decay in states_decay:
-            # Only substates are possible..
-            if not self._get_is_substate(state, state_decay[0]):
-                continue
-
-            # For all the processes.
-            for key in keys:
-                # For all the states formed by a particular process.
-                for state_0 in state_decay[1][key]:
-                    # Only if the state does not appear in the original.
-                    if self._get_is_substate(state, state_0):
-                        continue
-
-                    # Add the state to the dictionary.
-                    decay_dictionary[key].append(state_decay[0])
-
-        # Reduce the entries of the dictionary.
-        decay_dictionary = self._reduce_to_unique_states(decay_dictionary, state)
-
-        # Reduce the entries of the dictionary.
-        decay_dictionary = self._get_multiplicity(decay_dictionary)
-
-        # Print the dictionary.
-        # TODO: REMOVE THIS FUNCTION!
-        print("\nDecay Dictionary:")
-        print_dictionary(decay_dictionary)
+        return decay_dictionary
 
     def _get_states(self, order=1):
         """ Given the order, it returns a list of ALL the possible combinations
