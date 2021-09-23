@@ -10,5 +10,5 @@ if __name__ == "__main__":
     # Create a CO oxidation system with three sites.
     system = Co(number_of_sites, states)
 
-    # system.get_nth_order_equations(system.number_of_sites)
-    system.get_nth_order_equations(order=1)
+    # Get the nth order equations.
+    system.get_nth_order_equations(order=3)
