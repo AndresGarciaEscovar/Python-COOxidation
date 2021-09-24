@@ -16,4 +16,4 @@ if __name__ == "__main__":
     system.get_nth_order_equations(order=3, print_equations=False)
 
     # Generate the equations.
-    system.get_equations_in_format(file_name="tmp", format_type="latex", order=2, save_path=os.path.dirname(__file__), together=True)
+    system.get_equations_in_format(file_name="tmp", format_type="latex", order=0, save_path=os.path.dirname(__file__), together=True)

@@ -40,6 +40,29 @@ class LaTeXFormatter(EquationFormatter):
         # Auxiliary functions.
         # ----------------------------------------------------------------------
 
+        def format_state_multiplicity(state0):
+            """ Returns the state string, properly formatted, multiplied by its
+                multiplicity.
+
+                :param state0: A 2-tuple of the state with its multiplicity.
+
+                :return: The state string, properly formatted, multiplied by its
+                multiplicity
+            """
+
+            # Check that the state is an iterable of length 2.
+            if not len(state0) == 2:
+                raise ValueError("To properly format the state it must be a"
+                                 " tuple of lenght 2.")
+
+            # Get the multiplicity.
+            state0_0 = str(state0[1]) if state0[1] > 1 else ""
+
+            # Get the state representation.
+            state0_0 += LaTeXFormatter.get_state(state0[0], order)
+
+            return state0_0
+
         def validate_equation():
             """ Validates that the equation is given in the proper format.
                     (state, create states dictonary, decay states dictionary)
@@ -113,11 +136,103 @@ class LaTeXFormatter(EquationFormatter):
         keys = tuple(key for key in equation[1].keys())
 
         # Get the differential form.
-        diff_state = "\\frac{" + LaTeXFormatter.get_state(equation[0]) + "}{dt} = "
+        diff_state = "\\frac{" + LaTeXFormatter.get_state(equation[0]) + "}{dt} ="
+
+        # The string where the equation will be stored.
+        equation_string = ""
 
         # For every key.
         for key in keys:
+            # Get the string representation of the key.
             string_key = LaTeXFormatter.get_rate(key)
+
+            # Get the create states representations.
+            create_states = [format_state_multiplicity(state) for state in equation[1][key]]
+
+            # Get the decay states representations.
+            decay_states = [format_state_multiplicity(state) for state in equation[2][key]]
+
+            # If there are no states for decay or creation.
+            if len(decay_states) == 0 and len(create_states) == 0:
+                continue
+
+            # If there are decay states but no creation states.
+            if len(decay_states) > 0 and len(create_states) == 0:
+                # Get the decay string.
+                decay_string = ""
+
+                # # If there is only a single state.
+                if len(decay_states) == 1:
+                    # Remove the alpha numeric characters.
+                    for j, character in enumerate(decay_states[0]):
+                        # If the character is a number.
+                        if str.isnumeric(character):
+                            # Append the number.
+                            decay_string += character
+                            continue
+
+                        # Cut the rest of the string.
+                        decay_string = "-" + decay_string
+                        decay_string += string_key + decay_states[0][j:]
+                        break
+
+                else:
+                    # Create the string.
+                    decay_string = f"-{string_key}\\left(" + "+". join(decay_states) + "\\right)"
+
+                # Add to the equation string.
+                equation_string += decay_string
+                continue
+
+            # If there are no decay states, but there are creation states.
+            elif len(decay_states) == 0 and len(create_states) > 0:
+                # Get the create string.
+                create_string = ""
+
+                # # If there is only a single state.
+                if len(create_states) == 1:
+                    # Remove the alpha numeric characters.
+                    for j, character in enumerate(create_states[0]):
+                        # If the character is a number.
+                        if str.isnumeric(character):
+                            # Append the number.
+                            create_string += character
+                            continue
+
+                        # Cut the rest of the string.
+                        create_string = "+" + create_string
+                        create_string += string_key + create_states[0][j:]
+                        break
+
+                else:
+                    # Create the string.
+                    create_string = f"+{string_key}\\left(" + "+".join(create_states) + "\\right)"
+
+                # Add to the equation string.
+                equation_string += create_string
+                continue
+
+            # If there are both decay states and creation states.
+            elif len(decay_states) > 0 and len(create_states) > 0:
+                # Join all the decay states.
+                decay_string = "-" + "-".join(decay_states)
+
+                # Join all the create states.
+                create_string = "+".join(create_states)
+
+                # Join the strings.
+                equation_string += f"+{string_key}\\left(" + create_string + decay_string + "\\right)"
+
+            # Format the string further.
+            equation_string = equation_string[1:] if equation_string[0] == "+" else equation_string
+            equation_string = " + ".join(equation_string.split("+"))
+            equation_string = " - ".join(equation_string.split("-"))
+            equation_string = equation_string.strip()
+
+            # Join the string at last.
+            equation_string = diff_state + equation_string
+
+            return equation_string
 
     @staticmethod
     def get_rate(rate):
@@ -260,9 +375,6 @@ class LaTeXFormatter(EquationFormatter):
 
         def validate_state():
             """ Validates that the state is given in the proper format.
-
-                :param state: A state that must be in the format,
-                    ((particle0, index0), ... ,(particleN, indexN),).
             """
 
             # The order must a number greater than zero.
@@ -328,4 +440,3 @@ class LaTeXFormatter(EquationFormatter):
             state_string = "\\frac{" + state_string + "}{" + "".join(denominator_states) + "}"
 
         return state_string
-

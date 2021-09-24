@@ -9,6 +9,7 @@ import os
 
 # Imports: User-defined.
 from Program.Formatters.formatter_latex import LaTeXFormatter
+from Program.Formatters.formatter_mathematica import MathematicaFormatter
 
 from .mathematica_generator import EquationGenerator
 
@@ -446,7 +447,7 @@ class COOxidationEquationGenerator(EquationGenerator):
         # For every equation.
         for equation in self.equations:
             # Get the particular equation.
-            equation_strings.append(LaTeXFormatter.get_equation(equation, order))
+            equation_strings.append(MathematicaFormatter.get_equation(equation, order))
 
     # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
     # Private Interface.
