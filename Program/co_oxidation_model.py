@@ -447,7 +447,7 @@ class COOxidationEquationGenerator(EquationGenerator):
         # For every equation.
         for equation in self.equations:
             # Get the particular equation.
-            equation_strings.append(MathematicaFormatter.get_equation(equation, order))
+            equation_strings.append(LaTeXFormatter.get_equation(equation, order))
 
     # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
     # Private Interface.

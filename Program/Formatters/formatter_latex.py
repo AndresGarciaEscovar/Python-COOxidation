@@ -40,6 +40,44 @@ class LaTeXFormatter(EquationFormatter):
         # Auxiliary functions.
         # ----------------------------------------------------------------------
 
+        def format_create_decay(key0, create_states0, decay_states0):
+            """ Given the decay states and the key, it formats the string of
+                decay states.
+
+                :param key0: The key that is being formatted.
+
+                :param create_states0: The create states associated with the
+                key.
+
+                :param decay_states0: The decay states associated with the key.
+
+                :return decay_string: The string that represents the specific
+                term in the equation.
+            """
+
+            print(key0)
+
+            return ""
+
+        def format_create_decay_single(key0, states0, decay=False):
+            """ Given the decay states and the key, it formats the string of
+                decay states.
+
+                :param key0: The key that is being formatted.
+
+                :param states0: The create/decay states associated with the key.
+
+                :param decay: True, if the requested states to be added are
+                decay states. False, otherwise, i.e., create states.
+
+                :return final_string: The string that represents the specific
+                term in the equation.
+            """
+
+            print(key0)
+
+            return ""
+
         def format_state_multiplicity(state0):
             """ Returns the state string, properly formatted, multiplied by its
                 multiplicity.
@@ -152,87 +190,36 @@ class LaTeXFormatter(EquationFormatter):
             # Get the decay states representations.
             decay_states = [format_state_multiplicity(state) for state in equation[2][key]]
 
-            # If there are no states for decay or creation.
-            if len(decay_states) == 0 and len(create_states) == 0:
-                continue
-
             # If there are decay states but no creation states.
             if len(decay_states) > 0 and len(create_states) == 0:
                 # Get the decay string.
-                decay_string = ""
-
-                # # If there is only a single state.
-                if len(decay_states) == 1:
-                    # Remove the alpha numeric characters.
-                    for j, character in enumerate(decay_states[0]):
-                        # If the character is a number.
-                        if str.isnumeric(character):
-                            # Append the number.
-                            decay_string += character
-                            continue
-
-                        # Cut the rest of the string.
-                        decay_string = "-" + decay_string
-                        decay_string += string_key + decay_states[0][j:]
-                        break
-
-                else:
-                    # Create the string.
-                    decay_string = f"-{string_key}\\left(" + "+". join(decay_states) + "\\right)"
+                decay_string = format_create_decay_single(key, create_states, decay=True)
 
                 # Add to the equation string.
                 equation_string += decay_string
-                continue
 
             # If there are no decay states, but there are creation states.
             elif len(decay_states) == 0 and len(create_states) > 0:
-                # Get the create string.
-                create_string = ""
-
-                # # If there is only a single state.
-                if len(create_states) == 1:
-                    # Remove the alpha numeric characters.
-                    for j, character in enumerate(create_states[0]):
-                        # If the character is a number.
-                        if str.isnumeric(character):
-                            # Append the number.
-                            create_string += character
-                            continue
-
-                        # Cut the rest of the string.
-                        create_string = "+" + create_string
-                        create_string += string_key + create_states[0][j:]
-                        break
-
-                else:
-                    # Create the string.
-                    create_string = f"+{string_key}\\left(" + "+".join(create_states) + "\\right)"
+                # Get the decay string.
+                create_string = format_create_decay_single(key, create_states, decay=False)
 
                 # Add to the equation string.
                 equation_string += create_string
-                continue
 
             # If there are both decay states and creation states.
             elif len(decay_states) > 0 and len(create_states) > 0:
-                # Join all the decay states.
-                decay_string = "-" + "-".join(decay_states)
+                # Get the decay and create string.
+                decay_create_string = format_create_decay(key, create_states, decay_states)
 
-                # Join all the create states.
-                create_string = "+".join(create_states)
+                # Add to the equation string.
+                equation_string += decay_create_string
 
-                # Join the strings.
-                equation_string += f"+{string_key}\\left(" + create_string + decay_string + "\\right)"
+        # Join the string at last.
+        equation_string = diff_state + equation_string
 
-            # Format the string further.
-            equation_string = equation_string[1:] if equation_string[0] == "+" else equation_string
-            equation_string = " + ".join(equation_string.split("+"))
-            equation_string = " - ".join(equation_string.split("-"))
-            equation_string = equation_string.strip()
+        print(equation_string)
 
-            # Join the string at last.
-            equation_string = diff_state + equation_string
-
-            return equation_string
+        return equation_string
 
     @staticmethod
     def get_rate(rate):
