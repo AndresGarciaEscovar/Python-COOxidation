@@ -12,19 +12,44 @@ from itertools import product
 
 
 class EquationGenerator(ABC):
-    """ Generates the differential equations in different formats. Currently
-        only Mathematica and LaTeX are supported.
+    """ Generates the differential equations in different formats.
+
+        :param self.constraint_equations: The list where the constraint
+        equations will be saved.
 
         :param self.equations: The list where the equations will be saved.
 
         :param self.sites: The maximum number of sites.
 
-        :param  self.states: The UNIQUE states in which each side can be in.
+        :param  self.states: The UNIQUE states in which each site can be in.
     """
 
     # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
     # Getters, Setters and Deleters.
     # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+    @property
+    def constraint_equations(self):
+        """ Gets the equations of the system.
+        """
+        return self.__constraint_equations
+
+    @constraint_equations.setter
+    def constraint_equations(self, constraint_equations):
+        """ Sets the number of sites in the lattice.
+        """
+
+        # Verify that the parameter is a list.
+        if not isinstance(constraint_equations, (list,)):
+            raise ValueError("The constraint equations variable must be a list.")
+
+        self.__constraint_equations = constraint_equations
+
+    @constraint_equations.deleter
+    def constraint_equations(self):
+        pass
+
+    # --------------------------------------------------------------------------
 
     @property
     def equations(self):
@@ -48,6 +73,7 @@ class EquationGenerator(ABC):
         pass
 
     # --------------------------------------------------------------------------
+
     @property
     def number_of_sites(self):
         """ Gets the number of sites in the lattice.
@@ -109,7 +135,7 @@ class EquationGenerator(ABC):
     # --------------------------------------------------------------------------
 
     @abstractmethod
-    def get_equations_in_format(self, file_name="equations", format_type="latex", order=0, save_path=None, together=False):
+    def save_equations(self, file_name="equations", format_type="latex", order=0, save_path=None):
         """ Generates the equations in the requested format, with the terms
             approximated to the given order.
 
@@ -193,6 +219,9 @@ class EquationGenerator(ABC):
 
             # Append it to the equations.
             self.equations.append((state_left_hand, create_dictionary, decay_dictionary,))
+
+        # Get the constraints.
+        self._get_constraint_equations(states_left_hand)
 
         # Print the equations if needed.
         _ = self.print_equation_states() if print_equations else None
@@ -288,6 +317,19 @@ class EquationGenerator(ABC):
         )
 
         return process_information
+
+    @abstractmethod
+    def _get_constraint_equations(self, states):
+        """ Given a set of numbered states, it gets the constraints of the
+            system, i.e., the probability identities, 1 = sum(x in X) P(x),
+            P(x) = sum(y in Y) P(x,y), P(y) = sum(x in X) P(x,y), etc; with
+            0 <= P(x) <= 1 for x in X.
+
+            :param states: ALL of the "left-hand" states of the system.
+
+            :return:  The constrainst of the system as equalities.
+        """
+        pass
 
     def _get_contracted_state(self, states, entry=-1):
         """ From a list of states, it returns the completely contracted state.
@@ -1017,7 +1059,10 @@ class EquationGenerator(ABC):
         # Define the possible unique states each site of the system can take.
         self.states = states
 
-        # Array where the equations are saved.
+        # List where the constraint equations are saved.
+        self.constraint_equations = []
+
+        # List where the equations are saved.
         self.equations = []
 
     # --------------------------------------------------------------------------

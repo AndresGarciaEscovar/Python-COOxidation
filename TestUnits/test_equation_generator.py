@@ -11,7 +11,7 @@ os.chdir(os.path.dirname(__file__) + os.sep + "..")
 import unittest
 
 # Imports: Class to be tested.
-from Program.mathematica_generator import EquationGenerator
+from Program.equation_generator import EquationGenerator
 
 
 class EquationGenerator(unittest.TestCase):

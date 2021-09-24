@@ -8,9 +8,9 @@ import itertools
 import os
 
 # Imports: User-defined.
-from Program.Formatters.formatter_latex import LaTeXFormatter
+from Program.Formatters.get_formatter import GetFormatter
 
-from .mathematica_generator import EquationGenerator
+from .equation_generator import EquationGenerator
 
 
 class COOxidationEquationGenerator(EquationGenerator):
@@ -74,9 +74,14 @@ class COOxidationEquationGenerator(EquationGenerator):
 
         Inherited parameters:
 
-        :param self.sites: The maximum number of sites the system has.
+        :param self.constraint_equations: The list where the constraint
+        equations will be saved.
 
-        :param  self.states: The UNIQUE states in which each side can be in.
+        :param self.equations: The list where the equations will be saved.
+
+        :param self.sites: The maximum number of sites.
+
+        :param  self.states: The UNIQUE states in which each site can be in.
     """
 
     # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
@@ -373,7 +378,7 @@ class COOxidationEquationGenerator(EquationGenerator):
     # Public Interface.
     # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
-    def get_equations_in_format(self, file_name="equations", format_type="latex", order=0, save_path=None, together=False):
+    def save_equations(self, file_name="equations", format_type="latex", order=0, save_path=None):
         """ Generates the equations in the requested format, with the terms
             approximated to the given order.
 
@@ -439,14 +444,47 @@ class COOxidationEquationGenerator(EquationGenerator):
 
         # Auxiliary variables.
         equation_strings = []
+        constraint_strings = []
+        initial_conditions_strings = []
+        rates_value_strings = []
+        raw_state_strings = []
+        keys = list(key for key in self.equations[0][1].keys())
 
         # Get the requested formatter.
         format0 = format_type.strip().lower()
+        formatter0 = GetFormatter.get_formatter(format0)
 
         # For every equation.
-        for equation in self.equations:
+        for i, equation in enumerate(self.equations):
             # Get the particular equation.
-            equation_strings.append(LaTeXFormatter.get_equation(equation, order))
+            equation_strings.append(formatter0.get_equation(equation, order))
+
+            # Get the initial conditions
+            initial_conditions_strings.append(formatter0.get_initial_condition(equation[0]))
+
+            # Get the raw state strings.
+            raw_state_strings.append(formatter0.get_state_raw(equation[0]))
+
+        # For every rate.
+        for key in keys:
+            # Get the rate value.
+            rates_value_strings.append(formatter0.get_rate_value(key))
+
+        # For every constraint.
+        for i, constraint in enumerate(self.constraint_equations):
+            # Get the constraint equations.
+            constraint_strings.append(formatter0.get_constraint(constraint))
+
+        # Quantities that will be formatted.
+        format_quantities = {
+            "constraints": constraint_strings,
+            "equations": equation_strings,
+            "initial conditions": initial_conditions_strings,
+            "rate values": rates_value_strings,
+            "raw states": raw_state_strings
+        }
+
+        save_string = formatter0.join_equations(format_quantities)
 
     # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
     # Private Interface.
@@ -482,6 +520,87 @@ class COOxidationEquationGenerator(EquationGenerator):
         )
 
         return process_information
+
+    def _get_constraint_equations(self, states):
+        """ Given a set of numbered states, it gets the constraints of the
+            system, i.e., the probability identities, 1 = sum(x in X) P(x),
+            P(x) = sum(y in Y) P(x,y), P(y) = sum(x in X) P(x,y), etc; with
+            0 <= P(x) <= 1 for x in X.
+
+            :param states: ALL of the "left-hand" states of the system.
+
+            :return:  The constrainst of the system as equalities.
+        """
+
+        # ----------------------------------------------------------------------
+        # Auxiliary functions.
+        # ----------------------------------------------------------------------
+
+        def expand_state(state0, site0):
+            """ Returns the expanded state at the given site.
+
+                :param state0: The state that is to be expanded.
+
+                :param site0: The site at which it must be expanded.
+
+                :return expanded_state0: The expanded state.
+            """
+
+            # List where the constraints will be placed.
+            constraint_list0 = []
+
+            # The index of the expanded states.
+            index_to_add = state0[site0][1]
+            index_to_add += 1 if site0 == -1 else -1
+
+            # Normalize the index.
+            site0 = 0 if site0 == 0 else len(state0)
+
+            # Add the states with the indexes.
+            for state0_0 in self.states:
+                # Turn the state into a list.
+                expanded_state0 = list(cp.deepcopy(state0))
+
+                # The new state.
+                new_state = (state0_0, index_to_add,)
+
+                # Append it to the expanded state.
+                expanded_state0.insert(site0, new_state)
+
+                # Add it to the constraint list.
+                constraint_list0.append(tuple(expanded_state0))
+
+            return constraint_list0
+
+        # ----------------------------------------------------------------------
+        # Implementation.
+        # ----------------------------------------------------------------------
+
+        # Get the UNIQUE lengths of all the states.
+        state_lengths = list(set(map(len, states)))
+
+        # Sort the lengths, and remove the last item.
+        state_lengths = sorted(state_lengths)[:-1]
+
+        # If the order is greater than one, write the constraints.
+        if len(state_lengths) == 0:
+            return
+
+        # Take the maximum number.
+        max_length = max(state_lengths)
+
+        # For every state.
+        for state in states:
+            # Expand the state.
+            if len(state) <= max_length:
+                # Get the last index.
+                index = state[-1][1]
+
+                # Expand the state accordingly.
+                constraint_list = expand_state(state, -1) if index < self.number_of_sites else expand_state(state, 0)
+
+                # Add it to the constraint equation.
+                self.constraint_equations.append((state, constraint_list,))
 
     def _get_numbering(self, state):
         """ Returns a tuple with the possible numbering a state of length N can
@@ -1343,12 +1462,14 @@ class COOxidationEquationGenerator(EquationGenerator):
     # Constructor.
     # --------------------------------------------------------------------------
 
-    def __init__(self, sites=1, states=("E",)):
+    def __init__(self, sites=1):
         """ Builds a class that writes the equations for the carbon monoxide -
             oxygen associative reaction on ruthenium (111);
             J. Chem. Phys. 143, 204702 (2015).
 
             Initializes the class with the standard parameters.
+
+            :param sites: The number of sites that the system has.
         """
 
         # Initialize the super class.

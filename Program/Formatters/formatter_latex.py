@@ -19,8 +19,39 @@ class LaTeXFormatter(EquationFormatter):
     # --------------------------------------------------------------------------
 
     @staticmethod
+    def get_constraint(constraint):
+        """ Gets the string that represents a constraint of the system in
+            LaTeX format.
+
+            :param constraint: The variable that contains the constraint, in
+            the form of equalities.
+
+            :return constraint_string: The string that represents the constraint
+            in LaTeX format.
+        """
+
+        # ----------------------------------------------------------------------
+        # Auxiliary functions.
+        # ----------------------------------------------------------------------
+
+        # Get the lowest order state.
+        low_state_string = LaTeXFormatter.get_state(constraint[0])
+
+        # Get the other states.
+        other_states = list(map(LaTeXFormatter.get_state, constraint[1]))
+
+        # Join the states.
+        other_states = " + ".join(other_states)
+
+        # Join the strings.
+        constraint_string = low_state_string + " = " + other_states
+
+        return constraint_string
+
+    @staticmethod
     def get_equation(equation, order=0):
-        """ Gets the string that represents a state in LaTeX format.
+        """ Gets the string that represents an equation from a Master Equation
+            in LaTeX format.
 
             :param equation: The variable that contains the state and its
             constituents for which to get the equation.
@@ -29,8 +60,8 @@ class LaTeXFormatter(EquationFormatter):
             zero means the state must not be modified. Higher orders means the
             state must be mean-field expanded to the given order.
 
-            :return equation_string: The string that represents the state in
-            LaTeX format.
+            :return equation_string: The string that represents the Master
+            Equation in LaTeX format.
         """
 
         # ----------------------------------------------------------------------
@@ -309,6 +340,28 @@ class LaTeXFormatter(EquationFormatter):
         return equation_string
 
     @staticmethod
+    def get_initial_condition(state, time=0, value=0):
+        """ Gets the string that represents a state equal to a given initial
+            condition that, by default, is set to zero.
+
+            :param state: The state whose initial condition will be.
+
+            :param time: A parameter, that must allow a string reprsentation,
+            that denotes the time of the initial condition. Set to zero by
+            default.
+
+            :param value: The value of the initial condition. Must allow a
+            string representation.
+
+            :return constraint_string: The string that represents the initial
+            condition of a state.
+        """
+        # Add a sub-index to the state.
+        initial_condition_string = LaTeXFormatter.get_state(state) + "_{t_{0}=" + f"{str(time)}"  + "} = " + f"{value}"
+
+        return initial_condition_string
+
+    @staticmethod
     def get_rate(rate):
         """ Gets the string that represents a rate constant in LaTeX format.
 
@@ -347,6 +400,28 @@ class LaTeXFormatter(EquationFormatter):
 
         # Join the string properly.
         rate_string = "_{".join(rate_string) + "}" * (len(rate_string) - 1)
+
+        return rate_string
+
+    @staticmethod
+    def get_rate_value(rate, value=0):
+        """ Gets the string that represents a rate constant in LaTeX format,
+            with the given value.
+
+            :param rate: The rate to check. If in the format,
+                 "'s1'.'s2'. ... .'sN'.."
+            it interprets the periods as sub-indexes of level N.
+
+            :param value: The value of the rate. Set to zero as default.
+
+            :return rate_string: The rate constant in LaTeX format.
+        """
+
+        # Get the rate representation.
+        rate_string = LaTeXFormatter.get_rate(rate)
+
+        # Set the value.
+        rate_string += f" = {value}"
 
         return rate_string
 
@@ -512,5 +587,22 @@ class LaTeXFormatter(EquationFormatter):
 
             # Format the string.
             state_string = "\\frac{" + state_string + "}{" + "".join(denominator_states) + "}"
+
+        return state_string
+
+    @staticmethod
+    def get_state_raw(state):
+        """ Gets the string that represents a 'raw state' in Mathematica format.
+
+            :param state: A state in the format,
+                ((particle0, index0), ... ,(particleN, indexN),).
+
+            :return state_string: The state, to the given order, in Mathematica
+            format. In some cases, the raw format might be the same as the
+            regular format.
+        """
+
+        # Get the state.
+        state_string = LaTeXFormatter.get_state(state)
 
         return state_string

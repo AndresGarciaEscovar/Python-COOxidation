@@ -19,8 +19,42 @@ class MathematicaFormatter(EquationFormatter):
     # --------------------------------------------------------------------------
 
     @staticmethod
+    def get_constraint(constraint):
+        """ Gets the string that represents a constraint of the system in
+            Mathematica format.
+
+            :param constraint: The variable that contains the constraint, in
+            the form of equalities.
+
+            :return constraint_string: The string that represents the constraint
+            in Mathematica format.
+        """
+
+        # ----------------------------------------------------------------------
+        # Auxiliary functions.
+        # ----------------------------------------------------------------------
+
+        # Get the lowest order state.
+        low_state_string = MathematicaFormatter.get_state(constraint[0])
+
+        # Define it as a mathematica function.
+        low_state_string = "".join(low_state_string.split("[t]")) + "[t_]"
+
+        # Get the other states.
+        other_states = list(map(MathematicaFormatter.get_state, constraint[1]))
+
+        # Join the states.
+        other_states = " + ".join(other_states)
+
+        # Join the strings.
+        constraint_string = low_state_string + " := " + other_states
+
+        return constraint_string
+
+    @staticmethod
     def get_equation(equation, order=0):
-        """ Gets the string that represents a state in Mathematica format.
+        """ Gets the string that represents an equation from a Master Equation
+            in Mathematica format.
 
             :param equation: The variable that contains the state and its
             constituents for which to get the equation.
@@ -29,8 +63,8 @@ class MathematicaFormatter(EquationFormatter):
             zero means the state must not be modified. Higher orders means the
             state must be mean-field expanded to the given order.
 
-            :return equation_string: The string that represents the state in
-            Mathematica format.
+            :return equation_string: The string that represents the Master
+            Equation in Mathematica format.
         """
 
         # ----------------------------------------------------------------------
@@ -306,9 +340,32 @@ class MathematicaFormatter(EquationFormatter):
         # Join the strings.
         equation_string = diff_state + equation_string
 
-        print(equation_string)
-
         return equation_string
+
+    @staticmethod
+    def get_initial_condition(state, time=0, value=0):
+        """ Gets the string that represents a state equal to a given initial
+            condition that, by default, is set to zero.
+
+            :param state: The state whose initial condition will be.
+
+            :param time: A parameter, that must allow a string reprsentation,
+            that denotes the time of the initial condition. Set to zero by
+            default.
+
+            :param value: The value of the initial condition. Must allow a
+            string representation.
+
+            :return constraint_string: The string that represents the initial
+            condition of a state.
+        """
+        # Remove the time dependency.
+        initial_condition_string = "".join(MathematicaFormatter.get_state(state).split("[t]")[:-1])
+
+        # Add the initial condition.
+        initial_condition_string += f"[{str(time)}] == {str(value)}"
+
+        return initial_condition_string
 
     @staticmethod
     def get_rate(rate):
@@ -349,6 +406,28 @@ class MathematicaFormatter(EquationFormatter):
 
         # Join the string properly, in all upper case.
         rate_string = "".join(rate_string).upper()
+
+        return rate_string
+
+    @staticmethod
+    def get_rate_value(rate, value=0):
+        """ Gets the string that represents a rate constant in Mathematica
+            format, with the given value.
+
+            :param rate: The rate to check. If in the format,
+                 "'s1'.'s2'. ... .'sN'.."
+            it interprets the periods as sub-indexes of level N.
+
+            :param value: The value of the rate. Set to zero as default.
+
+            :return rate_string: The rate constant in Mathematica format.
+        """
+
+        # Get the rate representation.
+        rate_string = MathematicaFormatter.get_rate(rate)
+
+        # Set the value.
+        rate_string += f" = {value}"
 
         return rate_string
 
@@ -516,3 +595,94 @@ class MathematicaFormatter(EquationFormatter):
             state_string = state_string + "/(" + " ".join(denominator_states) + ")"
 
         return state_string
+
+    @staticmethod
+    def get_state_raw(state):
+        """ Gets the string that represents a 'raw state' in Mathematica format.
+
+            :param state: A state in the format,
+                ((particle0, index0), ... ,(particleN, indexN),).
+
+            :return state_string: The state, to the given order, in Mathematica
+            format. In some cases, the raw format might be the same as the
+            regular format.
+        """
+
+        # Get the state.
+        state_string = MathematicaFormatter.get_state(state)
+
+        # Take the time dependence off and strip the state from leading/trailing spaces.
+        state_string = "".join(state_string.split("[t]")).strip()
+
+        return state_string
+
+    # --------------------------------------------------------------------------
+    # Other Formatting Functions.
+    # --------------------------------------------------------------------------
+
+    @staticmethod
+    def join_equations(quantities):
+        """ Formats the equations and the different quantities such that it
+            ready to be saved in a string.
+
+            :param quantities: A dictionary that MUST have the following
+            format, with the keys AS SHOWN
+
+                - "constraints": A list of strings of constraints.
+                - "equations": A list of strings of the equations.
+                - "initial conditions": A list of the strings of the initial
+                  conditions.
+                - "rate values": A list of the strings with the values of the
+                  constants.
+                - "raw_states": A list with the representation of the raw
+                  states. For some formats the raw states may be the same as the
+                  regular states.
+
+            :return formatted_system: A single string of the formatted equations.
+        """
+
+        # ----------------------------------------------------------------------
+        # Auxiliary functions.
+        # ----------------------------------------------------------------------
+
+        def format_equations():
+            """ Formats the equations properly.
+
+                :return:
+            """
+            # TODO: Finish this and everything will be done.
+
+            equations_list = ",\n\t".join(quantities["equations"]) + "\t" + ",\n\t".join(
+                quantities["initial conditions"])
+            equations_list = equations_list[:-1] if equations_list[-1] == "\n" else equations_list
+            equations_list = "equations = {\n\t" + equations_list + "\n}"
+
+        def validate_dictionary(keys0):
+            """ Validates that the dictionary is consistent.
+            """
+
+            # Get ALL the keys.
+            keys0_0 = [key0_1 for key0_1 in quantities.keys()]
+
+            # Validate that it is a dictionary.
+            if not isinstance(quantities, (dict,)):
+                raise TypeError("The quantities parameter must be a dictionary.")
+
+            # Validate the entries.
+            if not set(keys0_0) == set(keys0):
+                raise ValueError(f"The keys in the dictionary must be {keys0}."
+                                 f" Current keys = {keys0_0}.")
+
+        # ----------------------------------------------------------------------
+        # Implementation.
+        # ----------------------------------------------------------------------
+
+        # Dictionary keys are.
+        keys = ["constraints", "equations", "initial conditions", "rate values", "raw states"]
+
+        # Always validate first.
+        validate_dictionary(keys)
+
+        # Join the equations and initial conditions.
+        equations_list = format_equations()
+
