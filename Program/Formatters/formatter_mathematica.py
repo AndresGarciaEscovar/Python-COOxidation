@@ -650,7 +650,7 @@ class MathematicaFormatter(EquationFormatter):
 
                 :return:
             """
-            # TODO: Finish this and everything will be done.
+            # TODO: Finish this and everything will be done, add this function to the formatter_latex.py file.
 
             equations_list = ",\n\t".join(quantities["equations"]) + "\t" + ",\n\t".join(
                 quantities["initial conditions"])
