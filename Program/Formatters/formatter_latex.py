@@ -1,10 +1,7 @@
 """ Equation formatter for LaTeX.
 """
 
-# Imports
-import copy as cp
-
-# Imports: User
+# Imports: User defined imports.
 from .equation_formatter import EquationFormatter
 
 
@@ -51,13 +48,23 @@ class LaTeXFormatter(EquationFormatter):
 
                 :param decay_states0: The decay states associated with the key.
 
-                :return decay_string: The string that represents the specific
-                term in the equation.
+                :return create_decay_string0: The string that represents the
+                specific term in the equation.
             """
 
-            print(key0)
+            # Get the string representation of the key.
+            string_key = LaTeXFormatter.get_rate(key0)
 
-            return ""
+            # Join the states in the create states list.
+            create_string0 = "+".join(create_states0)
+
+            # Join the states in the decay states list.
+            decay_string0 = "-" + "-".join(decay_states0)
+
+            # Join the strings.
+            create_decay_string0 = f"+{string_key} \\left(" + create_string0 + decay_string0 + f"\\right)"
+
+            return create_decay_string0
 
         def format_create_decay_single(key0, states0, decay=False):
             """ Given the decay states and the key, it formats the string of
@@ -70,13 +77,95 @@ class LaTeXFormatter(EquationFormatter):
                 :param decay: True, if the requested states to be added are
                 decay states. False, otherwise, i.e., create states.
 
-                :return final_string: The string that represents the specific
-                term in the equation.
+                :return create_decay_string: The string that represents the
+                specific term in the equation.
             """
 
-            print(key0)
+            # ------------------------------------------------------------------
+            # Auxiliary functions.
+            # ------------------------------------------------------------------
 
-            return ""
+            def get_prefactor(state_string1):
+                """ Given a state string, it returns the string of the numerical
+                    coefficient, and the stripped state.
+                """
+
+                # Auxiliary variables.
+                j = 0
+                tmp_string1 = ""
+
+                # Every character in the string.
+                for character in state_string1:
+                    # If the character is not a number.
+                    if not str.isnumeric(character):
+                        break
+
+                    # Add the character to the string.
+                    tmp_string1 += character
+
+                    # Add one to the counter.
+                    j += 1
+
+                # Format the string properly.
+                state_string1 = state_string1[j:] if j < len(state_string1) else state_string1
+
+                # THIS SHOULD NOT HAPPEN!
+                return tmp_string1, state_string1
+
+            # ------------------------------------------------------------------
+            # Implementation.
+            # ------------------------------------------------------------------
+
+            # Get the string representation of the key.
+            string_key = LaTeXFormatter.get_rate(key0)
+
+            # Initialize the string and the negative sign as needed.
+            create_decay_string0 = "-" if decay else "+"
+
+            # If there is only one state.
+            if len(states0) == 1:
+                # Get the prefactor and state.
+                prefactor0, create_decay_string0_0 = get_prefactor(states0[0])
+
+                # Join the string.
+                create_decay_string0 += f"{prefactor0} {string_key} {create_decay_string0_0}"
+
+            else:
+                # Join the states.
+                create_decay_string0 += f"{string_key} \\left(" + "+".join(states0) + "\\right)"
+
+            return create_decay_string0
+
+        def format_equation_string(equation_string0):
+            """ Formats the equation string further to include spaces for
+                readability.
+
+                :param equation_string0: The string to be formatted.
+
+                :return equation_string0_0: The properly formatted string.
+            """
+
+            # Strip all the leading and trailing spaces.
+            equation_string0_0 = equation_string0.strip()
+
+            # Save the negative character if needed.
+            first_character0 = "-" if equation_string0[0] == "-" else ""
+
+            # Determine if there is a positive or negative sign at the start.
+            delete_first0 = equation_string0_0[0] == "-" or equation_string0_0[0] == "+"
+            equation_string0_0 = equation_string0_0[1:] if delete_first0 else equation_string0_0
+
+            # Strip all the leading and trailing spaces, again.
+            equation_string0_0 = equation_string0_0.strip()
+
+            # Space the positive and negative signs correctly.
+            equation_string0_0 = " + ".join(equation_string0_0.split("+"))
+            equation_string0_0 = " - ".join(equation_string0_0.split("-"))
+
+            # Add the first character.
+            equation_string0_0 = first_character0 + equation_string0_0
+
+            return equation_string0_0
 
         def format_state_multiplicity(state0):
             """ Returns the state string, properly formatted, multiplied by its
@@ -174,16 +263,13 @@ class LaTeXFormatter(EquationFormatter):
         keys = tuple(key for key in equation[1].keys())
 
         # Get the differential form.
-        diff_state = "\\frac{" + LaTeXFormatter.get_state(equation[0]) + "}{dt} ="
+        diff_state = "\\frac{d" + LaTeXFormatter.get_state(equation[0]) + "}{dt} ="
 
         # The string where the equation will be stored.
         equation_string = ""
 
         # For every key.
         for key in keys:
-            # Get the string representation of the key.
-            string_key = LaTeXFormatter.get_rate(key)
-
             # Get the create states representations.
             create_states = [format_state_multiplicity(state) for state in equation[1][key]]
 
@@ -193,14 +279,14 @@ class LaTeXFormatter(EquationFormatter):
             # If there are decay states but no creation states.
             if len(decay_states) > 0 and len(create_states) == 0:
                 # Get the decay string.
-                decay_string = format_create_decay_single(key, create_states, decay=True)
+                decay_string = format_create_decay_single(key, decay_states, decay=True)
 
                 # Add to the equation string.
                 equation_string += decay_string
 
             # If there are no decay states, but there are creation states.
             elif len(decay_states) == 0 and len(create_states) > 0:
-                # Get the decay string.
+                # Get the create string.
                 create_string = format_create_decay_single(key, create_states, decay=False)
 
                 # Add to the equation string.
@@ -209,15 +295,16 @@ class LaTeXFormatter(EquationFormatter):
             # If there are both decay states and creation states.
             elif len(decay_states) > 0 and len(create_states) > 0:
                 # Get the decay and create string.
-                decay_create_string = format_create_decay(key, create_states, decay_states)
+                create_decay_string = format_create_decay(key, create_states, decay_states)
 
                 # Add to the equation string.
-                equation_string += decay_create_string
+                equation_string += create_decay_string
 
-        # Join the string at last.
+        # Format the string properly.
+        equation_string = format_equation_string(equation_string)
+
+        # Join the strings.
         equation_string = diff_state + equation_string
-
-        print(equation_string)
 
         return equation_string
 
