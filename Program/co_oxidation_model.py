@@ -9,7 +9,6 @@ import os
 
 # Imports: User-defined.
 from Program.Formatters.formatter_latex import LaTeXFormatter
-from Program.Formatters.formatter_mathematica import MathematicaFormatter
 
 from .mathematica_generator import EquationGenerator
 
