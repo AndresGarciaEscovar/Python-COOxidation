@@ -384,10 +384,6 @@ class MathematicaFormatter(EquationFormatter):
 
         def validate_rate():
             """ Validates that the rate is given in the proper format.
-
-                :param rate: The rate to check. If in the format,
-                     "'s1'.'s2'. ... .'sN'.."
-                it interprets the periods as sub-indexes of level N.
             """
 
             # Check that it is a string.
@@ -638,24 +634,91 @@ class MathematicaFormatter(EquationFormatter):
                   states. For some formats the raw states may be the same as the
                   regular states.
 
-            :return formatted_system: A single string of the formatted equations.
+            :return formatted_system: A single string of the formatted
+            equations.
         """
 
         # ----------------------------------------------------------------------
         # Auxiliary functions.
         # ----------------------------------------------------------------------
 
-        def format_equations():
-            """ Formats the equations properly.
+        def format_constraints():
+            """ Formats the constraints of the system such that they are printed
+                as a collection of Mathematica functions.
 
-                :return:
+                :return constraint_list0: The collection of constraints, ready
+                to be placed in the system.
             """
-            # TODO: Finish this and everything will be done, add this function to the formatter_latex.py file.
 
-            equations_list = ",\n\t".join(quantities["equations"]) + "\t" + ",\n\t".join(
+            # Join the constrains list.
+            constraint_list0 = ",\\quad".join(quantities["constraints"]) + "."
+
+            return constraint_list0
+
+        def format_equations():
+            """ Formats the equations properly, such that they are printed as a
+                Mathematica list.
+
+                :return equations_list0: The list formatted equations, with the
+                initial conditions, ready to be placed in the system.
+            """
+
+            # Join the list of equations with the initial conditions.
+            equations_list0 = ",\n\t".join(quantities["equations"]) + "\t" + ",\n\t".join(
                 quantities["initial conditions"])
-            equations_list = equations_list[:-1] if equations_list[-1] == "\n" else equations_list
-            equations_list = "equations = {\n\t" + equations_list + "\n}"
+
+            # Format it so that it reads easily when exported to Mathematica.
+            equations_list0 = equations_list0[:-1] if equations_list0[-1] == "\n" else equations_list0
+
+            # Name it as a list.
+            equations_list0 = "equations = {\n\t" + equations_list0 + "\n};"
+
+            return equations_list0
+
+        def format_rates():
+            """ Formats the rates such that they are printed as a collection of
+                Mathematica equalities.
+
+                :return rates_list0: The list of formatted rates, ready
+                to be placed in the system.
+            """
+
+            # Join the list of rates.
+            rates_list0 = ";\n".join(quantities["rate values"]) + ";"
+
+            return rates_list0
+
+        def format_raw_states():
+            """ Formats the raw states such that they are printed as a
+                Mathematica list.
+
+                :return raw_states_list0: The list of formatted raw state, ready
+                to be placed in the system.
+            """
+
+            # Join the list of equations with the initial conditions.
+            raw_states_list0 = ",\n\t".join(quantities["raw states"])
+
+            # Name it as a list.
+            raw_states_list0 = "rawStates = {\n\t" + raw_states_list0 + "\n};"
+
+            return raw_states_list0
+
+        def format_time_states():
+            """ Formats the raw states such that they are printed as a time
+                dependent state list.
+
+                :return time_states_list0: The list of time states such that
+                they are printed as a time dependent state list.
+            """
+
+            # Join the list of equations with the initial conditions.
+            time_states_list0 = "[t],\n\t".join(quantities["raw states"])
+
+            # Name it as a list.
+            time_states_list0 = "timeStates = {\n\t" + time_states_list0 + "[t]\n};"
+
+            return time_states_list0
 
         def validate_dictionary(keys0):
             """ Validates that the dictionary is consistent.
@@ -683,6 +746,23 @@ class MathematicaFormatter(EquationFormatter):
         # Always validate first.
         validate_dictionary(keys)
 
-        # Join the equations and initial conditions.
+        # Get the constraints.
+        constraints_list = format_constraints()
+
+        # Get the formatted equations and initial conditions.
         equations_list = format_equations()
 
+        # Get the rates list.
+        rates_list = format_rates()
+
+        # Get the list of raw variables.
+        raw_states_list = format_raw_states()
+
+        # Get the list of time dependent states.
+        time_states_list = format_time_states()
+
+        # Join the strings in the proper order.
+        formatted_system = rates_list + "\n" + raw_states_list + "\n" + equations_list
+        formatted_system += "\n" + time_states_list + "\n" + constraints_list
+
+        return formatted_system

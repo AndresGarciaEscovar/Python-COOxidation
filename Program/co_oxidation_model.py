@@ -394,14 +394,40 @@ class COOxidationEquationGenerator(EquationGenerator):
 
             :param save_path: The path where a file with the equations is to be
             created, if at all. None, by default.
-
-            :param together: If the equations must be printed in a stand-alone
-            format of gathered format.
         """
 
         # ----------------------------------------------------------------------
         # Auxiliary functions.
         # ----------------------------------------------------------------------
+
+        def save_to_file(save_string0):
+            """ Saves the given string to given path.
+
+                :param save_string0: The string to be saved.
+            """
+
+            # Auxiliary variables.
+            i0 = 0
+
+            # Format the path properly.
+            save_path0 = save_path
+            save_path0 += "" if save_path[-1] == os.sep else os.sep
+
+            # Get the full save path.
+            path0 = save_path0 + file_name + ".txt"
+
+            # Check that the file does not overwite the new file.
+            while os.path.isfile(path0):
+                # Add a numbered path.
+                path0 = save_path0 + file_name + str(i0) + ".txt"
+
+                # Update the counter.
+                i0 += 1
+
+            # Open the file to write.
+            with open(path0, "w") as fl:
+                # Write the string.
+                fl.write(save_string0)
 
         def validate_parameters():
             """ Validates that the parameters are consistent.
@@ -410,9 +436,6 @@ class COOxidationEquationGenerator(EquationGenerator):
                 In case there is no save path parameter, it defaults to the
                 current folder.
             """
-
-            # Get the format in all lowercase characters.
-            format_type0 = format_type.lower().strip()
 
             # Validate the order.
             if not isinstance(order, (int,)):
@@ -484,7 +507,11 @@ class COOxidationEquationGenerator(EquationGenerator):
             "raw states": raw_state_strings
         }
 
+        # Get the string to save.
         save_string = formatter0.join_equations(format_quantities)
+
+        # Generate the file.
+        save_to_file(save_string)
 
     # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
     # Private Interface.
@@ -724,7 +751,7 @@ class COOxidationEquationGenerator(EquationGenerator):
     def _reduce_to_unique_states(self, state_dictionary, target_state):
         """ Given a dictionary of states, it attempts to contract all the keys.
 
-            :param state_list: The dictionary of states to be reduced.
+            :param state_dictionary: The dictionary of states to be reduced.
 
             :param target_state: The state that is being targeted to appear in
             the reduced list.

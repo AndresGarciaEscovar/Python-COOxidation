@@ -151,9 +151,6 @@ class EquationGenerator(ABC):
 
             :param save_path: The path where a file with the equations is to be
             created, if at all. None, by default.
-
-            :param together: If the equations must be printed in a stand-alone
-            format of gathered format.
         """
 
         # ----------------------------------------------------------------------

@@ -357,7 +357,7 @@ class LaTeXFormatter(EquationFormatter):
             condition of a state.
         """
         # Add a sub-index to the state.
-        initial_condition_string = LaTeXFormatter.get_state(state) + "_{t_{0}=" + f"{str(time)}"  + "} = " + f"{value}"
+        initial_condition_string = LaTeXFormatter.get_state(state) + "_{t_{0} =" + f"{str(time)}" + "} = " + f"{value}"
 
         return initial_condition_string
 
@@ -378,10 +378,6 @@ class LaTeXFormatter(EquationFormatter):
 
         def validate_rate():
             """ Validates that the rate is given in the proper format.
-
-                :param rate: The rate to check. If in the format,
-                     "'s1'.'s2'. ... .'sN'.."
-                it interprets the periods as sub-indexes of level N.
             """
 
             # Check that it is a string.
@@ -451,7 +447,7 @@ class LaTeXFormatter(EquationFormatter):
                 :return entry_string0: The entry of a state in string format.
             """
 
-            entry_string0 = f"{entry0[0]}" + "_{" + f"{entry0[1]}"  + "}"
+            entry_string0 = f"{entry0[0]}" + "_{" + f"{entry0[1]}" + "}"
 
             return entry_string0
 
@@ -606,3 +602,131 @@ class LaTeXFormatter(EquationFormatter):
         state_string = LaTeXFormatter.get_state(state)
 
         return state_string
+
+    # --------------------------------------------------------------------------
+    # Other Formatting Functions.
+    # --------------------------------------------------------------------------
+
+    @staticmethod
+    def join_equations(quantities):
+        """ Formats the equations and the different quantities such that it
+            ready to be saved in a string.
+
+            :param quantities: A dictionary that MUST have the following
+            format, with the keys AS SHOWN
+
+                - "constraints": A list of strings of constraints.
+                - "equations": A list of strings of the equations.
+                - "initial conditions": A list of the strings of the initial
+                  conditions.
+                - "rate values": A list of the strings with the values of the
+                  constants.
+                - "raw_states": A list with the representation of the raw
+                  states. For some formats the raw states may be the same as the
+                  regular states.
+
+            :return formatted_system: A single string of the formatted equations.
+        """
+
+        # ----------------------------------------------------------------------
+        # Auxiliary functions.
+        # ----------------------------------------------------------------------
+
+        def format_constraints():
+            """ Formats the constraints of the system such that they are printed
+                as a collection of Mathematica functions.
+
+                :return constraint_list0: The collection of constraints, ready
+                to be placed in the system.
+            """
+
+            # Join the constrains list.
+            constraint_list0 = "\n".join(quantities["constraints"])
+
+            return constraint_list0
+
+        def format_equations():
+            """ Formats the equations properly, such that they are printed as a
+                Mathematica list.
+
+                :return equations_list0: The list formatted equations, with the
+                initial conditions, ready to be placed in the system.
+            """
+
+            # Join the list of equations with the initial conditions.
+            equations_list0 = "\n".join(quantities["equations"]) + "\n" + "\n".join( quantities["initial conditions"])
+            equations_list0 = "= ".join(equations_list0.split("="))
+
+            # Format it so that it reads easily when exported to LaTeX.
+            equations_list0 = equations_list0[:-1] if equations_list0[-1] == "\n" else equations_list0
+
+            return equations_list0
+
+        def format_rates():
+            """ Formats the rates such that they are printed as a collection of
+                Mathematica equalities.
+
+                :return rates_list0: The list of formatted rates, ready
+                to be placed in the system.
+            """
+
+            # Join the list of rates.
+            rates_list0 = "\n".join(quantities["rate values"])
+
+            return rates_list0
+
+        def format_raw_states():
+            """ Formats the raw states such that they are printed as a
+                Mathematica list.
+
+                :return raw_states_list0: The list of formatted raw state, ready
+                to be placed in the system.
+            """
+
+            # Join the list of equations with the initial conditions.
+            raw_states_list0 = "\n".join(quantities["raw states"])
+
+            return raw_states_list0
+
+        def validate_dictionary(keys0):
+            """ Validates that the dictionary is consistent.
+            """
+
+            # Get ALL the keys.
+            keys0_0 = [key0_1 for key0_1 in quantities.keys()]
+
+            # Validate that it is a dictionary.
+            if not isinstance(quantities, (dict,)):
+                raise TypeError("The quantities parameter must be a dictionary.")
+
+            # Validate the entries.
+            if not set(keys0_0) == set(keys0):
+                raise ValueError(f"The keys in the dictionary must be {keys0}."
+                                 f" Current keys = {keys0_0}.")
+
+        # ----------------------------------------------------------------------
+        # Implementation.
+        # ----------------------------------------------------------------------
+
+        # Dictionary keys are.
+        keys = ["constraints", "equations", "initial conditions", "rate values", "raw states"]
+
+        # Always validate first.
+        validate_dictionary(keys)
+
+        # Get the constraints.
+        constraints_list = format_constraints()
+
+        # Get the formatted equations and initial conditions.
+        equations_list = format_equations()
+
+        # Get the rates list.
+        rates_list = format_rates()
+
+        # Get the list of raw variables.
+        raw_states_list = format_raw_states()
+
+        # Join the strings in the proper order.
+        formatted_system = rates_list + "\n" + raw_states_list + "\n" + equations_list + "\n" + constraints_list
+
+        return formatted_system

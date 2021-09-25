@@ -381,7 +381,8 @@ class EquationFormatter(ABC):
                   states. For some formats the raw states may be the same as the
                   regular states.
 
-            :return formatted_system: A single string of the formatted equations.
+            :return formatted_system: A single string of the formatted
+            equations.
         """
 
         # ----------------------------------------------------------------------
