@@ -651,7 +651,7 @@ class MathematicaFormatter(EquationFormatter):
             """
 
             # Join the constrains list.
-            constraint_list0 = ",\\quad".join(quantities["constraints"]) + "."
+            constraint_list0 = ";\n".join(quantities["constraints"]) + "."
 
             return constraint_list0
 
@@ -664,7 +664,7 @@ class MathematicaFormatter(EquationFormatter):
             """
 
             # Join the list of equations with the initial conditions.
-            equations_list0 = ",\n\t".join(quantities["equations"]) + "\t" + ",\n\t".join(
+            equations_list0 = ",\n\t".join(quantities["equations"]) + ",\n\t" + ",\n\t".join(
                 quantities["initial conditions"])
 
             # Format it so that it reads easily when exported to Mathematica.
