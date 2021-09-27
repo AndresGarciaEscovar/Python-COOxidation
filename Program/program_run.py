@@ -19,4 +19,3 @@ if __name__ == "__main__":
 
     # Generate the equations.
     system.save_equations(file_name="tmp", format_type="LaTeX", order=order, save_path=os.path.dirname(__file__))
-
