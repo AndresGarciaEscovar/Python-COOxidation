@@ -18,4 +18,4 @@ if __name__ == "__main__":
     system.get_nth_order_equations(order=order, print_equations=False)
 
     # Generate the equations.
-    system.save_equations(file_name="tmp", format_type="LaTeX", order=order, save_path=os.path.dirname(__file__))
+    system.save_equations(file_name="tmp", format_type="Mathematica", order=order, save_path=os.path.dirname(__file__))
