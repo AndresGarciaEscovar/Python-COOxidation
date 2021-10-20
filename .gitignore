@@ -2,9 +2,10 @@
 *.xml
 *.iml
 
-# Ignore the Pycharm files.
+# Ignore the Pycharm and cache files.
 .idea
 .idea/*
+**/__pycache__
 
 # Ignore output from background processes.
 nohup.out
