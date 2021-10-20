@@ -1,12 +1,29 @@
+""" Contains the COOxidationKMC class."""
+
+# ------------------------------------------------------------------------------
+# Imports.
+# ------------------------------------------------------------------------------
+
 # Imports: General.
 import copy as cp
-import os
-
 import numpy as np
+import os
 import random
+
+# ------------------------------------------------------------------------------
+# Classes.
+# ------------------------------------------------------------------------------
 
 
 class COOxidationKMC:
+
+    # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+    # Constants and Variables.
+    # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+    # --------------------------------------------------------------------------
+    # Constants.
+    # --------------------------------------------------------------------------
 
     # The current directory where the file is located.
     CURRENT_DIRECTORY = os.path.dirname(__file__)
@@ -16,16 +33,16 @@ class COOxidationKMC:
     # --------------------------------------------------------------------------
 
     @property
-    def configuration_list(self):
+    def configuration_list(self) -> list:
         """ Returns the configuration list.
 
-            :return self.__configuration_list: The state of the cells.
+            :return: The state of the cells.
         """
         return self.__configuration_list
 
     @configuration_list.setter
-    def configuration_list(self, configuration_list):
-        """ Sets the new configuration list.
+    def configuration_list(self, configuration_list: list):
+        """ Sets the configuration to the given list.
 
             :param configuration_list: The new configuration list.
         """
@@ -35,24 +52,23 @@ class COOxidationKMC:
     def configuration_list(self):
         """ Cannot delete this variable.
         """
-        raise AttributeError("Cannot delete this variable, i.e., configuration_list.")
+        raise AttributeError("Cannot delete the configuration_list.")
 
     # --------------------------------------------------------------------------
 
     @property
-    def elapsed_time(self):
+    def elapsed_time(self) -> float:
         """ Returns the elapsed time.
 
-            :return self.__elapsed time: The elapsed time of the simulation; in
-            simulation units.
+            :return: The elapsed time of the simulation; in simulation units.
         """
         return self.__elapsed_time
 
     @elapsed_time.setter
-    def elapsed_time(self, elapsed_time):
-        """ Sets the new elapsed time.
+    def elapsed_time(self, elapsed_time: float):
+        """ Sets the elapsed time.
             
-            :param elapsed_time: The new elapsed time.
+            :param elapsed_time: The elapsed time.
         """
         self.__elapsed_time = elapsed_time
 
@@ -60,25 +76,24 @@ class COOxidationKMC:
     def elapsed_time(self):
         """ Cannot delete this variable.
         """
-        raise AttributeError("Cannot delete this variable, i.e., elapsed_time.")
+        raise AttributeError("Cannot delete the elapsed_time.")
 
     # --------------------------------------------------------------------------
 
     @property
-    def final_state_count(self):
+    def final_state_count(self) -> list:
         """ Returns the final state count after a simulation.
 
-            :return self.__final_state_count: The list that contains the
-            statistics of the simulation.
+            :return: The list that contains the statistics of the simulation.
         """
         return self.__final_state_count
 
     @final_state_count.setter
-    def final_state_count(self, final_state_count):
+    def final_state_count(self, final_state_count: list):
         """ Sets the new final_state_count.
 
             :param final_state_count: The list of dictionaries that contains the
-            statistics.
+             statistics.
         """
 
         self.__final_state_count = final_state_count
@@ -87,26 +102,27 @@ class COOxidationKMC:
     def final_state_count(self):
         """ Cannot delete this variable.
         """
-        raise AttributeError("Cannot delete this variable, i.e., final_state_count.")
+        raise AttributeError("Cannot delete the final_state_count.")
 
     # --------------------------------------------------------------------------
 
     @property
-    def maximum_time(self):
-        """ Returns the maximum time the simulation should run for; in
+    def maximum_time(self) -> float:
+        """ Returns the maximum time the simulation should run for, in
             simulation time units.
 
-            :return self.__maximum_time: The maximum time the simulation should
-            run for; in simulation time units.
+            :return: The maximum time the simulation should run for; in
+             simulation time units.
         """
         return cp.deepcopy(self.__maximum_time)
 
     @maximum_time.setter
-    def maximum_time(self, maximum_time):
-        """ Sets the new maximum time.
+    def maximum_time(self, maximum_time: float):
+        """ Sets the maximum time the simulation should run for; in simulation
+            time units.
 
-            :param maximum_time: The new maximum time the simulation should
-            run for; in simulation time units.
+            :param maximum_time: The maximum time the simulation should run for;
+             in simulation time units.
         """
 
         try:
@@ -119,28 +135,28 @@ class COOxidationKMC:
     def maximum_time(self):
         """ Cannot delete this variable.
         """
-        raise AttributeError("Cannot delete this variable, i.e., maximum_time.")
+        raise AttributeError("Cannot delete the maximum_time.")
 
     # --------------------------------------------------------------------------
 
     @property
-    def steps_number(self):
+    def steps_number(self) -> int:
         """ Returns the steps number of the simulation.
 
-            :return self.__steps_number: The list that contains the
-            statistics of the simulation.
+            :return: The number of steps that the simulation ran for.
         """
         return cp.deepcopy(self.__steps_number)
 
     @steps_number.setter
-    def steps_number(self, steps_number):
-        """ Sets the new final_state_count.
+    def steps_number(self, steps_number: int):
+        """ Sets the number of steps the simulation must be run for.
 
-            :param steps_number: The list of dictionaries that contains the
-            statistics.
+            :param steps_number: The number of steps the simulation must be run
+             for.
         """
 
         try:
+            # Can only be set once.
             self.__steps_number
 
         except AttributeError:
@@ -150,86 +166,91 @@ class COOxidationKMC:
     def steps_number(self):
         """ Cannot delete this variable.
         """
-        raise AttributeError("Cannot delete this variable, i.e., steps_number.")
+        raise AttributeError("Cannot delete the steps_number.")
 
-    # ------------------------------------------------------------------------------
+    # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+    # Public Interface.
+    # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+    # --------------------------------------------------------------------------
     # Get Functions.
-    # ------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
 
-    def get_rates(self):
+    def get_rates(self) -> list:
         """ Gets the rates of the system. More rates can be added if needed.
 
-            :return rates_0: Returns the cumulative rates of the system.
+            :return: The cumulative rates of the system.
         """
 
         # There are 9 rates in total.
         rates_0 = [0 for _ in range(9)]
 
-        # --------------------------------------------------------------------------
+        # ----------------------------------------------------------------------
         # Oxygen related rates.
-        # --------------------------------------------------------------------------
+        # ----------------------------------------------------------------------
 
         # Oxygen adsorption, always try to adsorb on neighboring sites (left or
         # right) with a rate of 1.
-        rates_0[0] = 2 * 1
+        rates_0[0] = 2 * 1.0
 
-        # Oxygen desorption, always try to desorb from neighboring sites (left or
-        # right) with a rate of 1.
-        rates_0[1] = 2 * 1
+        # Oxygen desorption, always try to desorb from neighboring sites (left
+        # or right) with a rate of 1.
+        rates_0[1] = 2 * 1.0
 
         # Oxygen diffusion, two possible moves (left or right) with a rate of 1.
-        rates_0[2] = 2 * 1
+        rates_0[2] = 2 * 1.0
 
-        # --------------------------------------------------------------------------
+        # ----------------------------------------------------------------------
         # Carbon monoxide related rates.
-        # --------------------------------------------------------------------------
+        # ----------------------------------------------------------------------
 
         # Carbon monoxide adsorption.
-        rates_0[3] = 1
+        rates_0[3] = 1.0
 
         # Carbon monoxide desorption.
-        rates_0[4] = 1
+        rates_0[4] = 1.0
 
-        # Carbon monoxide diffusion, two possible moves (left or right) with a rate of 1.
-        rates_0[5] = 2 * 1
+        # Carbon monoxide diffusion, two possible moves (left or right) with a
+        # rate of 1.
+        rates_0[5] = 2 * 1.0
 
-        # --------------------------------------------------------------------------
+        # ----------------------------------------------------------------------
         # Carbon monoxide - oxygen interaction related rates.
-        # --------------------------------------------------------------------------
+        # ----------------------------------------------------------------------
 
         # Carbon monoxide - oxygen neighbor reaction on surface, two possible
         # reaction sites (left or right) with a rate of 1.
-        rates_0[6] = 2 * 1
+        rates_0[6] = 2 * 1.0
 
-        # Carbon monoxide - oxygen reaction in gas (i.e., oxygen on surface binds to
-        # CO in gas)
-        rates_0[7] = 1
+        # Carbon monoxide - oxygen reaction in gas (i.e., oxygen on surface
+        # binds to CO in gas)
+        rates_0[7] = 1.0
 
         # Carbon monoxide - oxygen reaction anywhere in lattice, two possible
         # reaction sites (i.e., not the chosen site) with a rate of 1.
-        rates_0[8] = 2 * 1
+        rates_0[8] = 2 * 0.0
 
-        # --------------------------------------------------------------------------
+        # ----------------------------------------------------------------------
         # Calculate the cumulative rates.
-        # --------------------------------------------------------------------------
+        # ----------------------------------------------------------------------
 
         rates_0 = np.array([sum(rates_0[0:i + 1]) for i, _ in enumerate(rates_0)], dtype=np.double)
 
         return rates_0
 
-    # ------------------------------------------------------------------------------
-    # System move functions.
-    # ------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
+    # Move Functions.
+    # --------------------------------------------------------------------------
 
     def adsorb_desorb_particle(self, site_0, rate_id_0):
-        """ Tries to adsorb a carbon monoxide atom or an oxygen pair, or desorbs a
+        """ Tries to adsorb a carbon monoxide atom or an oxygen pair, or desorbs
             an oxygen atom or a carbon monoxide atom.
 
             :param site_0: The site at which the process will take place.
 
             :param rate_id_0: The rate that was chosen; determines the process
-            adsorption or desorption and the particle type that will undergo the
-            process.
+             adsorption or desorption and the particle type that will undergo
+             the process.
         """
 
         # Check for adsortion/desorption of oxygen.
@@ -385,9 +406,9 @@ class COOxidationKMC:
 
             return
 
-    # ------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Random Functions.
-    # ------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
 
     def choose_random_site(self):
         """
@@ -558,6 +579,14 @@ class COOxidationKMC:
                 sim_data += [f"{self.final_state_count[i][j]: .7f}" for j in ["E", "O", "CO"]]
                 fl.write("\t".join(sim_data) + "\n")
 
+    # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+    # Private Interface.
+    # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+    # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+    # Constructor and Dunder Methods.
+    # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
     # --------------------------------------------------------------------------
     # Constructor.
     # --------------------------------------------------------------------------
@@ -581,6 +610,7 @@ class COOxidationKMC:
 
         # Maximum time, i.e., time to run the simulation.
         self.maximum_time = maximum_time
+
 
 
 if __name__ == "__main__":
