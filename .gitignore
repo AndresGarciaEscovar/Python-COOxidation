@@ -8,6 +8,10 @@
 **/__pycache__
 **/__pycache__/**
 
+# Ignore installation files.
+coOxidation.egg-info
+coOxidation.egg-info/**
+
 # Ignore output from background processes.
 nohup.out
 **nohup.out
