@@ -13,7 +13,7 @@ from Program.Formatters.get_formatter import GetFormatter
 from .equation_generator import EquationGenerator
 
 
-class COOxidationEquationGenerator(EquationGenerator):
+class EquationGenerator(EquationGenerator):
     """ Writes the equations in various formats, to different orders for the
         carbon monoxide - oxygen associative reaction on ruthenium (111);
         J. Chem. Phys. 143, 204702 (2015). https://doi.org/10.1063/1.4936354

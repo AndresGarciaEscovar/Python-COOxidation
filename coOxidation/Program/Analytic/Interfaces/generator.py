@@ -11,7 +11,7 @@ from collections.abc import Iterable
 from itertools import product
 
 
-class EquationGenerator(ABC):
+class Generator(ABC):
     """ Generates the differential equations in different formats.
 
         :param self.constraint_equations: The list where the constraint

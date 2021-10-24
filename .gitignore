@@ -6,6 +6,7 @@
 .idea
 .idea/*
 **/__pycache__
+**/__pycache__/**
 
 # Ignore output from background processes.
 nohup.out

@@ -5,7 +5,7 @@
 from abc import ABC, abstractmethod
 
 
-class EquationFormatter(ABC):
+class Formatter(ABC):
     """ An abstract static class that contains base equation formatting
         functions that are implemented to generate equations in the given
         format.
