@@ -4,6 +4,9 @@
 # Imports.
 # ------------------------------------------------------------------------------
 
+# Imports: General.
+from typing import Union
+
 # Imports: User-defined.
 from coOxidation.Program.Analytic.Interfaces.formatter import Formatter
 
@@ -59,12 +62,19 @@ class MathematicaFormatter(Formatter):
         return constraint_string
 
     @staticmethod
-    def get_equation(equation: str, order: int = 0):
+    def get_equation(equation: tuple, order: int = 0) -> str:
         """ Gets the string that represents an equation from a Master Equation
             in Mathematica format.
 
-            :param equation: The variable that contains the state and its
-             constituents for which to get the equation.
+            :param equation: The tuple that contains, in order: 1. The state for
+             which the master equation will be written. 2. The dictionary of the
+             states that will decay to the state for which the master equation
+             will be written; where the keys are the associated decay rate
+             constants for each process. Multiplicity of the states are
+             included. 3. The dictionary of the states to which the state will
+             decay due to the different processes; where the keys are the
+             associated decay rate constants for each process. Multiplicity of
+             the states are included.
 
             :param order: The order to which the state must be expanded. Order
              zero means the state must not be modified. Higher orders means the
@@ -74,9 +84,9 @@ class MathematicaFormatter(Formatter):
              Mathematica format.
         """
 
-        # ----------------------------------------------------------------------
+        # //////////////////////////////////////////////////////////////////////
         # Auxiliary functions.
-        # ----------------------------------------------------------------------
+        # //////////////////////////////////////////////////////////////////////
 
         def format_create_decay(key0, create_states0, decay_states0):
             """ Given the decay states and the key, it formats the string of
@@ -107,58 +117,64 @@ class MathematicaFormatter(Formatter):
 
             return create_decay_string0
 
-        def format_create_decay_single(key0, states0, decay=False):
+        def format_create_decay_single(key0: str, states0: dict, decay: bool = False) -> str:
             """ Given the decay states and the key, it formats the string of
                 decay states.
 
-                :param key0: The key that is being formatted.
+                :param key0: The key of the dictionary that is being formatted.
 
-                :param states0: The create/decay states associated with the key.
+                :param states0: The dictionary of create/decay states from where
+                 the states associated with the key must be obtained.
 
                 :param decay: True, if the requested states to be added are
-                decay states. False, otherwise, i.e., create states.
+                 decay states. False, otherwise, i.e., create states.
 
-                :return create_decay_string: The string that represents the
-                specific term in the equation.
+                :return: The string that represents the specific term in the
+                 equation.
             """
 
-            # ------------------------------------------------------------------
+            # //////////////////////////////////////////////////////////////////
             # Auxiliary functions.
-            # ------------------------------------------------------------------
+            # //////////////////////////////////////////////////////////////////
 
-            def get_prefactor(state_string1):
+            def get_prefactor(state1: str) -> tuple:
                 """ Given a state string, it returns the string of the numerical
                     coefficient, and the stripped state.
+
+                    :param state1: The string that represents the state with
+                     the pre-factor already included.
+
+                    :return: A 2-tuple with the pre-factor string and the string
+                     state that represents the state without the pre-factor.
                 """
 
                 # Auxiliary variables.
-                j = 0
-                tmp_string1 = ""
+                j1 = 0
+                str1 = ""
 
                 # Every character in the string.
-                for character in state_string1:
+                for character1 in state1:
                     # If the character is not a number.
-                    if not str.isnumeric(character):
+                    if not str.isnumeric(character1):
                         break
 
                     # Add the character to the string.
-                    tmp_string1 += character
+                    str1 += character1
 
                     # Add one to the counter.
-                    j += 1
+                    j1 += 1
 
                 # Format the string properly.
-                state_string1 = state_string1[j:] if j < len(state_string1) else state_string1
+                state1 = state1[j1:] if j1 < len(state1) else state1
 
-                # THIS SHOULD NOT HAPPEN!
-                return tmp_string1, state_string1
+                return str1, state1
 
-            # ------------------------------------------------------------------
+            # //////////////////////////////////////////////////////////////////
             # Implementation.
-            # ------------------------------------------------------------------
+            # //////////////////////////////////////////////////////////////////
 
             # Get the string representation of the key.
-            string_key = MathematicaFormatter.get_rate(key0)
+            key0_ = MathematicaFormatter.get_rate(key0)
 
             # Initialize the string and the negative sign as needed.
             create_decay_string0 = "-" if decay else "+"
@@ -169,53 +185,53 @@ class MathematicaFormatter(Formatter):
                 prefactor0, create_decay_string0_0 = get_prefactor(states0[0])
 
                 # Join the string.
-                create_decay_string0 += f"{prefactor0} {string_key} {create_decay_string0_0}"
+                create_decay_string0 += f"{prefactor0} {key0_} {create_decay_string0_0}"
 
             else:
                 # Join the states.
-                create_decay_string0 += f"{string_key} (" + "+".join(states0) + ")"
+                create_decay_string0 += f"{key0_} (" + "+".join(states0) + ")"
 
             return create_decay_string0
 
-        def format_equation_string(equation_string0):
-            """ Formats the equation string further to include spaces for
-                readability.
+        def format_equation_string(equation0: str) -> str:
+            """ Formats the right-hand equation string further to include spaces
+                for readability.
 
-                :param equation_string0: The string to be formatted.
+                :param equation0: The string that containst the equations to be
+                 formatted.
 
-                :return equation_string0_0: The properly formatted string.
+                :return: The string formatted with adequate spacing.
             """
 
             # Strip all the leading and trailing spaces.
-            equation_string0_0 = equation_string0.strip()
+            equation0_ = equation0.strip()
 
             # Save the negative character if needed.
-            first_character0 = "-" if equation_string0[0] == "-" else ""
+            character0 = "-" if equation0_[0] == "-" else ""
 
             # Determine if there is a positive or negative sign at the start.
-            delete_first0 = equation_string0_0[0] == "-" or equation_string0_0[0] == "+"
-            equation_string0_0 = equation_string0_0[1:] if delete_first0 else equation_string0_0
+            equation0_ = equation0_[1:] if equation0_[0] == "+" or equation0_[0] == "-" else equation0_
 
             # Strip all the leading and trailing spaces, again.
-            equation_string0_0 = equation_string0_0.strip()
+            equation0_ = equation0_.strip()
 
             # Space the positive and negative signs correctly.
-            equation_string0_0 = " + ".join(equation_string0_0.split("+"))
-            equation_string0_0 = " - ".join(equation_string0_0.split("-"))
+            equation0_ = " + ".join(equation0_.split("+"))
+            equation0_ = " - ".join(equation0_.split("-"))
 
             # Add the first character.
-            equation_string0_0 = first_character0 + equation_string0_0
+            equation0_ = character0 + equation0_
 
-            return equation_string0_0
+            return equation0_
 
-        def format_state_multiplicity(state0):
+        def format_state_multiplicity(state0: tuple) -> str:
             """ Returns the state string, properly formatted, multiplied by its
                 multiplicity.
 
                 :param state0: A 2-tuple of the state with its multiplicity.
 
                 :return: The state string, properly formatted, multiplied by its
-                multiplicity
+                 multiplicity.
             """
 
             # Check that the state is an iterable of length 2.
@@ -231,34 +247,43 @@ class MathematicaFormatter(Formatter):
 
             return state0_0
 
-        def validate_equation():
+        def validate_equation(equation0: tuple):
             """ Validates that the equation is given in the proper format.
-                    (state, create states dictonary, decay states dictionary)
+
+                :param equation0: The tuple that contains, in order: 1. The
+                 state for which the master equation will be written. 2. The
+                 dictionary of the states that will decay to the state for which
+                 the master equation will be written; where the keys are the
+                 associated decay rate constants for each process. Multiplicity
+                 of the states are included. 3. The dictionary of the states to
+                 which the state will decay due to the different processes;
+                 where the keys are the associated decay rate constants for each
+                 process. Multiplicity of the states are included.
             """
 
             # Check that the equation is tuple.
-            if not isinstance(equation, (tuple,)):
-                raise TypeError(f"The equation must be a tuple. Current type: {type(equation)}.")
+            if not isinstance(equation0, (tuple,)):
+                raise TypeError(f"The equation must be a tuple. Current type: {type(equation0)}.")
 
             # Of length 3.
-            elif not len(equation) == 3:
+            elif not len(equation0) == 3:
                 raise TypeError(f"The equation must be a tuple of three entries."
-                                f" Current type: {type(equation)}, Length = {len(equation)}"
+                                f" Current type: {type(equation0)}, Length = {len(equation0)}"
                                 )
 
             # Validate that the zeroth entry is a state.
-            validate_state(equation[0])
+            validate_state(equation0[0])
 
             # Validate that the first and second entries are dictionaries.
-            if not (isinstance(equation[1], (dict,)) and isinstance(equation[2], (dict,))):
+            if not (isinstance(equation0[1], (dict,)) and isinstance(equation0[2], (dict,))):
                 raise TypeError("The two last entries of the tuple must be dictionaries. "
-                                f" Dictionary entry [1] = {type(equation[1])},"
-                                f" Dictionary entry [2] = {type(equation[2])}."
+                                f" Dictionary entry [1] = {type(equation0[1])},"
+                                f" Dictionary entry [2] = {type(equation0[2])}."
                                 )
 
             # Get the keys to the dictionaries.
-            keys0_1 = set(key0 for key0 in equation[1].keys())
-            keys0_2 = set(key0 for key0 in equation[2].keys())
+            keys0_1 = set(key0 for key0 in equation0[1].keys())
+            keys0_2 = set(key0 for key0 in equation0[2].keys())
 
             # If their keys are different.
             if not keys0_1 == keys0_2:
@@ -266,11 +291,11 @@ class MathematicaFormatter(Formatter):
                                  f" Keys for equation[1]: {keys0_1},"
                                  f" Keys for equation[2]: {keys0_2}.")
 
-        def validate_state(state0):
+        def validate_state(state0: tuple):
             """ Validates that the state is given in the proper format.
 
                 :param state0: A state that must be in the format,
-                    ((particle0, index0), ... ,(particleN, indexN),).
+                 ((particle0, index0), ... ,(particleN, indexN),).
             """
 
             # Check that it is a tuple.
@@ -293,18 +318,28 @@ class MathematicaFormatter(Formatter):
                                     f" Substate = {substate0},  Current length of substate: {len(substate0)}."
                                     )
 
-        # ----------------------------------------------------------------------
+        # //////////////////////////////////////////////////////////////////////
         # Implementation.
-        # ----------------------------------------------------------------------
+        # //////////////////////////////////////////////////////////////////////
 
         # Validate the equation.
-        validate_equation()
+        validate_equation(equation)
 
-        # Auxiliary variables.
-        keys = tuple(key for key in equation[1].keys())
+        # ----------------------------------------------------------------------
+        # Get the left-hand of the equation.
+        # ----------------------------------------------------------------------
 
         # Get the differential form.
         diff_state = "D[" + MathematicaFormatter.get_state(equation[0]) + ", t] == "
+
+        # ----------------------------------------------------------------------
+        # Get the right-hand of the equation.
+        # ----------------------------------------------------------------------
+
+        # ------------------ Get the keys in the dictionaries ------------------
+
+        # Auxiliary variables.
+        keys = tuple(key for key in equation[1].keys())
 
         # The string where the equation will be stored.
         equation_string = ""
@@ -350,22 +385,24 @@ class MathematicaFormatter(Formatter):
         return equation_string
 
     @staticmethod
-    def get_initial_condition(state, time=0, value=0):
+    def get_initial_condition(state: tuple, time: Union[float, str] = 0.0, value: Union[float, str] = 0.0):
         """ Gets the string that represents a state equal to a given initial
             condition that, by default, is set to zero.
 
-            :param state: The state whose initial condition will be.
+            :param state: The state whose initial, at the given time, takes a
+             given value.
 
-            :param time: A parameter, that must allow a string reprsentation,
-            that denotes the time of the initial condition. Set to zero by
-            default.
+            :param time: A floating point number, or a string, that represents
+             the initial time at which the initial condition is set. Set to zero
+             by default.
 
-            :param value: The value of the initial condition. Must allow a
-            string representation.
+            :param value: A floating point number, or a string, that represents
+             the initial condition at the initial time. Set to zero by default.
 
-            :return constraint_string: The string that represents the initial
-            condition of a state.
+            :return: The string that represents the initial condition of a
+             time-dependent state.
         """
+
         # Remove the time dependency.
         initial_condition_string = "".join(MathematicaFormatter.get_state(state).split("[t]")[:-1])
 
@@ -375,34 +412,38 @@ class MathematicaFormatter(Formatter):
         return initial_condition_string
 
     @staticmethod
-    def get_rate(rate):
-        """ Gets the string that represents a rate constant in Mathematica format.
+    def get_rate(rate: str) -> str:
+        """ Gets the string that represents a rate constant in Mathematica
+            format.
 
-            :param rate: The rate to check. If in the format,
-                 "'s1'.'s2'. ... .'sN'.."
-            it interprets the periods as sub-indexes of level N.
+            :param rate: The rate string to turn into a Mathematica variable. If
+             it is in the format: "'s1'.'s2'. ... .'sN'..", it interprets the
+             periods as sub-indexes of level N.
 
-            :return rate_string: The rate constant in the given representation.
+            :return: The rate constant in the given representation.
         """
 
-        # ----------------------------------------------------------------------
+        # //////////////////////////////////////////////////////////////////////
         # Auxiliary functions.
-        # ----------------------------------------------------------------------
+        # //////////////////////////////////////////////////////////////////////
 
-        def validate_rate():
+        def validate_rate(rate0: str):
             """ Validates that the rate is given in the proper format.
+
+                :param rate0: The representation of the rate that must be a
+                 string.
             """
 
             # Check that it is a string.
-            if not isinstance(rate, (str,)):
-                raise TypeError(f"The rate parameter must be string. Current type: {type(rate)}")
+            if not isinstance(rate0, (str,)):
+                raise TypeError(f"The rate parameter must be string. Current type: {type(rate0)}")
 
-        # ----------------------------------------------------------------------
+        # //////////////////////////////////////////////////////////////////////
         # Implementation.
-        # ----------------------------------------------------------------------
+        # //////////////////////////////////////////////////////////////////////
 
         # Validate the form of the rate.
-        validate_rate()
+        validate_rate(rate)
 
         # Split the string.
         rate_string = rate.split(".")
@@ -413,17 +454,18 @@ class MathematicaFormatter(Formatter):
         return rate_string
 
     @staticmethod
-    def get_rate_value(rate, value=0):
+    def get_rate_value(rate: str, value: float = 0.0) -> str:
         """ Gets the string that represents a rate constant in Mathematica
             format, with the given value.
 
-            :param rate: The rate to check. If in the format,
-                 "'s1'.'s2'. ... .'sN'.."
-            it interprets the periods as sub-indexes of level N.
+            :param rate: The rate string to turn into a Mathematica variable. If
+             it is in the format: "'s1'.'s2'. ... .'sN'..", it interprets the
+             periods as sub-indexes of level N.
 
-            :param value: The value of the rate. Set to zero as default.
+            :param value: The numerical value of the rate. Set to zero as
+             default.
 
-            :return rate_string: The rate constant in Mathematica format.
+            :return: The rate constant in Mathematica format.
         """
 
         # Get the rate representation.
@@ -435,189 +477,210 @@ class MathematicaFormatter(Formatter):
         return rate_string
 
     @staticmethod
-    def get_state(state, order=0):
+    def get_state(state: tuple, order: int = 0) -> str:
         """ Gets the string that represents a state in Mathematica format.
 
-            :param state: A state in the format,
-                ((particle0, index0), ... ,(particleN, indexN),).
+            :param state: A tuple that represents the state in the format,
+             ((particle0, index0), ... ,(particleN, indexN),).
 
             :param order: The order to which the state must be approximated.
-            If zero, the state is NOT approximated.
+             If zero, the state is NOT approximated.
 
-            :return state_string: The state, to the given order, in Mathematica
-            format.
+            :return: The state, to the given order, in Mathematica format.
         """
 
-        # ----------------------------------------------------------------------
+        # //////////////////////////////////////////////////////////////////////
         # Auxiliary functions.
-        # ----------------------------------------------------------------------
+        # //////////////////////////////////////////////////////////////////////
 
-        def format_entry(entry0):
+        def format_entry(component0: tuple) -> str:
             """ Formats an entry of a state properly.
 
-                :param entry0: The entry to be formatted.
+                :param component0: The component of a state to be formatted.
 
-                :return entry_string0: The entry of a state in string format.
+                :return: The component of a state in string format.
             """
 
-            entry_string0 = f"{entry0[0]}{entry0[1]}"
+            # Get the representation of the single entry.
+            state0 = f"{component0[0]}{component0[1]}"
 
-            return entry_string0
+            return state0
 
-        def get_denominator():
+        def get_denominator(numerator0: list) -> list:
             """ Gets the denominator for the equations. This is obtained from
                 the numerator.
 
+                :param numerator0: A list of the states that represent the
+                 numerator of the system.
+
                 :return: The list of states that is generated from the
-                numerator, that will go in the denominator.
+                 numerator, that will go in the denominator.
             """
 
-            # Auxiliary variables.
-            state_list0 = []
+            # List where the state will be stored.
+            denominator0 = []
 
             # For every ith state.
-            for i, state0_0 in enumerate(numerator_states):
+            for i0, state0_0 in enumerate(numerator0):
                 # For every jth state.
-                for j, state0_1 in enumerate(numerator_states):
+                for j0, state0_1 in enumerate(numerator0):
                     # The denominator will be the intersection of the states.
-                    if j <= i:
+                    if j0 <= i0:
                         continue
 
                     # Get the intersecting states.
-                    intersecting_states0 = list(set(state0_0).intersection(set(state0_1)))
+                    intersection0 = list(set(state0_0).intersection(set(state0_1)))
 
                     # If there are intersecting states.
-                    if len(intersecting_states0) > 0:
+                    if len(intersection0) > 0:
                         # Extend the list if there is intersection.
-                        state_list0.append(intersecting_states0)
+                        denominator0.append(intersection0)
 
-            return state_list0
+            return denominator0
 
-        def get_numerator():
+        def get_numerator(state0: tuple, order0: int) -> list:
             """ Gets the split state to the nth order, using a mean-field
                 approximation.
 
+                :param state0: A tuple of tuples that represents the state.
+
+                :param order0: The order to which the equation must be
+                 approximated.
+
                 :return: A list of the states that is generated from an nth
-                order mean field approximation.
+                 order mean field approximation.
             """
 
-            # Auxiliary variables.
-            state_list0 = []
+            # The list where the numerator terms will be stored.
+            numerator0 = []
 
             # For every index in the state.
-            for i, _ in enumerate(state):
+            for i0, _ in enumerate(state0):
                 # Cannot generate more states.
-                if i + order > len(state):
+                if i0 + order0 > len(state0):
                     break
 
                 # Append the substate.
-                state_list0.append(state[i: i + order])
+                numerator0.append(state0[i0: i0 + order0])
 
-            return state_list0
+            return numerator0
 
-        def get_state_string(state0):
+        def get_state(state0: tuple) -> str:
             """ Given a state it returns the string representation.
 
                 :param state0: A tuple of two-tuples.
 
-                :return state_string0_0: The CLOSED reprensentation of a state.
+                :return: The CLOSED reprensentation of a state.
             """
 
-            # Get the list of entries.
-            entries0 = list(map(format_entry, state0))
+            # Get list of the formatted string for each sub-state.
+            substate0 = list(map(format_entry, state0))
 
             # Get the exact representation of the state.
-            state_string0_0 = "P" + "".join(entries0) + "[t]"
+            state0 = "P" + "".join(substate0) + "[t]"
 
-            return state_string0_0
+            return state0
 
-        def validate_state():
+        def validate_state(state0: tuple, order0: int) -> None:
             """ Validates that the state is given in the proper format.
+
+                :param state0: The state to be formatted.
+
+                :param order0: The order to which the state must be
+                 approximated.
             """
 
             # The order must a number greater than zero.
-            if not 0 <= order:
-                raise ValueError(f"The order must be a positive value. Current Value {order}.")
+            if not 0 <= order0:
+                raise ValueError(f"The order must be a positive value. Current Value {order0}.")
 
             # Check that it is a tuple.
-            if not isinstance(state, (tuple,)):
-                raise TypeError(f"The state parameter must be a tuple. Current type: {type(state)}")
+            if not isinstance(state0, (tuple,)):
+                raise TypeError(f"The state parameter must be a tuple. Current type: {type(state0)}")
 
             # Check that the elements are tuples.
-            for j, substate in enumerate(state):
+            for j0, substate0 in enumerate(state0):
                 # Check that it is a tuple.
-                if not isinstance(substate, (tuple,)):
+                if not isinstance(substate0, (tuple,)):
                     raise TypeError(f"The substates of a state must be tuple."
-                                    f" State = {state}, Substate Entry = {j},"
-                                    f" Substate = {substate}, Current type: {type(substate)}"
+                                    f" State = {state0}, Substate Entry = {j0},"
+                                    f" Substate = {substate0}, Current type: {type(substate0)}"
                                     )
 
-                # Of length 2.
-                elif not len(substate) == 2:
+                # That the tuple is of length 2.
+                elif not len(substate0) == 2:
                     raise TypeError(f"The substates of a state must be tuple of length 2. "
-                                    f" State = {state}, Substate Entry = {j},"
-                                    f" Substate = {substate},  Current length of substate: {len(substate)}."
+                                    f" State = {state0}, Substate Entry = {j0},"
+                                    f" Substate = {substate0},  Current length of substate: {len(substate0)}."
                                     )
 
-        # ----------------------------------------------------------------------
+        # //////////////////////////////////////////////////////////////////////
         # Implementation.
-        # ----------------------------------------------------------------------
+        # //////////////////////////////////////////////////////////////////////
 
         # Always validate the state.
-        validate_state()
+        validate_state(state, order)
+
+        # ----------------------------------------------------------------------
+        # The trivial case.
+        # ----------------------------------------------------------------------
 
         # If the requested order is zero.
         if order == 0 or order >= len(state):
             # Get the string representation of the state.
-            state_string = get_state_string(state)
+            state_string = get_state(state)
 
             return state_string
 
-        # Split the state in the requested order.
-        numerator_states = get_numerator()
+        # ----------------------------------------------------------------------
+        # Get the numerator and denominator.
+        # ----------------------------------------------------------------------
 
-        # Get the denominator states.
-        denominator_states = get_denominator()
+        # Get the numerator states.
+        numerator = get_numerator(state, order)
+
+        # Get the denominators states.
+        denominator = get_denominator(numerator)
 
         # ----------------------------------------------------------------------
         # Get the strings for the numerator and denominator.
         # ----------------------------------------------------------------------
 
         # Strings for the numerator states.
-        numerator_states = list(map(get_state_string, numerator_states))
+        numerator = list(map(get_state, numerator))
 
         # Format the string.
-        state_string = " ".join(numerator_states)
+        state_string = " ".join(numerator)
 
         # Get the denominator strings.
-        if len(denominator_states) > 0:
+        if len(denominator) > 0:
             # Strings for the denominator states.
-            denominator_states = list(map(get_state_string, denominator_states))
+            denominator = list(map(get_state, denominator))
 
             # Format the string.
-            state_string = state_string + "/(" + " ".join(denominator_states) + ")"
+            state_string = state_string + "/(" + " ".join(denominator) + ")"
 
         return state_string
 
     @staticmethod
-    def get_state_raw(state):
+    def get_state_raw(state: tuple) -> str:
         """ Gets the string that represents a 'raw state' in Mathematica format.
 
-            :param state: A state in the format,
-                ((particle0, index0), ... ,(particleN, indexN),).
+            :param state: A state in the format ((particle0, index0), ... ,
+             (particleN, indexN),).
 
-            :return state_string: The state, to the given order, in Mathematica
-            format. In some cases, the raw format might be the same as the
-            regular format.
+            :return: The string that represents the state, to the given order,
+             in Mathematica format. In some cases, the raw format might be the
+             same as the regular format.
         """
 
-        # Get the state.
-        state_string = MathematicaFormatter.get_state(state)
+        # Get the string representation of the state.
+        state_ = MathematicaFormatter.get_state(state)
 
         # Take the time dependence off and strip the state from leading/trailing spaces.
-        state_string = "".join(state_string.split("[t]")).strip()
+        state_ = "".join(state_.split("[t]")).strip()
 
-        return state_string
+        return state_
 
     # --------------------------------------------------------------------------
     # Join Methods.
@@ -629,16 +692,13 @@ class MathematicaFormatter(Formatter):
             are ready to be saved in a string.
 
             :param quantities: A dictionary that MUST have the following
-             format:
-                - "constraints": A list of strings of constraints.
-                - "equations": A list of strings of the equations.
-                - "initial conditions": A list of the strings of the initial
-                  conditions.
-                - "rate values": A list of the strings with the values of the
-                  constants.
-                - "raw_states": A list with the representation of the raw
-                  states. For some formats the raw states may be the same as the
-                  regular states.
+             keys and variables: 1. "constraints": A list of strings of
+             constraints. 2. "equations": A list of strings of the equations.
+             3. "initial conditions": A list of the strings of the initial
+             conditions. 4. "rate values": A list of the strings with the values
+             of the constants. 5. "raw_states": A list with the representation
+             of the raw states. For some formats the raw states may be the same
+             as the regular states.
 
             :return: A string of the formatted equations.
         """
@@ -647,26 +707,32 @@ class MathematicaFormatter(Formatter):
         # Auxiliary functions.
         # //////////////////////////////////////////////////////////////////////
 
-        def format_constraints() -> str:
+        def format_constraints(quantities0: dict) -> str:
             """ Formats the constraints of the system such that they are printed
                 as a collection of Mathematica functions.
+
+                :param quantities0: The dictionary with the quantities to be
+                 formatted.
 
                 :return: A string that contains the collection of constraints,
                  formatted for Mathematica.
             """
 
             # Join the constrains list.
-            constraints0 = ";\n".join(quantities["constraints"]) + ";"
+            constraints0 = ";\n".join(quantities0["constraints"]) + ";"
 
             return constraints0
 
-        def format_equations() -> str:
+        def format_equations(quantities0: dict) -> str:
             """ Formats the equations such that they are printed as a
                 Mathematica list.
 
+                :param quantities0: The dictionary with the quantities to be
+                 formatted.
+
                 :return: The string that represents a list of Mathematica
-                differential equations, with the initial conditions, ready to be
-                placed in the NDSolve function.
+                 differential equations, with the initial conditions, ready to
+                 be placed in the NDSolve function.
             """
 
             # The name of the equations key.
@@ -676,51 +742,60 @@ class MathematicaFormatter(Formatter):
             aux1 = "initial conditions"
 
             # Join the list of equations with the initial conditions.
-            equations0 = ",".join(quantities[aux0]) + "," + ",".join(quantities[aux1])
+            equations0 = ",".join(quantities0[aux0]) + "," + ",".join(quantities0[aux1])
 
             # Make it a list.
-            equations0 = "equations = {\n\t" + equations0 + "\n};"
+            equations0 = "equations = {" + equations0 + "};"
 
             return equations0
 
-        def format_rates() -> str:
+        def format_rates(quantities0: dict) -> str:
             """ Formats the rates such that they are printed as a collection of
                 Mathematica equalities.
+
+                :param quantities0: The dictionary with the quantities to be
+                 formatted.
 
                 :return: The list of formatted rates, ready to be placed in the
                  system.
             """
 
             # Join the list of rates.
-            rates_list0 = ";".join(quantities["rate values"]) + ";"
+            rates_list0 = ";".join(quantities0["rate values"]) + ";"
 
             return rates_list0
 
-        def format_raw_states() -> str:
+        def format_raw_states(quantities0: dict) -> str:
             """ Formats the raw states, i.e., the names of the states without
                 any time dependence, printed as a Mathematica list.
+
+                :param quantities0: The dictionary with the quantities to be
+                 formatted.
 
                 :return: The raw states printed as a Mathematica list.
             """
 
             # Join the list of equations with the initial conditions.
-            raw_states0 = ",".join(quantities["raw states"])
+            raw_states0 = ",".join(quantities0["raw states"])
 
             # Name it as a list.
             raw_states0 = "rawStates = {" + raw_states0 + "};"
 
             return raw_states0
 
-        def format_time_states() -> str:
+        def format_time_states(quantities0: dict) -> str:
             """ Formats the raw states printed as a string such that it
                 represents a Mathematica list with the time-dependent states.
+
+                :param quantities0: The dictionary with the quantities to be
+                 formatted.
 
                 :return: A string formatted such that it represents a
                  Mathematica list with the time-dependent states.
             """
 
             # Join the list of equations with the initial conditions.
-            time_states0 = "[t],".join(quantities["raw states"])
+            time_states0 = "[t],".join(quantities0["raw states"])
 
             # Set it as a Mathematica list.
             time_states0 = "timeStates = {" + time_states0 + "[t]};"
@@ -749,30 +824,42 @@ class MathematicaFormatter(Formatter):
         # Implementation
         # //////////////////////////////////////////////////////////////////////
 
+        # ----------------------------------------------------------------------
+        # Get the keys and validate the dictionary.
+        # ----------------------------------------------------------------------
+
         # The list of the required keys.
         keys = ["constraints", "equations", "initial conditions", "rate values", "raw states"]
 
         # Validate the required keys are present.
         validate_dictionary(keys)
 
+        # ----------------------------------------------------------------------
+        # Get strings of the different quantities.
+        # ----------------------------------------------------------------------
+
         # Get the constraints string.
-        constraints_list = format_constraints()
+        constraints_list = format_constraints(quantities)
 
         # Get the formatted equations and initial conditions string.
-        equations_list = format_equations()
+        equations_list = format_equations(quantities)
 
         # Get the rates list string.
-        rates_list = format_rates()
+        rates_list = format_rates(quantities)
 
         # Get the list of raw variables string.
-        raw_states_list = format_raw_states()
+        raw_states_list = format_raw_states(quantities)
 
         # Get the list of time dependent states string.
-        time_states_list = format_time_states()
+        time_list = format_time_states(quantities)
+
+        # ----------------------------------------------------------------------
+        # Join the final string.
+        # ----------------------------------------------------------------------
 
         # Join the strings in the proper order.
         formatted_system = rates_list + "\n" + raw_states_list + "\n" 
-        formatted_system += equations_list + "\n" + time_states_list + "\n"
+        formatted_system += equations_list + "\n" + time_list + "\n"
         formatted_system += constraints_list
 
         return formatted_system

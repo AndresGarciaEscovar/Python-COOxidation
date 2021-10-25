@@ -2,18 +2,26 @@
     ruthenium (111).
 """
 
+# ------------------------------------------------------------------------------
+# Imports.
+# ------------------------------------------------------------------------------
+
 # Imports: General.
 import copy as cp
 import itertools
 import os
 
 # Imports: User-defined.
-from Program.Formatters.get_formatter import GetFormatter
+from coOxidation.Program.Analytic.Formatters.formatter_manager import FormatterManager
 
-from .equation_generator import EquationGenerator
+from coOxidation.Program.Analytic.Interfaces.generator import Generator
+
+# ------------------------------------------------------------------------------
+# Classes.
+# ------------------------------------------------------------------------------
 
 
-class EquationGenerator(EquationGenerator):
+class EquationGenerator(Generator):
     """ Writes the equations in various formats, to different orders for the
         carbon monoxide - oxygen associative reaction on ruthenium (111);
         J. Chem. Phys. 143, 204702 (2015). https://doi.org/10.1063/1.4936354
@@ -475,7 +483,7 @@ class EquationGenerator(EquationGenerator):
 
         # Get the requested formatter.
         format0 = format_type.strip().lower()
-        formatter0 = GetFormatter.get_formatter(format0)
+        formatter0 = FormatterManager.get_formatter(format0)
 
         # For every equation.
         for i, equation in enumerate(self.equations):
@@ -1500,7 +1508,7 @@ class EquationGenerator(EquationGenerator):
         """
 
         # Initialize the super class.
-        super(COOxidationEquationGenerator, self).__init__(sites, ('CO', 'O', 'E'))
+        super(EquationGenerator, self).__init__(sites, ('CO', 'O', 'E'))
 
         # ----------------------------------------------------------------------
         # Define order of the process; i.e., minimum length of the state for the

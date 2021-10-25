@@ -2,7 +2,7 @@
 # Imports: Class to be tested.
 import os.path
 
-from Program.co_oxidation_model import COOxidationEquationGenerator as Co
+from coOxidation.Program.Analytic.equation_generator import EquationGenerator
 
 if __name__ == "__main__":
     # Define the states and the number of sites.
@@ -12,7 +12,7 @@ if __name__ == "__main__":
     order = 2
 
     # Create a CO oxidation system with three sites.
-    system = Co(number_of_sites)
+    system = EquationGenerator(number_of_sites)
 
     # Get the nth order equations.
     system.get_nth_order_equations(order=order, print_equations=False)
