@@ -82,8 +82,8 @@ class EquationGenerator(Generator):
 
         Inherited parameters:
 
-        :param self.constraint_equations: The list where the constraint
-        equations will be saved.
+        :param self.constraints: The list where the constraint equations will be
+         saved.
 
         :param self.equations: The list where the equations will be saved.
 
@@ -502,7 +502,7 @@ class EquationGenerator(Generator):
             rates_value_strings.append(formatter0.get_rate_value(key))
 
         # For every constraint.
-        for i, constraint in enumerate(self.constraint_equations):
+        for i, constraint in enumerate(self.constraints):
             # Get the constraint equations.
             constraint_strings.append(formatter0.get_constraint(constraint))
 
@@ -632,10 +632,10 @@ class EquationGenerator(Generator):
                 index = state[-1][1]
 
                 # Expand the state accordingly.
-                constraint_list = expand_state(state, -1) if index < self.number_of_sites else expand_state(state, 0)
+                constraint_list = expand_state(state, -1) if index < self.sites_number else expand_state(state, 0)
 
                 # Add it to the constraint equation.
-                self.constraint_equations.append((state, constraint_list,))
+                self.constraints.append((state, constraint_list,))
 
     def _get_numbering(self, state):
         """ Returns a tuple with the possible numbering a state of length N can
@@ -664,8 +664,8 @@ class EquationGenerator(Generator):
             """
 
             # Validate the state.
-            if len(state0) == 0 or len(state0) > self.number_of_sites:
-                raise ValueError(f"The state must contain at least one site and at most {self.number_of_sites}. "
+            if len(state0) == 0 or len(state0) > self.sites_number:
+                raise ValueError(f"The state must contain at least one site and at most {self.sites_number}. "
                                  f"Requested state sites: {len(state0)}")
 
         # ----------------------------------------------------------------------
@@ -679,9 +679,9 @@ class EquationGenerator(Generator):
         all_states = []
 
         # Explore all the possibilities.
-        for i in range(self.number_of_sites):
+        for i in range(self.sites_number):
             # Only attempt if there are enough sites.
-            if i + len(state) > self.number_of_sites:
+            if i + len(state) > self.sites_number:
                 break
 
             # Make a deep copy of the state.
@@ -1497,7 +1497,7 @@ class EquationGenerator(Generator):
     # Constructor.
     # --------------------------------------------------------------------------
 
-    def __init__(self, sites=1):
+    def __init__(self, sites: int = 1):
         """ Builds a class that writes the equations for the carbon monoxide -
             oxygen associative reaction on ruthenium (111);
             J. Chem. Phys. 143, 204702 (2015).

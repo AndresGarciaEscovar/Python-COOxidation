@@ -1,19 +1,24 @@
-""" Contains the tests for the COOxidationEquationGenerator class.
+""" Contains the tests for the EquationGenerator class.
 """
-import os
-path1 = os.getcwd()
-os.chdir("..")
+
+# ------------------------------------------------------------------------------
+# Imports.
+# ------------------------------------------------------------------------------
 
 # Imports: The unittest module.
 import unittest
 
 # Imports: Class to be tested.
-from Program.co_oxidation_model import COOxidationEquationGenerator as Co
+from coOxidation.Program.Analytic.equation_generator import EquationGenerator
+
+# ------------------------------------------------------------------------------
+# Classes.
+# ------------------------------------------------------------------------------
 
 
-class TestCOOxidationEquationGenerator(unittest.TestCase):
-    """ Tests that the different functions of the COOxidationEquationGenerator
-        class are working properly.
+class TestEquationGenerator(unittest.TestCase):
+    """ Tests that the different functions of the EquationGenerator class for
+        the carbon moxide oxidation model.
     """
 
     # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
@@ -29,11 +34,10 @@ class TestCOOxidationEquationGenerator(unittest.TestCase):
         """
 
         # Define the states and the number of sites.
-        states = {'E', 'CO', 'O'}
-        number_of_sites = 6
+        sites_number = 6
 
         # Create a CO oxidation system with six sites.
-        system = Co(number_of_sites, states)
+        system = EquationGenerator(sites_number)
 
         # ----------------------------------------------------------------------
         # Define the states to be contracted and test the function.
@@ -124,11 +128,10 @@ class TestCOOxidationEquationGenerator(unittest.TestCase):
         """
 
         # Define the states and the number of sites.
-        states = {'E', 'CO', 'O'}
-        number_of_sites = 6
+        sites_number = 6
 
         # Create a CO oxidation system with six sites.
-        system = Co(number_of_sites, states)
+        system = EquationGenerator(sites_number)
 
         # ----------------------------------------------------------------------
         # Test that the correct dictionary is returned for one-site state.
@@ -219,18 +222,19 @@ class TestCOOxidationEquationGenerator(unittest.TestCase):
         """
 
         # Define the states and the number of sites.
-        states = {'E', 'CO', 'O'}
-        number_of_sites = 6
+        sites_number = 6
 
         # Create a CO oxidation system with six sites.
-        system = Co(number_of_sites, states)
+        system = EquationGenerator(sites_number)
 
         # ----------------------------------------------------------------------
         # Test for consistency.
         # ----------------------------------------------------------------------
 
-        # Get the states to be examined.
+        # Get the first state to be examined.
         state1 = (('CO', 1), ('CO', 2),)
+
+        # Get the second state to be examined.
         state2 = (('CO', 1), ('CO', 2), ('E', 3),)
 
         # State 1 is a substate of state 2.
@@ -243,8 +247,10 @@ class TestCOOxidationEquationGenerator(unittest.TestCase):
         # Same states with the entries mixed.
         # ----------------------------------------------------------------------
 
-        # Get the states to be examined.
+        # Get the first state to be examined.
         state1 = (('CO', 2), ('CO', 1),)
+
+        # Get the second state to be examined.
         state2 = (('E', 3), ('CO', 1), ('CO', 2),)
 
         # State 1 is a substate of state 2.
@@ -257,8 +263,10 @@ class TestCOOxidationEquationGenerator(unittest.TestCase):
         # State 1 cannot be a substate of state 2s.
         # ----------------------------------------------------------------------
 
-        # Get the states to be examined.
+        # Get the first state to be examined.
         state1 = (('CO', 1), ('CO', 2),)
+
+        # Get the second state to be examined.
         state2 = (('CO', 1), ('CO', 5), ('E', 6),)
 
         # State 1 is NOT substate of state 2.
@@ -272,11 +280,10 @@ class TestCOOxidationEquationGenerator(unittest.TestCase):
         """
 
         # Define the states and the number of sites.
-        states = {'E', 'CO', 'O'}
-        number_of_sites = 6
+        sites_number = 6
 
         # Create a CO oxidation system with six sites.
-        system = Co(number_of_sites, states)
+        system = EquationGenerator(sites_number)
 
         # ----------------------------------------------------------------------
         # Test that the correct dictionary is returned for three-site states.
@@ -295,6 +302,7 @@ class TestCOOxidationEquationGenerator(unittest.TestCase):
             'k.COO.el': []
         }
 
+        # Set the expected decay dictionary after calculating the multiplicity.
         decay_dict_resultant0 = {
             'k.O.ads': [((('CO', 1), ('O', 2), ('O', 3)), 2), ((('O', 1), ('O', 2), ('O', 3)), 1)],
             'k.O.des': [],
@@ -314,7 +322,10 @@ class TestCOOxidationEquationGenerator(unittest.TestCase):
 
         # Make the comparison.
         for key in keys:
+            # The number of states must be the same.
             self.assertEqual(len(decay_dict_resultant0[key]), len(decay_dict_resultant1[key]))
+
+            # The states must be the same.
             self.assertEqual(set(decay_dict_resultant0[key]), set(decay_dict_resultant1[key]))
 
     def test_get_numbering(self):

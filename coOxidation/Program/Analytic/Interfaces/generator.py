@@ -1,6 +1,10 @@
 """ The class that serves as the base to create an equation generator.
 """
 
+# ------------------------------------------------------------------------------
+# Imports.
+# ------------------------------------------------------------------------------
+
 # Imports: General.
 import copy as cp
 import itertools
@@ -9,122 +13,127 @@ import numpy as np
 from abc import ABC, abstractmethod
 from collections.abc import Iterable
 from itertools import product
+from typing import Iterable, Union
+
+# ------------------------------------------------------------------------------
+# Classes.
+# ------------------------------------------------------------------------------
 
 
 class Generator(ABC):
     """ Generates the differential equations in different formats.
 
-        :param self.constraint_equations: The list where the constraint
-        equations will be saved.
+        - self.constraints: The list where the constraint equations will be
+          saved.
 
-        :param self.equations: The list where the equations will be saved.
+        - self.equations: The list where the equations will be saved.
 
-        :param self.sites: The maximum number of sites.
+        - self.sites_number: The number of sites the system has.
 
-        :param  self.states: The UNIQUE states in which each site can be in.
+        - self.states: the unique states a site can take at a given time.
     """
 
     # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-    # Getters, Setters and Deleters.
+    # Constants and Variables.
     # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
+    # --------------------------------------------------------------------------
+    # Getters, Setters and Deleters.
+    # --------------------------------------------------------------------------
+
     @property
-    def constraint_equations(self):
+    def constraints(self) -> list:
         """ Gets the equations of the system.
+
+            :return: The list with the constraints of the system.
         """
-        return self.__constraint_equations
+        return self.__constraints
 
-    @constraint_equations.setter
-    def constraint_equations(self, constraint_equations):
-        """ Sets the number of sites in the lattice.
+    @constraints.setter
+    def constraints(self, constraints: list) -> None:
+        """ Sets the constraints of the system.
+
+            :param constraints: The constraints of the system.
         """
+        self.__constraints = list(constraints)
 
-        # Verify that the parameter is a list.
-        if not isinstance(constraint_equations, (list,)):
-            raise ValueError("The constraint equations variable must be a list.")
-
-        self.__constraint_equations = constraint_equations
-
-    @constraint_equations.deleter
-    def constraint_equations(self):
-        pass
+    @constraints.deleter
+    def constraints(self) -> None:
+        """ Cannot delete this variable."""
+        raise AttributeError("Cannot delete the constraints.")
 
     # --------------------------------------------------------------------------
 
     @property
-    def equations(self):
+    def equations(self) -> list:
         """ Gets the equations of the system.
+
+            :return: A list with the equations of the system.
         """
         return self.__equations
 
     @equations.setter
-    def equations(self, equations):
-        """ Sets the number of sites in the lattice.
+    def equations(self, equations: list) -> None:
+        """ Sets the list of equations of the system.
+
+            :param equations: A list with the equations system.
         """
-
-        # Verify that the parameter is a list.
-        if not isinstance(equations, (list,)):
-            raise ValueError("The equations variable must be a list.")
-
-        self.__equations = equations
+        self.__equations = list(equations)
 
     @equations.deleter
-    def equations(self):
-        pass
+    def equations(self) -> None:
+        """ Cannot delete this variable."""
+        raise AttributeError("Cannot delete the equations.")
 
     # --------------------------------------------------------------------------
 
     @property
-    def number_of_sites(self):
+    def sites_number(self) -> int:
         """ Gets the number of sites in the lattice.
-        """
-        return cp.deepcopy(self.__number_of_sites)
 
-    @number_of_sites.setter
-    def number_of_sites(self, number_of_sites):
+            :return: Returns the number of sites that the system has.
+        """
+        return self.__sites_number
+
+    @sites_number.setter
+    def sites_number(self, sites_number: int) -> None:
         """ Sets the number of sites in the lattice.
+
+            :param sites_number: Sets the number of sites that the system has.
         """
 
-        # Verify that the parameter is a positive integer number.
-        if not isinstance(number_of_sites, (int,)) or number_of_sites < 1:
-            raise ValueError("The number of sites must be an integer greater than zero.")
+        # Set the sites number.
+        self.__sites_number = int(sites_number)
 
-        self.__number_of_sites = number_of_sites
+        # Validate the sites number.
+        self._validate_sites_number()
 
-    @number_of_sites.deleter
-    def number_of_sites(self):
-        pass
+    @sites_number.deleter
+    def sites_number(self) -> None:
+        """ Cannot delete this variable."""
+        raise AttributeError("Cannot delete the sites_number.")
 
     # --------------------------------------------------------------------------
 
     @property
-    def states(self):
+    def states(self) -> tuple:
         """ Gets the possible states a system can have.
         """
         return cp.deepcopy(self.__states)
 
     @states.setter
-    def states(self, states):
-        """ Sets the possible states a system can have. Must be an iterable
-            object of UNIQUE objects that allow a string representation.
+    def states(self, states: Iterable) -> None:
+        """ Sets the possible states a system can have.
+
+            :param states: An iterable that contains the unique states a site
+             can take at a given time.
         """
-
-        # Verify that the states variable can be iterated through.
-        if not isinstance(states, Iterable):
-            raise ValueError(f"The states variable must be an iterable object, current type: {type(states)}")
-
-        # Verify the states allow a string representation.
-        tmp_states = tuple(map(str, states))
-
-        # Check that the elements are unique.
-        if not len(tmp_states) == len(set(states)):
-            raise ValueError(f"The states a system can take must be unique: {states}")
-
-        self.__states = tmp_states
+        self.__states = tuple(map(str, set(states)))
 
     @states.deleter
-    def states(self):
-        pass
+    def states(self) -> None:
+        """ Cannot delete this variable."""
+        raise AttributeError("Cannot delete the states.")
 
     # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
     # Public Interface.
@@ -134,46 +143,24 @@ class Generator(ABC):
     # Get Methods.
     # --------------------------------------------------------------------------
 
-    @abstractmethod
-    def save_equations(self, file_name="equations", format_type="latex", order=0, save_path=None):
-        """ Generates the equations in the requested format, with the terms
-            approximated to the given order.
+    def get_nth_order_equations(self, order: int = 0, display: bool = False) -> None:
+        """ Gets the nth order equations for the system in the format: (state,
+            decay_states, create_states); where "decay_states" and
+            "create_states" are the dictionaries that contain the states to
+            which the "state" decays, or the states from where the state is
+            created, due to the different process in the system.
 
-            :param file_name: The name of the file where the equations are to be
-            saved; must be extensionless. Named equations by default.
+            Saves the equations to the variables for them to be processed later.
 
-            :param format_type: A string that represents the format of the requested
-            equations. NOT case sensitive, e.g., "A" = "a".
+            :param order: The lowest order to which the equations are to be
+             calculated.
 
-            :param order: The order to which the equations must be approximated.
-            Zeroth order, or less, means that the equations will be written in
-            an exact way.
-
-            :param save_path: The path where a file with the equations is to be
-            created, if at all. None, by default.
+            :param display: If the table of equations must be displayed in the
+             console.
         """
 
         # ----------------------------------------------------------------------
-        # Auxiliary functions.
-        # ----------------------------------------------------------------------
-        pass
-
-    def get_nth_order_equations(self, order=0, print_equations=False):
-        """ Gets the nth order equations for the system in the format
-                (state, decay_states, create_states),
-            where "decay_states" and "create_states" are the dictionaries that
-            contain the states to which the "state" decays, or the states from
-            where the state is created, due to the different process in the
-            system.
-
-            :param order: The lowest order to which the equations must be
-            given.
-
-            :param print_equations: If the table of equations must be printed.
-        """
-
-        # ----------------------------------------------------------------------
-        # ALWAYS
+        # Empty the equations list.
         # ----------------------------------------------------------------------
 
         # Empty the equations list.
@@ -184,56 +171,78 @@ class Generator(ABC):
         # ----------------------------------------------------------------------
 
         # Get the lowest order states.
-        states_left_hand = self._get_states_left(order)
+        states_left = self._get_states_left(order)
 
         # Get the other involved states.
-        states_right_hand = self._get_states_right(order)
+        states_right = self._get_states_right(order)
 
         # ----------------------------------------------------------------------
         # Get the decay states.
         # ----------------------------------------------------------------------
 
         # An alias to the function to make it shorter.
-        decay_func = self._get_decay_states
+        function = self._get_decay_states
 
         # Dictionary of processes.
-        process_dict = self._get_process_functions()
+        processes = self._get_process_functions()
 
         # Get the decay states for each of the right-hand states.
-        decay_states = list(map(lambda x: decay_func(x, process_dict), states_right_hand))
+        decay_states = list(map(lambda x: function(x, processes), states_right))
 
         # ----------------------------------------------------------------------
-        # Get the decay state(s) of the left-hand states.
+        # Get the create and decay state(s) of the left-hand states.
         # ----------------------------------------------------------------------
 
         # Get both the decay and creation dictionaries for each state.
-        for state_left_hand in states_left_hand:
-            # Get the list of decay states.
-            decay_dictionary = self._get_products_decay(state_left_hand, decay_states)
-
+        for state_left in states_left:
             # Get the list of create states.
-            create_dictionary = self._get_products_create(state_left_hand, decay_states)
+            dictionary_create = self._get_products_create(state_left, decay_states)
+
+            # Get the list of decay states.
+            dictionary_decay = self._get_products_decay(state_left, decay_states)
 
             # Append it to the equations.
-            self.equations.append((state_left_hand, create_dictionary, decay_dictionary,))
+            self.equations.append((state_left, dictionary_create, dictionary_decay,))
 
         # Get the constraints.
-        self._get_constraint_equations(states_left_hand)
+        self._get_constraints(states_left)
 
-        # Print the equations if needed.
-        _ = self.print_equation_states() if print_equations else None
+        # If the equations must be displayed.
+        if display:
+            # Print the equations.
+            self.print_equation_states()
 
     # --------------------------------------------------------------------------
-    # Other Methods.
+    # Print Methods.
     # --------------------------------------------------------------------------
 
     def print_equation_states(self):
         """ Prints the states of the equations to the screen.
         """
 
-        # ----------------------------------------------------------------------
+        # //////////////////////////////////////////////////////////////////////
+        # Auxiliary functions.
+        # //////////////////////////////////////////////////////////////////////
+
+        def get_column_widths() -> tuple:
+            """ Gets a tuple of integers with the widths of the different
+                columns to generate the table.
+
+                :return: A tuple of integers with the widths of the different
+                columns to generate the table.
+            """
+            pass
+
+        def get_separator(column_widths: tuple) -> str:
+            """ Gets a string with the row separator.
+
+                :return: A string with the row separator.
+            """
+            pass
+
+        # //////////////////////////////////////////////////////////////////////
         # Implementation.
-        # ----------------------------------------------------------------------
+        # //////////////////////////////////////////////////////////////////////
 
         # Check that the equations list is not empty.
         if len(self.equations) == 0:
@@ -282,6 +291,34 @@ class Generator(ABC):
 
             print("")
 
+    # --------------------------------------------------------------------------
+    # Save Methods.
+    # --------------------------------------------------------------------------
+
+    @abstractmethod
+    def save_equations(self, file_name="equations", format_type="latex", order=0, save_path=None):
+        """ Generates the equations in the requested format, with the terms
+            approximated to the given order.
+
+            :param file_name: The name of the file where the equations are to be
+            saved; must be extensionless. Named equations by default.
+
+            :param format_type: A string that represents the format of the requested
+            equations. NOT case sensitive, e.g., "A" = "a".
+
+            :param order: The order to which the equations must be approximated.
+            Zeroth order, or less, means that the equations will be written in
+            an exact way.
+
+            :param save_path: The path where a file with the equations is to be
+            created, if at all. None, by default.
+        """
+
+        # ----------------------------------------------------------------------
+        # Auxiliary functions.
+        # ----------------------------------------------------------------------
+        pass
+
     # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
     # Private Interface.
     # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
@@ -316,7 +353,7 @@ class Generator(ABC):
         return process_information
 
     @abstractmethod
-    def _get_constraint_equations(self, states):
+    def _get_constraints(self, states):
         """ Given a set of numbered states, it gets the constraints of the
             system, i.e., the probability identities, 1 = sum(x in X) P(x),
             P(x) = sum(y in Y) P(x,y), P(y) = sum(x in X) P(x,y), etc; with
@@ -765,8 +802,8 @@ class Generator(ABC):
                 raise ValueError("The order parameter must be greater than zero.")
 
             # Check that the order parameter is not more than the number of sites.
-            if order > self.number_of_sites:
-                raise ValueError(f"The order parameter must less than or equal to {self.number_of_sites}.")
+            if order > self.sites_number:
+                raise ValueError(f"The order parameter must less than or equal to {self.sites_number}.")
 
         # ----------------------------------------------------------------------
         # Implementation.
@@ -821,17 +858,17 @@ class Generator(ABC):
 
         # Fix the order, if needed.
         order0 = 1 if order == 0 else order
-        order0 = order0 if order < self.number_of_sites else self.number_of_sites
+        order0 = order0 if order < self.sites_number else self.sites_number
 
         # Get the states up to the given order.
-        if order0 < self.number_of_sites:
+        if order0 < self.sites_number:
             # Up until the requested order.
             for i in range(1, order0 + 1):
                 # Get the un-numbered states.
                 states_0.extend(self._get_states(i))
         else:
             # Exact Equations.
-            states_0.extend(self._get_states(self.number_of_sites))
+            states_0.extend(self._get_states(self.sites_number))
 
         # For every un-numbered state.
         for state_0 in states_0:
@@ -878,10 +915,10 @@ class Generator(ABC):
 
         # Fix the order, if needed.
         order0 = 1 if order == 0 else order
-        order0 = order0 if order < self.number_of_sites else self.number_of_sites
+        order0 = order0 if order < self.sites_number else self.sites_number
 
         # Get the states up to the given order.
-        if order0 < self.number_of_sites:
+        if order0 < self.sites_number:
             # Get the orders of the process.
             processes_orders = list(set(order_0[0] for order_0 in self._get_associated_operations()))
 
@@ -892,7 +929,7 @@ class Generator(ABC):
 
             # Order vectors cannot be longer than the total number of sites.
             maximum_order = max(orders)
-            maximum_order = min(maximum_order, self.number_of_sites)
+            maximum_order = min(maximum_order, self.sites_number)
 
             # For all the orders, up to the maximum order.
             for i in range(1, maximum_order + 1):
@@ -901,7 +938,7 @@ class Generator(ABC):
 
         else:
             # Exact Equations.
-            states_0.extend(self._get_states(self.number_of_sites))
+            states_0.extend(self._get_states(self.sites_number))
 
         # For every non-numbered state
         for state0 in states_0:
@@ -956,7 +993,15 @@ class Generator(ABC):
     # Validation Methods.
     # --------------------------------------------------------------------------
 
-    def _validate_state(self, state):
+    def _validate_sites_number(self) -> None:
+        """ Validates that the constrainst of the system have the proper format.
+        """
+
+        # Verify the number of sites is a positive integer.
+        if self.sites_number < 1:
+            raise ValueError("The number of sites must an integer greater than zero.")
+
+    def _validate_state(self, state: tuple) -> None:
         """ Validates that the state is a collection of 2-tuples and that
             the tuples have the form ("particle", "site"); where "particle" is
             in the set self.states and "site" is an integer in the range
@@ -984,9 +1029,9 @@ class Generator(ABC):
             raise TypeError(f"All states must be tuples of length 2. Tuple lengths: {tmp_lengths}")
 
         # Check that the maximum length of the state is the number of sites.
-        if not 1 <= len(state) <= self.number_of_sites:
+        if not 1 <= len(state) <= self.sites_number:
             raise ValueError(f"The current length of the state list is not valid, it must be"
-                             f"in the range [1, {self.number_of_sites}].  Current legth: {len(state)}.")
+                             f"in the range [1, {self.sites_number}].  Current legth: {len(state)}.")
 
         # ----------------------------------------------------------------------
         # Set the auxiliary variables.
@@ -1013,14 +1058,14 @@ class Generator(ABC):
         # ----------------------------------------------------------------------
 
         # Check that the length of the state is greater than zero and less than or equal to the maximum number of sites.
-        if not 1 <= len(numbering) <= self.number_of_sites:
+        if not 1 <= len(numbering) <= self.sites_number:
             raise ValueError(f"The current length of the numbering list is not valid, it must be"
-                             f"in the range [1, {self.number_of_sites}].  Current length: {len(numbering)}.")
+                             f"in the range [1, {self.sites_number}].  Current length: {len(numbering)}.")
 
         # Check that the numbering of the state is greater than zero and less than or equal to the maximum number of
         # sites.
-        if not all(map(lambda x: 0 < x <= self.number_of_sites, numbering)):
-            raise ValueError(f"The numbering of the states must be in the range [1, {self.number_of_sites}]."
+        if not all(map(lambda x: 0 < x <= self.sites_number, numbering)):
+            raise ValueError(f"The numbering of the states must be in the range [1, {self.sites_number}]."
                              f" There is an index that is not in this range: {numbering}")
 
         # Check that the numbering for each site is unique.
@@ -1036,30 +1081,31 @@ class Generator(ABC):
     # Constructor.
     # --------------------------------------------------------------------------
 
-    def __init__(self, number_of_sites, states):
+    def __init__(self, sites_number: int, states: Union[list, tuple]):
         """ Creates an EquationGenerator object and initializes its properties.
 
-            :param number_of_sites: The number of sites that the system has.
+            :param sites_number: The integer number of sites that the system
+             has.
 
             :param states: A list of unique strings, that represent the names of
-            the statistically independent variables that each site of the system
-            can take.
+             the statistically independent variables that each site of the
+             system can take.
         """
 
         # ----------------------------------------------------------------------
         # Define the default model parameters.
         # ----------------------------------------------------------------------
 
-        # Define the maximum number of sites.
-        self.number_of_sites = number_of_sites
+        # Define the number of sites the system has.
+        self.sites_number = sites_number
 
         # Define the possible unique states each site of the system can take.
         self.states = states
 
-        # List where the constraint equations are saved.
-        self.constraint_equations = []
+        # Define the list where the constraint equations are saved.
+        self.constraints = []
 
-        # List where the equations are saved.
+        # Define the list where the equations are saved.
         self.equations = []
 
     # --------------------------------------------------------------------------

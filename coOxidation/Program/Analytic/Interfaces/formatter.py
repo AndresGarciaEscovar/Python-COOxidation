@@ -29,9 +29,9 @@ class Formatter(ABC):
 
         # The dictionary of the possible features to format.
         formatter_functions = {
-            "equation": EquationFormatter.get_equation,
-            "rate": EquationFormatter.get_rate,
-            "state": EquationFormatter.get_state
+            "equation": Formatter.get_equation,
+            "rate": Formatter.get_rate,
+            "state": Formatter.get_state
         }
 
         return formatter_functions
