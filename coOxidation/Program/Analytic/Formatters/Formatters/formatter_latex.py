@@ -4,6 +4,9 @@
 # Imports.
 # ------------------------------------------------------------------------------
 
+# Imports: General.
+from typing import Union
+
 # Imports: User-defined.
 from coOxidation.Program.Analytic.Interfaces.formatter import Formatter
 
@@ -26,23 +29,21 @@ class LaTeXFormatter(Formatter):
     # --------------------------------------------------------------------------
 
     @staticmethod
-    def get_constraint(constraint):
+    def get_constraint(constraint: tuple) -> str:
         """ Gets the string that represents a constraint of the system in
             LaTeX format.
 
-            :param constraint: The variable that contains the constraint, in
-            the form of equalities.
+            :param constraint: The variable that contains the constraint, in the
+             form of equalities. It must be a tuple with two entries such that
+             the first entry represents the right-hand side of the equation,
+             i.e, a single state, and the second entry the left-hand side of the
+             equation, i.e., a list of a single, or multiple, states.
 
-            :return constraint_string: The string that represents the constraint
-            in LaTeX format.
+            :return: The string that represents the constraint in LaTeX format.
         """
 
-        # ----------------------------------------------------------------------
-        # Auxiliary functions.
-        # ----------------------------------------------------------------------
-
         # Get the lowest order state.
-        low_state_string = LaTeXFormatter.get_state(constraint[0])
+        low_state = LaTeXFormatter.get_state(constraint[0])
 
         # Get the other states.
         other_states = list(map(LaTeXFormatter.get_state, constraint[1]))
@@ -51,24 +52,31 @@ class LaTeXFormatter(Formatter):
         other_states = " + ".join(other_states)
 
         # Join the strings.
-        constraint_string = low_state_string + " = " + other_states
+        constraint_ = low_state + " = " + other_states
 
-        return constraint_string
+        return constraint_
 
     @staticmethod
-    def get_equation(equation, order=0):
+    def get_equation(equation: tuple, order: int = 0) -> str:
         """ Gets the string that represents an equation from a Master Equation
             in LaTeX format.
 
-            :param equation: The variable that contains the state and its
-            constituents for which to get the equation.
+            :param equation: The tuple that contains, in order: 1. The state for
+             which the master equation will be written. 2. The dictionary of the
+             states that will decay to the state for which the master equation
+             will be written; where the keys are the associated decay rate
+             constants for each process. Multiplicity of the states are
+             included. 3. The dictionary of the states to which the state will
+             decay due to the different processes; where the keys are the
+             associated decay rate constants for each process. Multiplicity of
+             the states are included.
 
             :param order: The order to which the state must be expanded. Order
-            zero means the state must not be modified. Higher orders means the
-            state must be mean-field expanded to the given order.
+             zero means the state must not be modified. Higher orders means the
+             state must be mean-field expanded to the given order.
 
-            :return equation_string: The string that represents the Master
-            Equation in LaTeX format.
+            :return: The string that represents the Master Equation in LaTeX
+             format.
         """
 
         # ----------------------------------------------------------------------
@@ -347,56 +355,60 @@ class LaTeXFormatter(Formatter):
         return equation_string
 
     @staticmethod
-    def get_initial_condition(state, time=0, value=0):
+    def get_initial_condition(state: tuple, time: Union[float, str] = 0.0, value: Union[float, str] = 0.0) -> str:
         """ Gets the string that represents a state equal to a given initial
             condition that, by default, is set to zero.
 
-            :param state: The state whose initial condition will be.
+            :param state: The state whose initial, at the given time, takes a
+             given value.
 
-            :param time: A parameter, that must allow a string reprsentation,
-            that denotes the time of the initial condition. Set to zero by
-            default.
+            :param time: A floating point number, or a string, that represents
+             the initial time at which the initial condition is set. Set to zero
+             by default.
 
-            :param value: The value of the initial condition. Must allow a
-            string representation.
+            :param value: A floating point number, or a string, that represents
+             the initial condition at the initial time. Set to zero by default.
 
-            :return constraint_string: The string that represents the initial
-            condition of a state.
+            :return: The string that represents the initial condition of a
+             time-dependent state.
         """
         # Add a sub-index to the state.
-        initial_condition_string = LaTeXFormatter.get_state(state) + "_{t_{0} =" + f"{str(time)}" + "} = " + f"{value}"
+        initial_condition = LaTeXFormatter.get_state(state) + "_{t_{0} =" + f"{str(time)}" + "} = " + f"{value}"
 
-        return initial_condition_string
+        return initial_condition
 
     @staticmethod
-    def get_rate(rate):
+    def get_rate(rate: str) -> str:
         """ Gets the string that represents a rate constant in LaTeX format.
 
-            :param rate: The rate to check. If in the format,
-                 "'s1'.'s2'. ... .'sN'.."
-            it interprets the periods as sub-indexes of level N.
+            :param rate: The rate string to turn into a LaTeX variable. If it is
+             in the format: "'s1'.'s2'. ... .'sN'..", it interprets the periods
+             as sub-indexes of level N.
 
-            :return rate_string: The rate constant in the given representation.
+            :return: The rate constant in LaTeX format.
         """
 
-        # ----------------------------------------------------------------------
+        # //////////////////////////////////////////////////////////////////////
         # Auxiliary functions.
-        # ----------------------------------------------------------------------
+        # //////////////////////////////////////////////////////////////////////
 
-        def validate_rate():
+        def validate_rate(rate0: str) -> None:
             """ Validates that the rate is given in the proper format.
+
+                :param rate0: The representation of the rate that must be a
+                 string.
             """
 
             # Check that it is a string.
-            if not isinstance(rate, (str,)):
-                raise TypeError(f"The rate parameter must be string. Current type: {type(rate)}")
+            if not isinstance(rate0, (str,)):
+                raise TypeError(f"The rate parameter must be string. Current type: {type(rate0)}")
 
-        # ----------------------------------------------------------------------
+        # //////////////////////////////////////////////////////////////////////
         # Implementation.
-        # ----------------------------------------------------------------------
+        # //////////////////////////////////////////////////////////////////////
 
         # Validate the form of the rate.
-        validate_rate()
+        validate_rate(rate)
 
         # Split the string.
         rate_string = rate.split(".")
@@ -407,17 +419,18 @@ class LaTeXFormatter(Formatter):
         return rate_string
 
     @staticmethod
-    def get_rate_value(rate, value=0):
+    def get_rate_value(rate: str, value: float = 0.0) -> str:
         """ Gets the string that represents a rate constant in LaTeX format,
             with the given value.
 
-            :param rate: The rate to check. If in the format,
-                 "'s1'.'s2'. ... .'sN'.."
-            it interprets the periods as sub-indexes of level N.
+            :param rate: The rate string to turn into a LaTeX variable. If it is
+             in the format: "'s1'.'s2'. ... .'sN'..", it interprets the periods
+             as sub-indexes of level N.
 
-            :param value: The value of the rate. Set to zero as default.
+            :param value: The numerical value of the rate. Set to zero as
+             default.
 
-            :return rate_string: The rate constant in LaTeX format.
+            :return: The rate constant in LaTeX format.
         """
 
         # Get the rate representation.
@@ -429,128 +442,141 @@ class LaTeXFormatter(Formatter):
         return rate_string
 
     @staticmethod
-    def get_state(state, order=0):
+    def get_state(state: tuple, order: int = 0) -> str:
         """ Gets the string that represents a state in LaTeX format.
 
-            :param state: A state in the format,
-                ((particle0, index0), ... ,(particleN, indexN),).
+            :param state: A tuple that represents the state in the format,
+             ((particle0, index0), ... ,(particleN, indexN),).
 
             :param order: The order to which the state must be approximated.
-            If zero, the state is NOT approximated.
+             If zero, the state is NOT approximated.
 
-            :return state_string: The state, to the given order, in LaTeX
-            format.
+            :return: The state, to the given order, in LaTeX format.
         """
 
-        # ----------------------------------------------------------------------
+        # //////////////////////////////////////////////////////////////////////
         # Auxiliary functions.
-        # ----------------------------------------------------------------------
+        # //////////////////////////////////////////////////////////////////////
 
-        def format_entry(entry0):
+        def format_component(component0: tuple) -> str:
             """ Formats an entry of a state properly.
 
-                :param entry0: The entry to be formatted.
+                :param component0: The component of a state to be formatted.
 
-                :return entry_string0: The entry of a state in string format.
+                :return: The component of a state in string format.
             """
 
-            entry_string0 = f"{entry0[0]}" + "_{" + f"{entry0[1]}" + "}"
+            # Get the representation of the single component.
+            state0 = f"{component0[0]}" + "_{" + f"{component0[1]}" + "}"
 
-            return entry_string0
+            return state0
 
-        def get_denominator():
+        def get_denominator(numerator0: list) -> list:
             """ Gets the denominator for the equations. This is obtained from
                 the numerator.
 
+                :param numerator0: A list of the states that represent the
+                 numerator of the system.
+
                 :return: The list of states that is generated from the
-                numerator, that will go in the denominator.
+                 numerator, that will go in the denominator.
             """
 
             # Auxiliary variables.
-            state_list0 = []
+            denominator0 = []
 
             # For every ith state.
-            for i, state0_0 in enumerate(numerator_states):
+            for i0, state0_0 in enumerate(numerator0):
                 # For every jth state.
-                for j, state0_1 in enumerate(numerator_states):
+                for j0, state0_1 in enumerate(numerator0):
                     # The denominator will be the intersection of the states.
-                    if j <= i:
+                    if j0 <= i0:
                         continue
 
                     # Get the intersecting states.
-                    intersecting_states0 = list(set(state0_0).intersection(set(state0_1)))
+                    intersection0 = list(set(state0_0).intersection(set(state0_1)))
 
                     # If there are intersecting states.
-                    if len(intersecting_states0) > 0:
+                    if len(intersection0) > 0:
                         # Extend the list if there is intersection.
-                        state_list0.append(intersecting_states0)
+                        denominator0.append(intersection0)
 
-            return state_list0
+            return denominator0
 
-        def get_numerator():
+        def get_numerator(state0: tuple, order0: int) -> list:
             """ Gets the split state to the nth order, using a mean-field
                 approximation.
 
+                :param state0: A tuple of tuples that represents the state.
+
+                :param order0: The order to which the equation must be
+                 approximated.
+
                 :return: A list of the states that is generated from an nth
-                order mean field approximation.
+                 order mean field approximation.
             """
 
-            # Auxiliary variables.
-            state_list0 = []
+            # The list where the numerator terms will be stored.
+            numerator0 = []
 
             # For every index in the state.
-            for i, _ in enumerate(state):
+            for i0, _ in enumerate(state0):
                 # Cannot generate more states.
-                if i + order > len(state):
+                if i0 + order0 > len(state0):
                     break
 
                 # Append the substate.
-                state_list0.append(state[i: i + order])
+                numerator0.append(state0[i0: i0 + order0])
 
-            return state_list0
+            return numerator0
 
-        def get_state_string(state0):
+        def get_state(state0: tuple) -> str:
             """ Given a state it returns the string representation.
 
-                :param state0: A tuple of two-tuples.
+                :param state0: A tuple of 2-tuples.
 
-                :return state_string0_0: The CLOSED reprensentation of a state.
+                :return: The CLOSED reprensentation of a state.
             """
 
-            # Get the list of entries.
-            entries0 = list(map(format_entry, state0))
+            # Get list of the formatted string for each sub-state.
+            substate0 = list(map(format_component, state0))
 
             # Get the exact representation of the state.
-            state_string0_0 = "\\left<" + ",".join(entries0) + "\\right>"
+            state0_ = "\\left<" + ",".join(substate0) + "\\right>"
 
-            return state_string0_0
+            return state0_
 
-        def validate_state():
+        def validate_state(state0: tuple, order0: int) -> None:
             """ Validates that the state is given in the proper format.
+
+                :param state0: The state to be formatted.
+
+                :param order0: The order to which the state must be
+                 approximated.
             """
 
             # The order must a number greater than zero.
-            if not 0 <= order:
-                raise ValueError(f"The order must be a positive value. Current Value {order}.")
+            if not 0 <= order0:
+                raise ValueError(f"The order must be a positive value. Current Value {order0}.")
 
             # Check that it is a tuple.
-            if not isinstance(state, (tuple,)):
-                raise TypeError(f"The state parameter must be a tuple. Current type: {type(state)}")
+            if not isinstance(state0, (tuple,)):
+                raise TypeError(f"The state parameter must be a tuple. Current type: {type(state0)}")
 
             # Check that the elements are tuples.
-            for j, substate in enumerate(state):
+            for i0, substate0 in enumerate(state0):
                 # Check that it is a tuple.
-                if not isinstance(substate, (tuple,)):
+                if not isinstance(substate0, (tuple,)):
                     raise TypeError(f"The substates of a state must be tuple."
-                                    f" State = {state}, Substate Entry = {j},"
-                                    f" Substate = {substate}, Current type: {type(substate)}"
+                                    f" State = {state0}, Substate Entry = {i0},"
+                                    f" Substate = {substate0}, Current type: {type(substate0)}"
                                     )
 
                 # Of length 2.
-                elif not len(substate) == 2:
+                elif not len(substate0) == 2:
                     raise TypeError(f"The substates of a state must be tuple of length 2. "
-                                    f" State = {state}, Substate Entry = {j},"
-                                    f" Substate = {substate},  Current length of substate: {len(substate)}."
+                                    f" State = {state0}, Substate Entry = {i0},"
+                                    f" Substate = {substate0},  Current length of substate: {len(substate0)}."
                                     )
 
         # ----------------------------------------------------------------------
@@ -558,54 +584,54 @@ class LaTeXFormatter(Formatter):
         # ----------------------------------------------------------------------
 
         # Always validate the state.
-        validate_state()
+        validate_state(state, order)
 
         # If the requested order is zero.
         if order == 0 or order >= len(state):
             # Get the string representation of the state.
-            state_string = get_state_string(state)
+            state_string = get_state(state)
 
             return state_string
 
         # Split the state in the requested order.
-        numerator_states = get_numerator()
+        numerator = get_numerator(state, order)
 
         # Get the denominator states.
-        denominator_states = get_denominator()
+        denominator = get_denominator(numerator)
 
         # ----------------------------------------------------------------------
         # Get the strings for the numerator and denominator.
         # ----------------------------------------------------------------------
 
         # Strings for the numerator states.
-        numerator_states = list(map(get_state_string, numerator_states))
+        numerator = list(map(get_state, numerator))
 
         # Format the string.
-        state_string = "".join(numerator_states)
+        state_string = "".join(numerator)
 
         # Get the denominator strings.
-        if len(denominator_states) > 0:
+        if len(denominator) > 0:
             # Strings for the denominator states.
-            denominator_states = list(map(get_state_string, denominator_states))
+            denominator = list(map(get_state, denominator))
 
             # Format the string.
-            state_string = "\\frac{" + state_string + "}{" + "".join(denominator_states) + "}"
+            state_string = "\\frac{" + state_string + "}{" + "".join(denominator) + "}"
 
         return state_string
 
     @staticmethod
-    def get_state_raw(state):
-        """ Gets the string that represents a 'raw state' in Mathematica format.
+    def get_state_raw(state: tuple) -> str:
+        """ Gets the string that represents a 'raw state' in LaTeX format.
 
-            :param state: A state in the format,
-                ((particle0, index0), ... ,(particleN, indexN),).
+            :param state: A state in the format ((particle0, index0), ... ,
+             (particleN, indexN),).
 
-            :return state_string: The state, to the given order, in Mathematica
-            format. In some cases, the raw format might be the same as the
-            regular format.
+            :return: The string that represents the state, to the given order,
+             in LaTeX format. In some cases, the raw format might be the
+             same as the regular format.
         """
 
-        # Get the state.
+        # Get the string representation of the state.
         state_string = LaTeXFormatter.get_state(state)
 
         return state_string
@@ -615,125 +641,151 @@ class LaTeXFormatter(Formatter):
     # --------------------------------------------------------------------------
 
     @staticmethod
-    def join_equations(quantities):
-        """ Formats the equations and the different quantities such that it
-            ready to be saved in a string.
+    def join_equations(quantities: dict) -> str:
+        """ Formats the equations and the different quantities such that they
+            are ready to be saved in a string.
 
             :param quantities: A dictionary that MUST have the following
-            format, with the keys AS SHOWN
+             keys and variables: 1. "constraints": A list of strings of
+             constraints. 2. "equations": A list of strings of the equations.
+             3. "initial conditions": A list of the strings of the initial
+             conditions. 4. "rate values": A list of the strings with the values
+             of the constants. 5. "raw_states": A list with the representation
+             of the raw states. For some formats the raw states may be the same
+             as the regular states.
 
-                - "constraints": A list of strings of constraints.
-                - "equations": A list of strings of the equations.
-                - "initial conditions": A list of the strings of the initial
-                  conditions.
-                - "rate values": A list of the strings with the values of the
-                  constants.
-                - "raw_states": A list with the representation of the raw
-                  states. For some formats the raw states may be the same as the
-                  regular states.
-
-            :return formatted_system: A single string of the formatted equations.
+            :return: A string of the formatted equations.
         """
 
-        # ----------------------------------------------------------------------
+        # //////////////////////////////////////////////////////////////////////
         # Auxiliary functions.
-        # ----------------------------------------------------------------------
+        # //////////////////////////////////////////////////////////////////////
 
-        def format_constraints():
+        def format_constraints(quantities0: dict) -> str:
             """ Formats the constraints of the system such that they are printed
-                as a collection of Mathematica functions.
+                as a collection of LaTeX functions.
 
-                :return constraint_list0: The collection of constraints, ready
-                to be placed in the system.
+                :param quantities0: The dictionary with the quantities to be
+                 formatted.
+
+                :return: A string that contains the collection of constraints,
+                 formatted for LaTeX.
             """
 
             # Join the constrains list.
-            constraint_list0 = "\n".join(quantities["constraints"])
+            constraint_list0 = "\n".join(quantities0["constraints"])
 
             return constraint_list0
 
-        def format_equations():
-            """ Formats the equations properly, such that they are printed as a
-                Mathematica list.
+        def format_equations(quantities0: dict) -> str:
+            """ Formats the equations such that they are printed as a
+                LaTeX list.
 
-                :return equations_list0: The list formatted equations, with the
-                initial conditions, ready to be placed in the system.
+                :param quantities0: The dictionary with the quantities to be
+                 formatted.
+
+                :return: The string that represents a list of LaTeX differential
+                 equations, with the initial conditions.
             """
 
             # Join the list of equations with the initial conditions.
-            equations_list0 = "\n".join(quantities["equations"]) + "\n" + "\n".join( quantities["initial conditions"])
-            equations_list0 = "= ".join(equations_list0.split("="))
+            equations0 = "\n".join(quantities0["equations"]) + "\n" + "\n".join(quantities0["initial conditions"])
+
+            # Format spacing of the equality sign properly.
+            equations0 = "= ".join(equations0.split("="))
 
             # Format it so that it reads easily when exported to LaTeX.
-            equations_list0 = equations_list0[:-1] if equations_list0[-1] == "\n" else equations_list0
+            equations0 = equations0[:-1] if equations0[-1] == "\n" else equations0
 
-            return equations_list0
+            return equations0
 
-        def format_rates():
+        def format_rates(quantities0: dict) -> str:
             """ Formats the rates such that they are printed as a collection of
-                Mathematica equalities.
+                LaTeX equalities.
 
-                :return rates_list0: The list of formatted rates, ready
-                to be placed in the system.
+                :param quantities0: The dictionary with the quantities to be
+                 formatted.
+
+                :return: The list of formatted rates, ready to be placed in the
+                 system.
             """
 
             # Join the list of rates.
-            rates_list0 = "\n".join(quantities["rate values"])
+            rates_list0 = "\n".join(quantities0["rate values"])
 
             return rates_list0
 
-        def format_raw_states():
-            """ Formats the raw states such that they are printed as a
-                Mathematica list.
+        def format_raw_states(quantities0: dict) -> str:
+            """ Formats the raw states, i.e., the names of the states without
+                any time dependence, printed as a Mathematica list.
 
-                :return raw_states_list0: The list of formatted raw state, ready
-                to be placed in the system.
+                :param quantities0: The dictionary with the quantities to be
+                 formatted.
+
+                :return: The raw states printed as a Mathematica list.
             """
 
             # Join the list of equations with the initial conditions.
-            raw_states_list0 = "\n".join(quantities["raw states"])
+            raw_states0 = "\n".join(quantities0["raw states"])
 
-            return raw_states_list0
+            return raw_states0
 
-        def validate_dictionary(keys0):
+        def validate_dictionary(quantities0: dict, keys0: list) -> None:
             """ Validates that the dictionary is consistent.
+
+                :param quantities0: The dictionary with the quantities to be
+                 formatted.
+
+                :param keys0: The keys in the dictionary.
             """
 
             # Get ALL the keys.
-            keys0_0 = [key0_1 for key0_1 in quantities.keys()]
+            keys0_ = [key0_1 for key0_1 in quantities0.keys()]
 
             # Validate that it is a dictionary.
-            if not isinstance(quantities, (dict,)):
+            if not isinstance(quantities0, (dict,)):
                 raise TypeError("The quantities parameter must be a dictionary.")
 
             # Validate the entries.
-            if not set(keys0_0) == set(keys0):
+            if not set(keys0_) == set(keys0):
                 raise ValueError(f"The keys in the dictionary must be {keys0}."
-                                 f" Current keys = {keys0_0}.")
+                                 f" Current keys = {keys0_}.")
+
+        # //////////////////////////////////////////////////////////////////////
+        # Implementation
+        # //////////////////////////////////////////////////////////////////////
 
         # ----------------------------------------------------------------------
-        # Implementation.
+        # Get the keys and validate the dictionary.
         # ----------------------------------------------------------------------
 
         # Dictionary keys are.
         keys = ["constraints", "equations", "initial conditions", "rate values", "raw states"]
 
         # Always validate first.
-        validate_dictionary(keys)
+        validate_dictionary(quantities, keys)
 
-        # Get the constraints.
-        constraints_list = format_constraints()
+        # ----------------------------------------------------------------------
+        # Get strings of the different quantities.
+        # ----------------------------------------------------------------------
 
-        # Get the formatted equations and initial conditions.
-        equations_list = format_equations()
+        # Get the constraints string.
+        constraints_list = format_constraints(quantities)
 
-        # Get the rates list.
-        rates_list = format_rates()
+        # Get the formatted equations and initial conditions string.
+        equations_list = format_equations(quantities)
 
-        # Get the list of raw variables.
-        raw_states_list = format_raw_states()
+        # Get the rates list string.
+        rates_list = format_rates(quantities)
 
-        # Join the strings in the proper order.
+        # Get the list of raw variables string.
+        raw_states_list = format_raw_states(quantities)
+
+        # ----------------------------------------------------------------------
+        # Join the final string.
+        # ----------------------------------------------------------------------
+
+        # Join the strings in the proper order string.
         formatted_system = rates_list + "\n" + raw_states_list + "\n" + equations_list + "\n" + constraints_list
 
         return formatted_system
