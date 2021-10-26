@@ -717,12 +717,12 @@ class LaTeXFormatter(Formatter):
 
         def format_raw_states(quantities0: dict) -> str:
             """ Formats the raw states, i.e., the names of the states without
-                any time dependence, printed as a Mathematica list.
+                any time dependence, printed as a LaTeX list.
 
                 :param quantities0: The dictionary with the quantities to be
                  formatted.
 
-                :return: The raw states printed as a Mathematica list.
+                :return: The raw states printed as a LaTeX list.
             """
 
             # Join the list of equations with the initial conditions.
