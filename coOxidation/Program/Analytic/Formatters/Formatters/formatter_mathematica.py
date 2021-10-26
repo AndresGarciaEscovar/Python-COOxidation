@@ -105,7 +105,7 @@ class MathematicaFormatter(Formatter):
             """
 
             # Get the string representation of the key.
-            string_key = MathematicaFormatter.get_rate(key0)
+            string_key0 = MathematicaFormatter.get_rate(key0)
 
             # Join the states in the create states list.
             create_string0 = "+".join(create_states0)
@@ -114,11 +114,11 @@ class MathematicaFormatter(Formatter):
             decay_string0 = "-" + "-".join(decay_states0)
 
             # Join the strings.
-            create_decay_string0 = f"+{string_key} (" + create_string0 + decay_string0 + f")"
+            create_decay_string0 = f"+{string_key0} (" + create_string0 + decay_string0 + f")"
 
             return create_decay_string0
 
-        def format_create_decay_single(key0: str, states0: list, decay: bool = False) -> str:
+        def format_create_decay_single(key0: str, states0: list, decay0: bool = False) -> str:
             """ Given the decay states and the key, it formats the string of
                 decay states.
 
@@ -127,7 +127,7 @@ class MathematicaFormatter(Formatter):
                 :param states0: The list of create/decay states from where
                  the states associated with the key must be obtained.
 
-                :param decay: True, if the requested states to be added are
+                :param decay0: True, if the requested states to be added are
                  decay states. False, otherwise, i.e., create states.
 
                 :return: The string that represents the specific term in the
@@ -178,7 +178,7 @@ class MathematicaFormatter(Formatter):
             key0_ = MathematicaFormatter.get_rate(key0)
 
             # Initialize the string and the negative sign as needed.
-            create_decay_string0 = "-" if decay else "+"
+            create_decay_string0 = "-" if decay0 else "+"
 
             # If there is only one state.
             if len(states0) == 1:
@@ -225,11 +225,14 @@ class MathematicaFormatter(Formatter):
 
             return equation0_
 
-        def format_state_multiplicity(state0: tuple) -> str:
+        def format_state_multiplicity(state0: tuple, order0: int) -> str:
             """ Returns the state string, properly formatted, multiplied by its
                 multiplicity.
 
                 :param state0: A 2-tuple of the state with its multiplicity.
+
+                :param order0: The order to which the state must be
+                 approximated.
 
                 :return: The state string, properly formatted, multiplied by its
                  multiplicity.
@@ -244,11 +247,11 @@ class MathematicaFormatter(Formatter):
             state0_0 = str(state0[1]) if state0[1] > 1 else ""
 
             # Get the state representation.
-            state0_0 += MathematicaFormatter.get_state(state0[0], order)
+            state0_0 += MathematicaFormatter.get_state(state0[0], order0)
 
             return state0_0
 
-        def validate_equation(equation0: tuple):
+        def validate_equation(equation0: tuple) -> None:
             """ Validates that the equation is given in the proper format.
 
                 :param equation0: The tuple that contains, in order: 1. The
@@ -348,15 +351,15 @@ class MathematicaFormatter(Formatter):
         # For every key.
         for key in keys:
             # Get the create states representations.
-            create_states = [format_state_multiplicity(state) for state in equation[1][key]]
+            create_states = [format_state_multiplicity(state, order) for state in equation[1][key]]
 
             # Get the decay states representations.
-            decay_states = [format_state_multiplicity(state) for state in equation[2][key]]
+            decay_states = [format_state_multiplicity(state, order) for state in equation[2][key]]
 
             # If there are decay states but no creation states.
             if len(decay_states) > 0 and len(create_states) == 0:
                 # Get the decay string.
-                decay_string = format_create_decay_single(key, decay_states, decay=True)
+                decay_string = format_create_decay_single(key, decay_states, decay0=True)
 
                 # Add to the equation string.
                 equation_string += decay_string
@@ -364,7 +367,7 @@ class MathematicaFormatter(Formatter):
             # If there are no decay states, but there are creation states.
             elif len(decay_states) == 0 and len(create_states) > 0:
                 # Get the create string.
-                create_string = format_create_decay_single(key, create_states, decay=False)
+                create_string = format_create_decay_single(key, create_states, decay0=False)
 
                 # Add to the equation string.
                 equation_string += create_string

@@ -79,27 +79,29 @@ class LaTeXFormatter(Formatter):
              format.
         """
 
-        # ----------------------------------------------------------------------
+        # //////////////////////////////////////////////////////////////////////
         # Auxiliary functions.
-        # ----------------------------------------------------------------------
+        # //////////////////////////////////////////////////////////////////////
 
-        def format_create_decay(key0, create_states0, decay_states0):
+        def format_create_decay(key0: str, create_states0: list, decay_states0: list) -> str:
             """ Given the decay states and the key, it formats the string of
                 decay states.
 
-                :param key0: The key that is being formatted.
+                :param key0: The string that represents the key that is being
+                 formatted.
 
-                :param create_states0: The create states associated with the
-                key.
+                :param create_states0: The list of strings with the create
+                 states associated with the key.
 
-                :param decay_states0: The decay states associated with the key.
+                :param decay_states0: The list of strings with the decay states
+                 associated with the key.
 
-                :return create_decay_string0: The string that represents the
-                specific term in the equation.
+                :return: The string that represents the specific term in the
+                 equation.
             """
 
             # Get the string representation of the key.
-            string_key = LaTeXFormatter.get_rate(key0)
+            string_key0 = LaTeXFormatter.get_rate(key0)
 
             # Join the states in the create states list.
             create_string0 = "+".join(create_states0)
@@ -108,65 +110,71 @@ class LaTeXFormatter(Formatter):
             decay_string0 = "-" + "-".join(decay_states0)
 
             # Join the strings.
-            create_decay_string0 = f"+{string_key} \\left(" + create_string0 + decay_string0 + f"\\right)"
+            create_decay_string0 = f"+{string_key0} \\left(" + create_string0 + decay_string0 + f"\\right)"
 
             return create_decay_string0
 
-        def format_create_decay_single(key0, states0, decay=False):
+        def format_create_decay_single(key0: str, states0: list, decay0: bool = False) -> str:
             """ Given the decay states and the key, it formats the string of
                 decay states.
 
-                :param key0: The key that is being formatted.
+                :param key0: The key of the dictionary that is being formatted.
 
-                :param states0: The create/decay states associated with the key.
+                :param states0: The list of create/decay states from where
+                 the states associated with the key must be obtained.
 
-                :param decay: True, if the requested states to be added are
-                decay states. False, otherwise, i.e., create states.
+                :param decay0: True, if the requested states to be added are
+                 decay states. False, otherwise, i.e., create states.
 
-                :return create_decay_string: The string that represents the
-                specific term in the equation.
+                :return: The string that represents the specific term in the
+                 equation.
             """
 
-            # ------------------------------------------------------------------
+            # //////////////////////////////////////////////////////////////////
             # Auxiliary functions.
-            # ------------------------------------------------------------------
+            # //////////////////////////////////////////////////////////////////
 
-            def get_prefactor(state_string1):
+            def get_prefactor(state1: str) -> tuple:
                 """ Given a state string, it returns the string of the numerical
                     coefficient, and the stripped state.
+
+                    :param state1: The string that represents the state with
+                     the pre-factor already included.
+
+                    :return: A 2-tuple with the pre-factor string and the string
+                     state that represents the state without the pre-factor.
                 """
 
                 # Auxiliary variables.
-                j = 0
-                tmp_string1 = ""
+                j1 = 0
+                str1 = ""
 
                 # Every character in the string.
-                for character in state_string1:
+                for character1 in state1:
                     # If the character is not a number.
-                    if not str.isnumeric(character):
+                    if not str.isnumeric(character1):
                         break
 
                     # Add the character to the string.
-                    tmp_string1 += character
+                    str1 += character1
 
                     # Add one to the counter.
-                    j += 1
+                    j1 += 1
 
                 # Format the string properly.
-                state_string1 = state_string1[j:] if j < len(state_string1) else state_string1
+                state1 = state1[j1:] if j1 < len(state1) else state1
 
-                # THIS SHOULD NOT HAPPEN!
-                return tmp_string1, state_string1
+                return str1, state1
 
-            # ------------------------------------------------------------------
+            # //////////////////////////////////////////////////////////////////
             # Implementation.
-            # ------------------------------------------------------------------
+            # //////////////////////////////////////////////////////////////////
 
             # Get the string representation of the key.
-            string_key = LaTeXFormatter.get_rate(key0)
+            key0_ = LaTeXFormatter.get_rate(key0)
 
             # Initialize the string and the negative sign as needed.
-            create_decay_string0 = "-" if decay else "+"
+            create_decay_string0 = "-" if decay0 else "+"
 
             # If there is only one state.
             if len(states0) == 1:
@@ -174,53 +182,56 @@ class LaTeXFormatter(Formatter):
                 prefactor0, create_decay_string0_0 = get_prefactor(states0[0])
 
                 # Join the string.
-                create_decay_string0 += f"{prefactor0} {string_key} {create_decay_string0_0}"
+                create_decay_string0 += f"{prefactor0} {key0_} {create_decay_string0_0}"
 
             else:
                 # Join the states.
-                create_decay_string0 += f"{string_key} \\left(" + "+".join(states0) + "\\right)"
+                create_decay_string0 += f"{key0_} \\left(" + "+".join(states0) + "\\right)"
 
             return create_decay_string0
 
-        def format_equation_string(equation_string0):
-            """ Formats the equation string further to include spaces for
-                readability.
+        def format_equation_string(equation0: str) -> str:
+            """ Formats the right-hand equation string further to include spaces
+                for readability.
 
-                :param equation_string0: The string to be formatted.
+                :param equation0: The string that containst the equations to be
+                 formatted.
 
-                :return equation_string0_0: The properly formatted string.
+                :return: The string formatted with adequate spacing.
             """
 
             # Strip all the leading and trailing spaces.
-            equation_string0_0 = equation_string0.strip()
+            equation0_ = equation0.strip()
 
             # Save the negative character if needed.
-            first_character0 = "-" if equation_string0[0] == "-" else ""
+            first_character0 = "-" if equation0_[0] == "-" else ""
 
             # Determine if there is a positive or negative sign at the start.
-            delete_first0 = equation_string0_0[0] == "-" or equation_string0_0[0] == "+"
-            equation_string0_0 = equation_string0_0[1:] if delete_first0 else equation_string0_0
+            equation0_ = equation0_[1:] if equation0_[0] == "-" or equation0_[0] == "+" else equation0_
 
             # Strip all the leading and trailing spaces, again.
-            equation_string0_0 = equation_string0_0.strip()
+            equation0_ = equation0_.strip()
 
             # Space the positive and negative signs correctly.
-            equation_string0_0 = " + ".join(equation_string0_0.split("+"))
-            equation_string0_0 = " - ".join(equation_string0_0.split("-"))
+            equation0_ = " + ".join(equation0_.split("+"))
+            equation0_ = " - ".join(equation0_.split("-"))
 
             # Add the first character.
-            equation_string0_0 = first_character0 + equation_string0_0
+            equation0_ = first_character0 + equation0_
 
-            return equation_string0_0
+            return equation0_
 
-        def format_state_multiplicity(state0):
+        def format_state_multiplicity(state0: tuple, order0: int) -> str:
             """ Returns the state string, properly formatted, multiplied by its
                 multiplicity.
 
                 :param state0: A 2-tuple of the state with its multiplicity.
 
+                :param order0: The order to which the state must be
+                 approximated.
+
                 :return: The state string, properly formatted, multiplied by its
-                multiplicity
+                 multiplicity.
             """
 
             # Check that the state is an iterable of length 2.
@@ -229,41 +240,50 @@ class LaTeXFormatter(Formatter):
                                  " tuple of lenght 2.")
 
             # Get the multiplicity.
-            state0_0 = str(state0[1]) if state0[1] > 1 else ""
+            state0_ = str(state0[1]) if state0[1] > 1 else ""
 
             # Get the state representation.
-            state0_0 += LaTeXFormatter.get_state(state0[0], order)
+            state0_ += LaTeXFormatter.get_state(state0[0], order0)
 
-            return state0_0
+            return state0_
 
-        def validate_equation():
+        def validate_equation(equation0: tuple) -> None:
             """ Validates that the equation is given in the proper format.
-                    (state, create states dictonary, decay states dictionary)
+
+                :param equation0: The tuple that contains, in order: 1. The
+                 state for which the master equation will be written. 2. The
+                 dictionary of the states that will decay to the state for which
+                 the master equation will be written; where the keys are the
+                 associated decay rate constants for each process. Multiplicity
+                 of the states are included. 3. The dictionary of the states to
+                 which the state will decay due to the different processes;
+                 where the keys are the associated decay rate constants for each
+                 process. Multiplicity of the states are included.
             """
 
             # Check that the equation is tuple.
-            if not isinstance(equation, (tuple,)):
-                raise TypeError(f"The equation must be a tuple. Current type: {type(equation)}.")
+            if not isinstance(equation0, (tuple,)):
+                raise TypeError(f"The equation must be a tuple. Current type: {type(equation0)}.")
 
             # Of length 3.
-            elif not len(equation) == 3:
+            elif not len(equation0) == 3:
                 raise TypeError(f"The equation must be a tuple of three entries."
-                                f" Current type: {type(equation)}, Length = {len(equation)}"
+                                f" Current type: {type(equation0)}, Length = {len(equation0)}"
                                 )
 
             # Validate that the zeroth entry is a state.
-            validate_state(equation[0])
+            validate_state(equation0[0])
 
             # Validate that the first and second entries are dictionaries.
-            if not (isinstance(equation[1], (dict,)) and isinstance(equation[2], (dict,))):
+            if not (isinstance(equation0[1], (dict,)) and isinstance(equation0[2], (dict,))):
                 raise TypeError("The two last entries of the tuple must be dictionaries. "
                                 f" Dictionary entry [1] = {type(equation[1])},"
                                 f" Dictionary entry [2] = {type(equation[2])}."
                                 )
 
             # Get the keys to the dictionaries.
-            keys0_1 = set(key0 for key0 in equation[1].keys())
-            keys0_2 = set(key0 for key0 in equation[2].keys())
+            keys0_1 = set(key0 for key0 in equation0[1].keys())
+            keys0_2 = set(key0 for key0 in equation0[2].keys())
 
             # If their keys are different.
             if not keys0_1 == keys0_2:
@@ -271,11 +291,11 @@ class LaTeXFormatter(Formatter):
                                  f" Keys for equation[1]: {keys0_1},"
                                  f" Keys for equation[2]: {keys0_2}.")
 
-        def validate_state(state0):
+        def validate_state(state0: tuple) -> None:
             """ Validates that the state is given in the proper format.
 
                 :param state0: A state that must be in the format,
-                    ((particle0, index0), ... ,(particleN, indexN),).
+                 ((particle0, index0), ... ,(particleN, indexN),).
             """
 
             # Check that it is a tuple.
@@ -298,18 +318,28 @@ class LaTeXFormatter(Formatter):
                                     f" Substate = {substate0},  Current length of substate: {len(substate0)}."
                                     )
 
-        # ----------------------------------------------------------------------
-        # Implementation.
-        # ----------------------------------------------------------------------
+        # //////////////////////////////////////////////////////////////////////
+        # Implementation
+        # //////////////////////////////////////////////////////////////////////
 
         # Validate the equation.
-        validate_equation()
+        validate_equation(equation)
 
-        # Auxiliary variables.
-        keys = tuple(key for key in equation[1].keys())
+        # ----------------------------------------------------------------------
+        # Get the left-hand of the equation.
+        # ----------------------------------------------------------------------
 
         # Get the differential form.
         diff_state = "\\frac{d" + LaTeXFormatter.get_state(equation[0]) + "}{dt} ="
+
+        # ----------------------------------------------------------------------
+        # Get the right-hand of the equation.
+        # ----------------------------------------------------------------------
+
+        # ------------------ Get the keys in the dictionaries ------------------
+
+        # Auxiliary variables.
+        keys = tuple(key for key in equation[1].keys())
 
         # The string where the equation will be stored.
         equation_string = ""
@@ -317,15 +347,15 @@ class LaTeXFormatter(Formatter):
         # For every key.
         for key in keys:
             # Get the create states representations.
-            create_states = [format_state_multiplicity(state) for state in equation[1][key]]
+            create_states = [format_state_multiplicity(state, order) for state in equation[1][key]]
 
             # Get the decay states representations.
-            decay_states = [format_state_multiplicity(state) for state in equation[2][key]]
+            decay_states = [format_state_multiplicity(state, order) for state in equation[2][key]]
 
             # If there are decay states but no creation states.
             if len(decay_states) > 0 and len(create_states) == 0:
                 # Get the decay string.
-                decay_string = format_create_decay_single(key, decay_states, decay=True)
+                decay_string = format_create_decay_single(key, decay_states, decay0=True)
 
                 # Add to the equation string.
                 equation_string += decay_string
@@ -333,7 +363,7 @@ class LaTeXFormatter(Formatter):
             # If there are no decay states, but there are creation states.
             elif len(decay_states) == 0 and len(create_states) > 0:
                 # Get the create string.
-                create_string = format_create_decay_single(key, create_states, decay=False)
+                create_string = format_create_decay_single(key, create_states, decay0=False)
 
                 # Add to the equation string.
                 equation_string += create_string
