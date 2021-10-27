@@ -556,7 +556,7 @@ class EquationGenerator(Generator):
 
         return process_information
 
-    def _get_constraint_equations(self, states):
+    def _get_constraints(self, states):
         """ Given a set of numbered states, it gets the constraints of the
             system, i.e., the probability identities, 1 = sum(x in X) P(x),
             P(x) = sum(y in Y) P(x,y), P(y) = sum(x in X) P(x,y), etc; with

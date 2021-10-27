@@ -11,7 +11,6 @@ import itertools
 import numpy as np
 
 from abc import ABC, abstractmethod
-from collections.abc import Iterable
 from itertools import product
 from typing import Iterable, Union
 
@@ -216,7 +215,7 @@ class Generator(ABC):
     # Print Methods.
     # --------------------------------------------------------------------------
 
-    def print_equation_states(self):
+    def print_equation_states(self) -> None:
         """ Prints the states of the equations to the screen.
         """
 
@@ -224,108 +223,222 @@ class Generator(ABC):
         # Auxiliary functions.
         # //////////////////////////////////////////////////////////////////////
 
-        def get_column_widths() -> tuple:
+        def format_state(state0: tuple) -> str:
+            """ Formats the state to be in clear and readable format.
+
+                :param state0: A tuple that represents a state.
+
+                :return: A string representing the state, with its multiplicity.
+            """
+
+            # Do not bother with empty states.
+            if state0 is None or state0 == tuple():
+                return ""
+
+            # Get the state.
+            state0_ = state0[0]
+
+            # Get the multiplicity.
+            multiplicity0 = state0[1]
+
+            # Format the state.
+            state0_ = "<" + ",".join(map(lambda x: f"{x[0]}{x[1]}", state0_)) + ">"
+
+            # Get the multiplicity.
+            state0_ = str(multiplicity0) + state0_ if multiplicity0 > 1 else state0_
+
+            return state0_
+
+        def get_column_widths(column_names0: dict, equation0: list) -> tuple:
             """ Gets a tuple of integers with the widths of the different
                 columns to generate the table.
+
+                :param column_names0: The dictionary with the names of the
+                 columns.
+
+                :param equation0: The list of equations for a given state.
 
                 :return: A tuple of integers with the widths of the different
                 columns to generate the table.
             """
-            pass
 
-        def get_separator(column_widths: tuple) -> str:
+            # Get the keys and sort them.
+            keys0 = sorted(column_names0.keys(), reverse=True)
+
+            # Get the lengths of the strings.
+            lengths0 = list(map(lambda x: len(column_names0[x]), keys0))
+
+            # ---------------------- For the decay states ----------------------
+
+            # Get the strings representing the decay states.
+            for key0 in equation0[1].keys():
+                # Format all the states of the create states.
+                states0 = ", ".join(list(map(lambda x: format_state(x), equation0[2][key0])))
+
+                # Format all the states of the decay states.
+                states0_ = ", ".join(list(map(lambda x: format_state(x), equation0[1][key0])))
+
+                # Get the maximum lengths.
+                lengths0 = list(map(lambda x, y: max(x, len(y)), lengths0, [key0, states0, states0_]))
+
+            return tuple(lengths0)
+
+        def get_equation(key0: str, equation0: tuple, column_widths0: tuple) -> str:
+            """ Returns the string that represents the terms in the equation.
+
+                :param key0: The string representiaton of the particular rate
+                 constant for which the rate list is to be obtained.
+
+                :param equation0: The list of equations for a given state.
+
+                :param column_widths0:The widths of each column to properly
+                 print the lines and separators.
+
+                :return: The string that represents the terms in the equation.
+            """
+
+            # Format all the states of the create states.
+            states0 = ", ".join(list(map(lambda x: format_state(x), equation0[2][key0])))
+
+            # Format all the states of the decay states.
+            states0_ = ", ".join(list(map(lambda x: format_state(x), equation0[1][key0])))
+
+            # List where the strings will be stored.
+            strings0 = [key0, states0, states0_]
+
+            # Format the strings.
+            for i0, string0 in enumerate(strings0):
+                # If it is the first string.
+                if i0 == 0:
+                    # Justify the text in the center.
+                    strings0[i0] = f"{strings0[i0]:^{column_widths0[i0]}}"
+
+                    continue
+
+                # Justify the text towards the left.
+                strings0[i0] = f"{strings0[i0]:<{column_widths0[i0]}}"
+
+            # Join the strings.
+            strings0 = get_separator(column_widths) + "\n" + "|" + "|".join(strings0) + "|" + "\n"
+
+            return strings0
+
+        def get_header(column_names0: dict, column_widths0: tuple) -> str:
+            """ Returns the formatted header of the table.
+
+                :param column_names0: The dictionary with the names of the
+                 columns.
+
+                :param column_widths0:The widths of each column to properly
+                 print the lines and separators.
+
+                :return: The string that represents the header of the table.
+            """
+
+            # Get the header.
+            header0 = sorted(column_names0.keys(), reverse=True)
+
+            # Get the formatted strings.
+            header0 = [f"{column_names0[key0]:^{column_widths0[i0]}}" for i0, key0 in enumerate(header0)]
+
+            # Join the strings properly.
+            header0 = get_separator(column_widths) + "\n" + "|" + "|".join(header0) + "|"
+
+            return header0
+
+        def get_separator(column_widths0: tuple) -> str:
             """ Gets a string with the row separator.
+
+                :param column_widths0: The widths of each column to properly
+                 print the lines and separators.
 
                 :return: A string with the row separator.
             """
-            pass
+
+            # Get the separator string.
+            separator0 = ["-" * length0 for length0 in column_widths0]
+
+            # Join the separators.
+            separator0 = "-" + "-".join(separator0) + "-"
+
+            return separator0
+
+        def validate_equations() -> None:
+            """ Validates the equations list is not empty.
+            """
+
+            # Check that the equations list is not empty.
+            if len(self.equations) == 0:
+                print("There are no equations to print.")
 
         # //////////////////////////////////////////////////////////////////////
         # Implementation.
         # //////////////////////////////////////////////////////////////////////
 
-        # Check that the equations list is not empty.
-        if len(self.equations) == 0:
-            print("There are no equations to print.")
+        # Validate the equations.
+        validate_equations()
 
-        # Get the keys.
-        keys = [str(key) for key in self._get_process_functions().keys()]
-
-        # Auxiliary variables.
-        string_create = "Create Processes"
-        string_decay = "Decay Processes"
-        string_key = "Key"
+        # The dictionary with the names of the columns.
+        column_names = {
+            "create": "Create Processes",
+            "decay": "Decay Processes",
+            "key": "Rate Constant"
+        }
 
         # For every equation in the equations list.
-        for equation in self.equations:
+        for i, equation in enumerate(self.equations):
 
-            # Print the state.
-            print("State: ", equation[0])
+            # # Print the state.
+            print("State: ", format_state((equation[0], 1)))
 
-            # Get the width of the key column.
-            cw1 = max(len(string_key), max(map(len, keys)))
-
-            # Get the width of the create process column.
-            tmp_create = {key: ", ".join([str(state) for state in equation[1][key]]) for key in keys}
-            cw2 = max(len(string_create), max(map(len, [tmp_create[key] for key in keys])))
-
-            # Get the width of the decay process column.
-            tmp_decay = {key: ", ".join([str(state) for state in equation[2][key]]) for key in keys}
-            cw3 = max(len(string_decay), max(map(len, [tmp_decay[key] for key in keys])))
-
-            # Format the separator string.
-            decay_string = ("|", ("-" * cw1), "|", ("-" * cw2), "|", ("-" * cw3), "|",)
+            # Get the column widths.
+            column_widths = get_column_widths(column_names, equation)
 
             # Print the header.
-            print(*decay_string)
-            print("|", f"{string_key:^{cw1}}", "|", f"{string_create:^{cw2}}", "|", f"{string_decay:^{cw3}}", "|", )
-            print(*decay_string)
+            str_ = get_header(column_names, column_widths) + "\n"
 
             # For every key.
-            for key in keys:
-                # Print the table entry.
-                print("|", f"{key:^{cw1}}", "|", f"{tmp_create[key]:<{cw2}}", "|", f"{tmp_decay[key]:<{cw3}}", "|", )
+            for j, key in enumerate(equation[1].keys()):
+                # Get the equation terms.
+                str_ += get_equation(key, equation, column_widths)
 
-                # Remember to print the separator.
-                print(*decay_string)
+            # Print the separator.
+            str_ += get_separator(column_widths) + "\n"
 
-            print("")
+            # Print the table.
+            print(str_)
+
+            # Release the memory.
+            del str_
 
     # --------------------------------------------------------------------------
     # Save Methods.
     # --------------------------------------------------------------------------
 
     @abstractmethod
-    def save_equations(self, file_name="equations", format_type="latex", order=0, save_path=None):
+    def save_equations(self, file_name: str = None, format_type: str = None, order: int = 0, save_path: str = None) -> None:
         """ Generates the equations in the requested format, with the terms
             approximated to the given order.
 
             :param file_name: The name of the file where the equations are to be
-            saved; must be extensionless. Named equations by default.
+             saved; must be extensionless. Named equations by default.
 
-            :param format_type: A string that represents the format of the requested
-            equations. NOT case sensitive, e.g., "A" = "a".
+            :param format_type: A string that represents the format of the
+             requested equations. NOT case sensitive, e.g., "A" = "a".
 
-            :param order: The order to which the equations must be approximated.
-            Zeroth order, or less, means that the equations will be written in
-            an exact way.
+            :param order: An integer that represents the order to which the
+             equations must be approximated. Zeroth order, or less, means that
+             the equations will be written in an exact way.
 
             :param save_path: The path where a file with the equations is to be
-            created, if at all. None, by default.
+             created, if at all. None, by default.
         """
-
-        # ----------------------------------------------------------------------
-        # Auxiliary functions.
-        # ----------------------------------------------------------------------
         pass
 
     # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
     # Private Interface.
     # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
-    # --------------------------------------------------------------------------
-    # Generate Methods.
-    # --------------------------------------------------------------------------
     # --------------------------------------------------------------------------
     # Get Methods.
     # --------------------------------------------------------------------------
@@ -336,12 +449,10 @@ class Generator(ABC):
             can be applied to the states of the system, the order of the process
             and the string representation of the state.
 
-            :return process_information: A tuple with the 3-tuples that contain
-            the operations that can be applied to the states of the system, the
-            order of the process and the string representation of the state, in
-            the order:
-
-            (process order, process rate constant, pointer to function)
+            :return: A tuple with the 3-tuples that contain the operations that
+             can be applied to the states of the system, the order of the
+             process and the string representation of the state, in the order:
+             (process order, process rate constant, pointer to function).
         """
 
         # Define the operations.
@@ -353,19 +464,20 @@ class Generator(ABC):
         return process_information
 
     @abstractmethod
-    def _get_constraints(self, states):
+    def _get_constraints(self, states: tuple):
         """ Given a set of numbered states, it gets the constraints of the
             system, i.e., the probability identities, 1 = sum(x in X) P(x),
             P(x) = sum(y in Y) P(x,y), P(y) = sum(x in X) P(x,y), etc; with
             0 <= P(x) <= 1 for x in X.
 
-            :param states: ALL of the "left-hand" states of the system.
+            :param states: A tuple that containst all of the "left-hand" states
+             of the system.
 
-            :return:  The constrainst of the system as equalities.
+            :return: The constrainsts of the system as equalities.
         """
         pass
 
-    def _get_contracted_state(self, states, entry=-1):
+    def _get_contracted_state(self, states: list, index: int = -1) -> tuple:
         """ From a list of states, it returns the completely contracted state.
             For this to happen, the list of states must contain as much states
             as there arr possible number of states and the indexes of ALL the
@@ -373,155 +485,171 @@ class Generator(ABC):
 
             :param states: The list of states that are to be contracted.
 
-            :param entry: The entry of the list to be contracted. It must be an
-            integer number between zero and the length of one of the states, or
-            a negative integer number, i.e., an index that indicates the index
-            of the array to contracted.
+            :param index: The index of the list to be contracted. It must be an
+             integer number between zero and the length of one of the states, or
+             a negative integer number, i.e., an index that indicates the index
+             of the array to be contracted.
 
             :return: A tuple with the contracted state and the original states
-            that were contracted; if the return value is an empty tuple, it
-            means that the state cannot be contracted.
+             that were contracted; if the return value is an empty tuple, it
+             means that the state cannot be contracted.
         """
 
-        # ----------------------------------------------------------------------
+        # //////////////////////////////////////////////////////////////////////
         # Auxiliary functions.
-        # ----------------------------------------------------------------------
+        # //////////////////////////////////////////////////////////////////////
 
-        def get_states_and_indexes():
+        def get_particles_and_indexes(states0: list, indexes0: list, particles0: list) -> None:
             """ Decomposes the states into individual particles and indexes
                 tuples, then appends them to the indexes and particles list.
+
+                :param states0: The list of the states to be contracted.
+
+                :param indexes0: The list in which the indexes must be added.
+
+                :param particles0: The list where the particle of the states are
+                 stored.
             """
 
             # Go through each state.
-            for i, state in enumerate(states):
+            for i0, state0 in enumerate(states0):
                 # Get the particles and indexes of the state.
-                tmp_particles0, tmp_indexes0 = self._get_state_elements(state)
+                particles0_, indexes0_ = self._get_state_elements(state0)
 
                 # Append them to their respective lists.
-                states_indexes.append(tmp_indexes0)
-                states_particles.append(list(tmp_particles0))
+                indexes0.append(indexes0_)
+                particles0.append(list(particles0_))
 
-        def validate_states(entry0):
+        def validate_states(states0: list, index0: int) -> bool:
             """ Checks that the states are valid to perform an index
                 contraction operation.
 
-                :param entry0: The entry0 of the list to be contracted. It must
-                be a number between zero and the length of one of the states, or
-                a negative number, i.e., an index that indicates the index of
-                the array to contracted. The length of the states to be
-                contracted must be the same.
+                :param states0: The list of the states to be contracted.
 
-                :return True, if the state is valid for contraction. False,
-                otherwise.
+                :param index0: The index of the list to be contracted. It must
+                 be a number between zero and the length of one of the states,
+                 or a negative number, i.e., an index that indicates the
+                 component of the states to be contracted. The length of the
+                 states to be contracted must be the same.
+
+                :return: True, if the state is valid for contraction. False,
+                 otherwise.
             """
 
-            # Verify it is a list of valid states.
-            for state0 in states:
+            # All the states are the same length and the number of length of all the states is the same.
+            is_valid0 = len(states0) == len(self.states) and len(set(map(lambda x: len(x), states0))) == 1
+
+            # For every state.
+            for state0 in states0:
+                # Validate the state.
                 self._validate_state(state0)
 
-            # Verify that the list contains as much states as possible site states.
-            if not len(states) == len(self.states):
-                raise ValueError("When a state is to be contracted, there must be as many states as there are"
-                                 f" particles. Number of requested = {len(states)}, possible site states ="
-                                 f" {len(self.states)}")
+            # Raise an error if the index is not valid.
+            if index0 >= len(states0[0]) or not isinstance(index0, int):
+                raise ValueError(
+                    "The requested entry for contraction must be a negative integer or a positive integer less than"
+                    f" {len(states0[0])}. Current value: {index0}, Type: {type(index0)}."
+                )
 
-            # Verify that the index is within the limits.
-            while entry0 < 0 and isinstance(entry, int):
-                entry0 += len(states[0])
+            return is_valid0
 
-            # Raise an error if the entry is not valid.
-            if entry0 >= len(states[0]) or not isinstance(entry, int):
-                raise ValueError("The requested entry for contraction must be a negative integer or a positive"
-                                 f" integer less than {len(states[0])}. Current value: {entry}, Type: {type(entry)}.")
-
-            # ----------------------------------------------------------------------
-            # Return if the index is valid.
-            # ----------------------------------------------------------------------
-
-            # All the states must have the same length to continue the process.
-            if not len(set(map(lambda x: len(x), states))) == 1:
-                return False
-
-            return True
-
-        # ----------------------------------------------------------------------
+        # //////////////////////////////////////////////////////////////////////
         # Implementation.
-        # ----------------------------------------------------------------------
+        # //////////////////////////////////////////////////////////////////////
 
-        # Validate the states
-        if not validate_states(entry):
+        # While the index is negative.
+        while index < 0:
+            # Add the length of any of the states.
+            index += len(states[0])
+
+        # Validate the states before attempting the contraction.
+        if not validate_states(states, index):
             return tuple([]), states
 
-        # Auxiliary variables.
-        states_indexes = []
-        states_particles = []
+        # ----------------------------------------------------------------------
+        # Set the variables where the information will be stored.
+        # ----------------------------------------------------------------------
 
-        # Get the states and indexes.
-        get_states_and_indexes()
+        # Auxiliary variables.
+        indexes = []
+        particles = []
+
+        # Get the particles and indexes.
+        get_particles_and_indexes(states, indexes, particles)
 
         # ----------------------------------------------------------------------
         # Validate the indexes for contraction.
         # ----------------------------------------------------------------------
 
         # If there are different indexes do not continue.
-        if not len(set(states_indexes)) == 1:
+        if not len(set(indexes)) == 1:
             return tuple([]), states
 
-        # Get the row to be contracted.
-        tmp_particles = [states[i][entry][0] for i, _ in enumerate(self.states)]
+        # Get the particles in the column to be contracted.
+        particles_ = [states[i][index][0] for i, _ in enumerate(self.states)]
 
         # Check that the desired row contains all the states.
-        if not set(tmp_particles) == set(self.states):
+        if not set(particles_) == set(self.states):
             return tuple([]), states
 
         # Turn the particles states into a list.
-        states_particles = list(map(list, states_particles))
+        particles = list(map(list, particles))
 
-        # Remove the given entry.
+        # Remove the given component.
         for j, _ in enumerate(self.states):
-            states_particles[j].pop(entry)
-        states_particles = list(map(tuple, states_particles))
+            particles[j].pop(index)
+        particles = list(map(tuple, particles))
 
-        # Check that the rest of the rest of the entries have the same element.
-        if not len(set(states_particles)) == 1:
+        # Check that the rest of the rest of the components have the same element.
+        if not len(set(particles)) == 1:
             return tuple([]), states
 
-        # Remove the contracted index.
-        states_indexes = list(states_indexes[0])
-        states_indexes.pop(entry)
+        # The contracted index can be the zeroth index.
+        indexes = list(indexes[0])
+
+        # Without the given index.
+        indexes.pop(index)
 
         # Remember to use the probability identity.
-        if len(states_indexes) == 0:
+        if len(indexes) == 0:
             return (1,), states
 
         # Get the contracted state.
-        contracted_state = tuple((state_0, states_indexes[i]) for i, state_0 in enumerate(states_particles[0]))
+        contracted = tuple((state_, indexes[i]) for i, state_ in enumerate(particles[0]))
 
-        return contracted_state, states
+        return contracted, states
 
-    def _get_decay_states(self, state, operations):
+    def _get_decay_states(self, state: tuple, operations: dict) -> tuple:
         """ Given a state and a set of operations, it returns the states that
             are a generated when ALL the possible operations are performed on
             a given state.
 
-            :param state: The state on which to operate.
+            :param state: A tuple that represents a state on which to operate.
 
             :param operations: A dictionary with all the possible operations of
-            the system.
+             the system.
 
             :return: A 2-tuple that contains the original state and a dictionary
-            with all the possible states generated by the specific collection of
-            operations.
+             with all the possible states generated by the specific collection
+             of operations.
         """
 
         # Validate the state.
         self._validate_state(state)
 
-        # Auxiliary variables.
-        keys = operations.keys()
+        # ----------------------------------------------------------------------
+        # Initialize the variables.
+        # ----------------------------------------------------------------------
 
         # Initialize a dictionary.
         decay_states = {}
+
+        # Get the dictionary keys.
+        keys = operations.keys()
+
+        # ----------------------------------------------------------------------
+        # Get the decay states.
+        # ----------------------------------------------------------------------
 
         # For each process.
         for key in keys:
@@ -530,7 +658,7 @@ class Generator(ABC):
 
         return state, decay_states
 
-    def _get_is_substate(self, state1, state2):
+    def _get_is_substate(self, state1: tuple, state2: tuple) -> bool:
         """ Determines if state 1 is a substate, or proper substate, of state 2;
             they must be in the same format; order matters in this case.
 
@@ -539,11 +667,13 @@ class Generator(ABC):
             :param state2: The state where state1 is going to be searched.
 
             :return: True if state1 is a substate, or proper substate, of
-            state2. False, otherwise.
+             state2. False, otherwise.
         """
 
-        # Validate the states.
+        # Validate the first state.
         self._validate_state(state1)
+
+        # Validate the second state.
         self._validate_state(state2)
 
         # State 1 cannot be a substate of state 2.
@@ -554,10 +684,13 @@ class Generator(ABC):
         if state1 == state2:
             return True
 
+        # Sort substate 1 in index order.
         substate1 = sorted(state1, key=lambda x: (x[1], x[0]))
+
+        # Get all the possible combinations of the components in state 2.
         substate2 = list(map(tuple, itertools.combinations(state2, len(substate1))))
 
-        # Otherwise, ALL the entries in state1 must be in state2.
+        # For every combination of state 2.
         for substate in substate2:
             # If an equality is found.
             if substate1 == sorted(substate, key=lambda x: (x[1], x[0])):
@@ -579,8 +712,7 @@ class Generator(ABC):
         # Auxiliary variables.
         keys = state_dictionary.keys()
 
-        # Define the dictionary that contains the UNIQUE processes and their
-        # multiplicity.
+        # The dictionary that contains the UNIQUE processes and multiplicities.
         multiplicity_dictionary = {}
 
         # For each process.
