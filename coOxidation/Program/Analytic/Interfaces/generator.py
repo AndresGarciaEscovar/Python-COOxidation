@@ -725,26 +725,33 @@ class Generator(ABC):
              their multiplicity.
         """
 
-        # Auxiliary variables.
-        keys = state_dictionary.keys()
+        # ----------------------------------------------------------------------
+        # Initialize the variables.
+        # ----------------------------------------------------------------------
 
         # The dictionary that contains the UNIQUE processes and multiplicities.
-        multiplicity_dictionary = {}
+        multiplicity = {}
+
+                # Get the dictionary keys.
+        keys = state_dictionary.keys()
+
+        # ----------------------------------------------------------------------
+        # Get the unique states.
+        # ----------------------------------------------------------------------
 
         # For each process.
         for key in keys:
             # Get the unique states.
-            unique_states = set(state_dictionary[key])
+            unique = set(state_dictionary[key])
 
             # Validate the states.
             for state in state_dictionary[key]:
                 self._validate_state(state)
 
             # Get the new dictionary entry.
-            multiplicity_dictionary[key] = [(state, state_dictionary[key].count(state)) for state in unique_states]
+            multiplicity[key] = [(state, state_dictionary[key].count(state)) for state in unique]
 
-        # Return the multiplicity dictionary.
-        return multiplicity_dictionary
+        return multiplicity
 
     @abstractmethod
     def _get_numbering(self, state):
