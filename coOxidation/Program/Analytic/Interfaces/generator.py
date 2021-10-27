@@ -244,7 +244,7 @@ class Generator(ABC):
             # Format the state.
             state0_ = "<" + ",".join(map(lambda x: f"{x[0]}{x[1]}", state0_)) + ">"
 
-            # Get the multiplicity.
+            # Get the multiplicity and attach it if necessary.
             state0_ = str(multiplicity0) + state0_ if multiplicity0 > 1 else state0_
 
             return state0_
@@ -259,7 +259,7 @@ class Generator(ABC):
                 :param equation0: The list of equations for a given state.
 
                 :return: A tuple of integers with the widths of the different
-                columns to generate the table.
+                 columns to generate the table.
             """
 
             # Get the keys and sort them.
@@ -363,20 +363,32 @@ class Generator(ABC):
 
             return separator0
 
-        def validate_equations() -> None:
+        def validate_equations() -> bool:
             """ Validates the equations list is not empty.
+
+                :return: True, if there are equations to display. False,
+                 otherwise.
             """
 
             # Check that the equations list is not empty.
             if len(self.equations) == 0:
                 print("There are no equations to print.")
 
+                return False
+            
+            return True
+
         # //////////////////////////////////////////////////////////////////////
         # Implementation.
         # //////////////////////////////////////////////////////////////////////
 
         # Validate the equations.
-        validate_equations()
+        if not validate_equations():
+            return
+
+        # ----------------------------------------------------------------------
+        # Define the names of the columns.
+        # ----------------------------------------------------------------------
 
         # The dictionary with the names of the columns.
         column_names = {
@@ -384,6 +396,10 @@ class Generator(ABC):
             "decay": "Decay Processes",
             "key": "Rate Constant"
         }
+
+        # ----------------------------------------------------------------------
+        # Get the column contents.
+        # ----------------------------------------------------------------------
 
         # For every equation in the equations list.
         for i, equation in enumerate(self.equations):
@@ -444,7 +460,7 @@ class Generator(ABC):
     # --------------------------------------------------------------------------
 
     @abstractmethod
-    def _get_associated_operations(self):
+    def _get_associated_operations(self) -> tuple:
         """ Returns a tuple with the 3-tuples that contain the operations that
             can be applied to the states of the system, the order of the process
             and the string representation of the state.
@@ -464,7 +480,7 @@ class Generator(ABC):
         return process_information
 
     @abstractmethod
-    def _get_constraints(self, states: tuple):
+    def _get_constraints(self, states: tuple) -> tuple:
         """ Given a set of numbered states, it gets the constraints of the
             system, i.e., the probability identities, 1 = sum(x in X) P(x),
             P(x) = sum(y in Y) P(x,y), P(y) = sum(x in X) P(x,y), etc; with
@@ -698,15 +714,15 @@ class Generator(ABC):
 
         return False
 
-    def _get_multiplicity(self, state_dictionary):
+    def _get_multiplicity(self, state_dictionary: dict) -> dict:
         """ Given the decay/created states dictionary, it returns a dictionary
             with the UNIQUE states for each process and their multiplicity.
 
             :param state_dictionary: The dictionary of processes associated with
-            a state.
+             a state.
 
-            :return multiplicity_dictionary: A dictionary with the UNIQUE states
-            for each process and their multiplicity.
+            :return: A dictionary with the UNIQUE states for each process and
+             their multiplicity.
         """
 
         # Auxiliary variables.
@@ -909,15 +925,14 @@ class Generator(ABC):
 
         return decay_dictionary
 
-    def _get_states(self, order=1):
+    def _get_states(self, order: int = 1) -> tuple:
         """ Given the order, it returns a list of ALL the possible combinations
             of the system variables, i.e., all the possible combinations of the
             variables in N slots, where N=order; NON-NUMBERED.
 
             :param order: The order of the requested states.
 
-            :return all_states: A list of all the possible states of the given
-            order.
+            :return: A list of all the possible states of the given order.
         """
 
         # ----------------------------------------------------------------------
@@ -931,11 +946,15 @@ class Generator(ABC):
 
             # Check the requested order is greater than zero.
             if order <= 0:
-                raise ValueError("The order parameter must be greater than zero.")
+                raise ValueError(
+                    "The order parameter must be greater than zero."
+                )
 
             # Check that the order parameter is not more than the number of sites.
             if order > self.sites_number:
-                raise ValueError(f"The order parameter must less than or equal to {self.sites_number}.")
+                raise ValueError(
+                    f"The order parameter must less than or equal to {self.sites_number}."
+                )
 
         # ----------------------------------------------------------------------
         # Implementation.
@@ -974,8 +993,10 @@ class Generator(ABC):
 
             # If the order is not valid.
             if order < 0 or not isinstance(order, (int,)):
-                raise ValueError(f"The order must be an integer number greater than or equal to zero."
-                                 f" Current order = {order}, Type: {type(order)}")
+                raise ValueError(
+                    f"The order must be an integer number greater than or equal"
+                    f" to zero. Current order = {order}, Type: {type(order)}"
+                )
 
         # ----------------------------------------------------------------------
         # Implementation.
@@ -1030,8 +1051,10 @@ class Generator(ABC):
 
             # If the order is not valid.
             if order < 0 or not isinstance(order, (int,)):
-                raise ValueError(f"The order must be a number greater than or equal to zero."
-                                 f" Current order = {order}, Type = {type(order)}")
+                raise ValueError(
+                    f"The order must be a number greater than or equal to zero."
+                    f" Current order = {order}, Type = {type(order)}"
+                )
 
         # ----------------------------------------------------------------------
         # Implementation.
@@ -1131,7 +1154,9 @@ class Generator(ABC):
 
         # Verify the number of sites is a positive integer.
         if self.sites_number < 1:
-            raise ValueError("The number of sites must an integer greater than zero.")
+            raise ValueError(
+                "The number of sites must an integer greater than zero."
+            )
 
     def _validate_state(self, state: tuple) -> None:
         """ Validates that the state is a collection of 2-tuples and that
@@ -1152,18 +1177,26 @@ class Generator(ABC):
         # Check that each entry in the state is a tuple.
         if not all(map(lambda x: isinstance(x, (tuple,)), state)):
             tmp_types = [str(type(x)) for x in state]
-            raise TypeError(f"A state must be a collection of tuples, at least one elements is not "
-                            f"a tuple. State: {state}, Types of state: {tmp_types}")
+            raise TypeError(
+                f"A state must be a collection of tuples, at least one elements"
+                f" is not a tuple. State: {state}, Types of state: {tmp_types}."
+            )
 
         # Check that each entry in the state is 2 sites long.
         if not all(map(lambda x: len(x) == 2, state)):
             tmp_lengths = [str(len(x)) for x in state]
-            raise TypeError(f"All states must be tuples of length 2. Tuple lengths: {tmp_lengths}")
+            raise TypeError(
+                f"All states must be tuples of length 2. Tuple lengths:"
+                f" {tmp_lengths}"
+            )
 
         # Check that the maximum length of the state is the number of sites.
         if not 1 <= len(state) <= self.sites_number:
-            raise ValueError(f"The current length of the state list is not valid, it must be"
-                             f"in the range [1, {self.sites_number}].  Current legth: {len(state)}.")
+            raise ValueError(
+                f"The current length of the state list is not valid, it must be"
+                f"in the range [1, {self.sites_number}].  Current legth:"
+                f" {len(state)}."
+            )
 
         # ----------------------------------------------------------------------
         # Set the auxiliary variables.
@@ -1182,8 +1215,10 @@ class Generator(ABC):
 
         # Check that the states are made of valid particles.
         if not all(map(lambda x: x in self.states, particles)):
-            raise ValueError(f"The states are not valid, they must be in the list {self.states}."
-                             f" Current particles in the state: {particles}.")
+            raise ValueError(
+                f"The states are not valid, they must be in the list "
+                f"{self.states}. Current particles in the state: {particles}."
+            )
 
         # ----------------------------------------------------------------------
         # Check the numbering.
@@ -1191,19 +1226,27 @@ class Generator(ABC):
 
         # Check that the length of the state is greater than zero and less than or equal to the maximum number of sites.
         if not 1 <= len(numbering) <= self.sites_number:
-            raise ValueError(f"The current length of the numbering list is not valid, it must be"
-                             f"in the range [1, {self.sites_number}].  Current length: {len(numbering)}.")
+            raise ValueError(
+                f"The current length of the numbering list is not valid, it "
+                f"must be in the range [1, {self.sites_number}].  Current "
+                f"length: {len(numbering)}."
+            )
 
         # Check that the numbering of the state is greater than zero and less than or equal to the maximum number of
         # sites.
         if not all(map(lambda x: 0 < x <= self.sites_number, numbering)):
-            raise ValueError(f"The numbering of the states must be in the range [1, {self.sites_number}]."
-                             f" There is an index that is not in this range: {numbering}")
+            raise ValueError(
+                f"The numbering of the states must be in the range [1,"
+                f" {self.sites_number}]. There is an index that is not in this "
+                f"range: {numbering}."
+            )
 
         # Check that the numbering for each site is unique.
         if not len(set(numbering)) == len(numbering):
-            raise ValueError(f"Indexes in the numbering list MUST be unique."
-                             f" There is a non-unique index: {numbering}")
+            raise ValueError(
+                f"Indexes in the numbering list MUST be unique. There is a "
+                f"non-unique index: {numbering}."
+            )
 
     # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
     # Constructor, Dunder Methods and Dunder Variables.
