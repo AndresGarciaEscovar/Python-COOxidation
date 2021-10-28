@@ -453,12 +453,12 @@ class MathematicaFormatter(Formatter):
             """
 
             # Join the list of equations with the initial conditions.
-            raw_states0 = ",".join(quantities0["raw states"])
+            states0 = ",".join(quantities0["raw states"])
 
             # Name it as a list.
-            raw_states0 = "rawStates = {" + raw_states0 + "};"
+            states0 = "rawStates = {" + states0 + "};"
 
-            return raw_states0
+            return states0
 
         def format_time_states(quantities0: dict) -> str:
             """ Formats the raw states printed as a string such that it
@@ -482,13 +482,6 @@ class MathematicaFormatter(Formatter):
         # //////////////////////////////////////////////////////////////////////
         # Implementation
         # //////////////////////////////////////////////////////////////////////
-
-        # ----------------------------------------------------------------------
-        # Get the keys and validate the dictionary.
-        # ----------------------------------------------------------------------
-
-        # The list of the required keys.
-        keys = ["constraints", "equations", "initial conditions", "rate values", "raw states"]
 
         # ----------------------------------------------------------------------
         # Get strings of the different quantities.
@@ -703,7 +696,7 @@ class MathematicaFormatter(Formatter):
         # Get the numerator states.
         numerator = get_numerator(state, order)
 
-        # Get the denominators states.
+        # Get the denominator states.
         denominator = get_denominator(numerator)
 
         # ----------------------------------------------------------------------
