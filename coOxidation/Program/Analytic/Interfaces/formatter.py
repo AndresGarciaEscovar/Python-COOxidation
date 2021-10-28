@@ -1,8 +1,16 @@
-""" Serves as the base class to create an equation formatter.
-"""
+""" Serves as the base class to create an equation formatter."""
+
+# ------------------------------------------------------------------------------
+# Imports.
+# ------------------------------------------------------------------------------
 
 # Imports: General.
 from abc import ABC, abstractmethod
+from typing import Tuple, Union
+
+# ------------------------------------------------------------------------------
+# Classes.
+# ------------------------------------------------------------------------------
 
 
 class Formatter(ABC):
@@ -16,404 +24,148 @@ class Formatter(ABC):
     # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
     # --------------------------------------------------------------------------
-    # Get All Functions.
+    # Get Methods.
     # --------------------------------------------------------------------------
 
     @staticmethod
-    def get_format_functions():
+    @abstractmethod
+    def get_format_methods() -> dict:
         """ Returns a dictionary with the possible quantities to be formatted.
 
-            :return formatter_functions: A dictionary with the possible
-            quantities to be obtained by the formatter.
+            :return: A dictionary with the possible quantities to be obtained by
+             the formatter.
         """
 
         # The dictionary of the possible features to format.
         formatter_functions = {
-            "equation": Formatter.get_equation,
-            "rate": Formatter.get_rate,
-            "state": Formatter.get_state
+            "constraint": Formatter._format_constraint,
+            "equation": Formatter._format_equation,
+            "final": Formatter._format_final,
+            "initial condition": Formatter._format_initial_condition,
+            "rate": Formatter._format_rate,
+            "state": Formatter._format_state
         }
 
         return formatter_functions
 
+    # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+    # Private Interface.
+    # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
     # --------------------------------------------------------------------------
-    # Get Formatting Functions.
+    #  Format Methods.
     # --------------------------------------------------------------------------
 
     @staticmethod
     @abstractmethod
-    def get_constraint(constraint):
+    def _format_constraint(constraint: Tuple[Tuple, Tuple]) -> str:
         """ Gets the string that represents a constraint of the system in
             the given format.
 
-            :param constraint: The variable that contains a constraint, in
-            the form of an equality.
+            :param constraint: The variable that contains a constraint, in the
+             form of an equality.
 
-            :return constraint_string: The string that represents the constraint
-            in the given format.
+            :return: The string that represents the constraint in the given
+             format.
         """
-        constraint_string = ""
-        return constraint_string
+        return ""
 
     @staticmethod
     @abstractmethod
-    def get_equation(equation, order=0):
+    def _format_equation(equation: Tuple, order: int = 0) -> str:
         """ Gets the string that represents an equation from a Master Equation
             in the given format.
 
-            :param equation: The variable that contains the state and its
-            constituents for which to get the equation.
+            :param equation: The tuple that contains, in order: 1. The state for
+             which the master equation will be written. 2. The dictionary of the
+             states that will decay to the state for which the master equation
+             will be written; where the keys are the associated decay rate
+             constants for each process. Multiplicity of the states are
+             included. 3. The dictionary of the states to which the state will
+             decay due to the different processes; where the keys are the
+             associated decay rate constants for each process. Multiplicity of
+             the states are included.
 
             :param order: The order to which the state must be expanded. Order
-            zero means the state must not be modified. Higher orders means the
-            state must be mean-field expanded to the given order.
+             zero means the state must not be modified. Higher orders means the
+             state must be mean-field expanded to the given order.
 
-            :return equation_string: The string that represents the Master
-            Equation in the given format.
+            :return: The string that represents the Master Equation in
+             Mathematica format.
         """
-
-        # ----------------------------------------------------------------------
-        # Auxiliary functions.
-        # ----------------------------------------------------------------------
-
-        def validate_equation():
-            """ Validates that the equation is given in the proper format.
-                    (state, create states dictonary, decay states dictionary)
-            """
-
-            # Check that the equation is tuple.
-            if not isinstance(equation, (tuple,)):
-                raise TypeError(f"The equation must be a tuple. Current type: {type(equation)}.")
-
-            # Of length 3.
-            elif not len(equation) == 3:
-                raise TypeError(f"The equation must be a tuple of three entries."
-                                f" Current type: {type(equation)}, Length = {len(equation)}"
-                                )
-
-            # Validate that the zeroth entry is a state.
-            validate_state(equation[0])
-
-            # Validate that the first and second entries are dictionaries.
-            if not (isinstance(equation[1], (dict,)) and isinstance(equation[2], (dict,))):
-                raise TypeError("The two last entries of the tuple must be dictionaries. "
-                                f" Dictionary entry [1] = {type(equation[1])},"
-                                f" Dictionary entry [2] = {type(equation[2])}."
-                                )
-
-            # Get the keys to the dictionaries.
-            keys1 = set(key for key in equation[1].keys())
-            keys2 = set(key for key in equation[2].keys())
-
-            # If their keys are different.
-            if not keys1 == keys2:
-                raise ValueError(f"Both Dictionaries must have the same keys"
-                                 f" Keys for equation[1]: {keys1},"
-                                 f" Keys for equation[2]: {keys2}.")
-
-        def validate_state(state):
-            """ Validates that the state is given in the proper format.
-
-                :param state: A state that must be in the format,
-                    ((particle0, index0), ... ,(particleN, indexN),).
-            """
-
-            # Check that it is a tuple.
-            if not isinstance(state, (tuple,)):
-                raise TypeError(f"The state parameter must be a tuple. Current type: {type(state)}")
-
-            # Check that the elements are tuples.
-            for j, substate in enumerate(state):
-                # Check that it is a tuple.
-                if not isinstance(substate, (tuple,)):
-                    raise TypeError(f"The substates of a state must be tuple."
-                                    f" State = {state}, Substate Entry = {j},"
-                                    f" Substate = {substate}, Current type: {type(substate)}"
-                                    )
-
-                # Of length 2.
-                elif not len(substate) == 2:
-                    raise TypeError(f"The substates of a state must be tuple of length 2. "
-                                    f" State = {state}, Substate Entry = {j},"
-                                    f" Substate = {substate},  Current length of substate: {len(substate)}."
-                                    )
-
-        # ----------------------------------------------------------------------
-        # Implementation.
-        # ----------------------------------------------------------------------
-
-        # Always validate the equation.
-        validate_equation()
-
-        equation_string = ""
-        return equation_string
+        return ""
 
     @staticmethod
     @abstractmethod
-    def get_initial_condition(state, time=0, value=0):
+    def _format_final(quantities: dict) -> str:
+        """ Formats the equations and the different quantities such that it
+            ready to be saved in a string.
+
+            :param quantities: A dictionary that MUST have the following format,
+             with the keys: 1. "constraints": A list of strings of constraints.
+             2. "equations": A list of strings of the equations. 3. "initial
+             conditions": A list of the strings of the initial conditions. 4.
+             "rate values": A list of the strings with the values of the
+             constants. 5. "raw_states": A list with the representation of the
+             raw states. For some formats the raw states may be the same as the
+             regular states.
+
+            :return: A single string of the formatted equations.
+        """
+
+        # Set the dictionary keys.
+        keys = ["constraints", "equations", "initial conditions", "rate values", "raw states"]
+
+        return ""
+
+    @staticmethod
+    @abstractmethod
+    def _format_initial_condition(state: Tuple, time: Union[float, int, str] = 0.0, value: Union[float, int, str] = 0.0) -> str:
         """ Gets the string that represents a state equal to a given initial
             condition that, by default, is set to zero.
 
             :param state: The state whose initial condition will be.
 
             :param time: A parameter, that must allow a string reprsentation,
-            that denotes the time of the initial condition. Set to zero by
-            default.
+             that denotes the time of the initial condition. Set to zero by
+             default.
 
             :param value: The value of the initial condition. Must allow a
-            string representation.
+             string representation.
 
-            :return constraint_string: The string that represents the initial
-            condition of a state.
+            :return: The string that represents the initial condition of a
+             state.
         """
-        initial_condition_string = ""
-        return initial_condition_string
+        return ""
 
     @staticmethod
     @abstractmethod
-    def get_rate(rate):
+    def _format_rate(rate: str, value: Union[float, int, str] = None) -> str:
         """ Gets the string that represents a rate constant in the given format.
 
-            :param rate: The rate to check. If in the format,
-                 "'s1'.'s2'. ... .'sN'.."
-            it interprets the periods as sub-indexes of level N.
+            :param rate: The rate to check. If in the format: "'s1'.'s2'. ...
+             .'sN'..", it interprets the periods as sub-indexes of level N.
 
-            :return rate_string: The rate constant in the given format.
+            :param value: The value to which the rate must be set.
+
+            :return: The rate constant in the given format.
         """
-
-        # ----------------------------------------------------------------------
-        # Auxiliary functions.
-        # ----------------------------------------------------------------------
-
-        def validate_rate():
-            """ Validates that the rate is given in the proper format.
-
-                :param rate: The rate to check. If in the format,
-                     "'s1'.'s2'. ... .'sN'.."
-                it interprets the periods as sub-indexes of level N.
-            """
-
-            # Check that it is a string.
-            if not isinstance(rate, (str,)):
-                raise TypeError(f"The rate parameter must be string. Current type: {type(rate)}")
-
-        # ----------------------------------------------------------------------
-        # Implementation.
-        # ----------------------------------------------------------------------
-
-        # Always validate the equation.
-        validate_rate()
-
-        rate_string = ""
-        return rate_string
+        return ""
 
     @staticmethod
     @abstractmethod
-    def get_rate_value(rate, value=0):
-        """ Gets the string that represents a rate constant in the given format,
-            with the given value.
-
-            :param rate: The rate to check. If in the format,
-                 "'s1'.'s2'. ... .'sN'.."
-            it interprets the periods as sub-indexes of level N.
-
-            :param value: The value of the rate. Set to zero as default.
-
-            :return rate_string: The rate constant in the given format.
-        """
-
-        # ----------------------------------------------------------------------
-        # Auxiliary functions.
-        # ----------------------------------------------------------------------
-
-        def validate_rate():
-            """ Validates that the rate is given in the proper format.
-
-                :param rate: The rate to check. If in the format,
-                     "'s1'.'s2'. ... .'sN'.."
-                it interprets the periods as sub-indexes of level N.
-            """
-
-            # Check that it is a string.
-            if not isinstance(rate, (str,)):
-                raise TypeError(f"The rate parameter must be string. Current type: {type(rate)}")
-
-        # ----------------------------------------------------------------------
-        # Implementation.
-        # ----------------------------------------------------------------------
-
-        # Always validate the equation.
-        validate_rate()
-
-        rate_string = ""
-        return rate_string
-
-    @staticmethod
-    @abstractmethod
-    def get_state(state, order=0):
+    def _format_state(state: Tuple, order: int = 0, raw: bool = False):
         """ Gets the string that represents a state in the given format.
 
-            :param state: A state in the format,
-                ((particle0, index0), ... ,(particleN, indexN),).
+            :param state: A state in the format, ((particle0, index0), ... ,
+             (particleN, indexN),).
 
-            :param order: The order to which the state must be approximated.
-            If zero, the state is NOT approximated.
+            :param order: The order to which the state must be approximated. If
+             zero, the state is NOT approximated.
 
-            :return state_string: The state, to the given order, in LaTeX
-            format.
+            :param raw: True, if the state must be formatted as a raw state. For
+             some formats, the raw state is the same as the regular state.
+
+            :return: The state, to the given order, in the given format.
         """
-
-        # ----------------------------------------------------------------------
-        # Auxiliary functions.
-        # ----------------------------------------------------------------------
-
-        def validate_state():
-            """ Validates that the state is given in the proper format.
-
-                :param state: A state that must be in the format,
-                    ((particle0, index0), ... ,(particleN, indexN),).
-            """
-
-            # Check that it is a tuple.
-            if not isinstance(state, (tuple,)):
-                raise TypeError(f"The state parameter must be a tuple. Current type: {type(state)}")
-
-            # Check that the elements are tuples.
-            for j, substate in enumerate(state):
-                # Check that it is a tuple.
-                if not isinstance(substate, (tuple,)):
-                    raise TypeError(f"The substates of a state must be tuple."
-                                    f" State = {state}, Substate Entry = {j},"
-                                    f" Substate = {substate}, Current type: {type(substate)}"
-                                    )
-
-                # Of length 2.
-                elif not len(substate) == 2:
-                    raise TypeError(f"The substates of a state must be tuple of length 2. "
-                                    f" State = {state}, Substate Entry = {j},"
-                                    f" Substate = {substate},  Current length of substate: {len(substate)}."
-                                    )
-
-        # ----------------------------------------------------------------------
-        # Implementation.
-        # ----------------------------------------------------------------------
-
-        # Always validate the state.
-        validate_state()
-
-        state_string = ""
-        return state_string
-
-    @staticmethod
-    @abstractmethod
-    def get_state_raw(state):
-        """ Gets the string that represents a 'raw state' in the given format.
-
-            :param state: A state in the format,
-                ((particle0, index0), ... ,(particleN, indexN),).
-
-            :return state_string: The state, to the given order, in the given
-            format. In some cases, the raw format might be the same as the
-            regular format.
-        """
-
-        # ----------------------------------------------------------------------
-        # Auxiliary functions.
-        # ----------------------------------------------------------------------
-
-        def validate_state():
-            """ Validates that the state is given in the proper format.
-
-                :param state: A state that must be in the format,
-                    ((particle0, index0), ... ,(particleN, indexN),).
-            """
-
-            # Check that it is a tuple.
-            if not isinstance(state, (tuple,)):
-                raise TypeError(f"The state parameter must be a tuple. Current type: {type(state)}")
-
-            # Check that the elements are tuples.
-            for j, substate in enumerate(state):
-                # Check that it is a tuple.
-                if not isinstance(substate, (tuple,)):
-                    raise TypeError(f"The substates of a state must be tuple."
-                                    f" State = {state}, Substate Entry = {j},"
-                                    f" Substate = {substate}, Current type: {type(substate)}"
-                                    )
-
-                # Of length 2.
-                elif not len(substate) == 2:
-                    raise TypeError(f"The substates of a state must be tuple of length 2. "
-                                    f" State = {state}, Substate Entry = {j},"
-                                    f" Substate = {substate},  Current length of substate: {len(substate)}."
-                                    )
-
-        # ----------------------------------------------------------------------
-        # Implementation.
-        # ----------------------------------------------------------------------
-
-        # Always validate the state.
-        validate_state()
-
-        state_string = ""
-        return state_string
-
-    # --------------------------------------------------------------------------
-    # Other Formatting Functions.
-    # --------------------------------------------------------------------------
-
-    @staticmethod
-    @abstractmethod
-    def join_equations(quantities):
-        """ Formats the equations and the different quantities such that it
-            ready to be saved in a string.
-
-            :param quantities: A dictionary that MUST have the following
-            format, with the keys AS SHOWN
-
-                - "constraints": A list of strings of constraints.
-                - "equations": A list of strings of the equations.
-                - "initial conditions": A list of the strings of the initial
-                  conditions.
-                - "rate values": A list of the strings with the values of the
-                  constants.
-                - "raw_states": A list with the representation of the raw
-                  states. For some formats the raw states may be the same as the
-                  regular states.
-
-            :return formatted_system: A single string of the formatted
-            equations.
-        """
-
-        # ----------------------------------------------------------------------
-        # Auxiliary functions.
-        # ----------------------------------------------------------------------
-
-        def validate_dictionary(keys0):
-            """ Validates that the dictionary is consistent.
-            """
-
-            # Get ALL the keys.
-            keys0_0 = [key0_1 for key0_1 in quantities.keys()]
-
-            # Validate that it is a dictionary.
-            if not isinstance(quantities, (dict,)):
-                raise TypeError("The quantities parameter must be a dictionary.")
-
-            # Validate the entries.
-            if not set(keys0_0) == set(keys0):
-                raise ValueError(f"The keys in the dictionary must be {keys0}."
-                                 f" Current keys = {keys0_0}.")
-
-        # ----------------------------------------------------------------------
-        # Implementation.
-        # ----------------------------------------------------------------------
-
-        # Dictionary keys are.
-        keys = ["constraints", "equations", "initial conditions", "rate values", "raw states"]
-
-        # Always validate first.
-        validate_dictionary(keys)
-
-        formatted_system = ""
-        return formatted_system
+        return ""

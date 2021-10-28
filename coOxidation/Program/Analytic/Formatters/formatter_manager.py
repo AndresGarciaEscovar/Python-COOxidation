@@ -52,36 +52,6 @@ class FormatterManager:
             :return:  The requested formatter.
         """
 
-        # //////////////////////////////////////////////////////////////////////
-        # Auxiliary functions.
-        # //////////////////////////////////////////////////////////////////////
-
-        def validate_formatter(formatter0: str):
-            """ Checks that the requested formatter exists in the list possible
-                values. The formatter is NOT case sensitive, e.g., 'A' = 'a'.
-
-                :param formatter0: The string that represents the requested
-                 formatter static class.
-            """
-
-            # Format the formatter properly.
-            formatter0_ = formatter0.strip().lower()
-
-            # Get the list of possible formatters.
-            keys0 = FormatterManager._FORMATTERS.keys()
-
-            # Check that the requested formatter is in the dictionary.
-            if formatter0_ not in keys0:
-                raise ValueError(f"The requested formatter must be in the list: {keys0}."
-                                 f" Requested formatter: {formatter0_}.")
-
-        # //////////////////////////////////////////////////////////////////////
-        # Implementation.
-        # //////////////////////////////////////////////////////////////////////
-
-        # Validate the formatter.
-        validate_formatter(formatter)
-        
         # Delete blank spaces and make it lower case.
         formatter_ = formatter.strip().lower()
 

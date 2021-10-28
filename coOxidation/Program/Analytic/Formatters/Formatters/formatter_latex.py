@@ -5,7 +5,7 @@
 # ------------------------------------------------------------------------------
 
 # Imports: General.
-from typing import Union
+from typing import List, Tuple, Union
 
 # Imports: User-defined.
 from coOxidation.Program.Analytic.Interfaces.formatter import Formatter
@@ -25,39 +25,76 @@ class LaTeXFormatter(Formatter):
     # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
     # --------------------------------------------------------------------------
-    # Get Methods.
+    # Format Methods.
+    # --------------------------------------------------------------------------I
+
+    @staticmethod
+    def get_format_methods() -> dict:
+        """ Returns a dictionary with the possible quantities to be formatted.
+
+            :return: A dictionary with the possible quantities to be obtained by
+             the LaTeX formatter.
+        """
+
+        # The dictionary of the possible features to format.
+        formatter_functions = {
+            "constraint": LaTeXFormatter._format_constraint,
+            "equation": LaTeXFormatter._format_equation,
+            "final": LaTeXFormatter._format_final,
+            "initial condition": LaTeXFormatter._format_initial_condition,
+            "rate": LaTeXFormatter._format_rate,
+            "state": LaTeXFormatter._format_state
+        }
+
+        return formatter_functions
+
+    # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+    # Private Interface.
+    # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+    # --------------------------------------------------------------------------
+    # Format Methods.
     # --------------------------------------------------------------------------
 
     @staticmethod
-    def get_constraint(constraint: tuple) -> str:
+    def _format_constraint(constraint: Tuple) -> str:
         """ Gets the string that represents a constraint of the system in
             LaTeX format.
 
-            :param constraint: The variable that contains the constraint, in the
-             form of equalities. It must be a tuple with two entries such that
-             the first entry represents the right-hand side of the equation,
-             i.e, a single state, and the second entry the left-hand side of the
-             equation, i.e., a list of a single, or multiple, states.
+            :param constraint: The variable that contains a constraint, in the
+             form of an equality.
 
             :return: The string that represents the constraint in LaTeX format.
         """
 
-        # Get the lowest order state.
-        low_state = LaTeXFormatter.get_state(constraint[0])
+        # ----------------------------------------------------------------------
+        # Format the left side.
+        # ----------------------------------------------------------------------
 
-        # Get the other states.
-        other_states = list(map(LaTeXFormatter.get_state, constraint[1]))
+        # Get the representation of the left-hand state.
+        left_side = LaTeXFormatter._format_state(constraint[0])
 
-        # Join the states.
-        other_states = " + ".join(other_states)
+        # ----------------------------------------------------------------------
+        # Format the right side.
+        # ----------------------------------------------------------------------
+
+        # Get the representation of the right-hand states.
+        right_side = map(LaTeXFormatter.get_state, constraint[1])
+
+        # Format it in LaTeX form.
+        right_side = " + ".join(right_side)
+
+        # ----------------------------------------------------------------------
+        # Join the strings.
+        # ----------------------------------------------------------------------
 
         # Join the strings.
-        constraint_ = low_state + " = " + other_states
+        constraint_ = left_side + " = " + right_side
 
         return constraint_
 
     @staticmethod
-    def get_equation(equation: tuple, order: int = 0) -> str:
+    def _format_equation(equation: Tuple, order: int = 0) -> str:
         """ Gets the string that represents an equation from a Master Equation
             in LaTeX format.
 
@@ -83,7 +120,7 @@ class LaTeXFormatter(Formatter):
         # Auxiliary functions.
         # //////////////////////////////////////////////////////////////////////
 
-        def format_create_decay(key0: str, create_states0: list, decay_states0: list) -> str:
+        def format_create_decay(key0: str, create_states0: List, decay_states0: List) -> str:
             """ Given the decay states and the key, it formats the string of
                 decay states.
 
@@ -101,7 +138,7 @@ class LaTeXFormatter(Formatter):
             """
 
             # Get the string representation of the key.
-            string_key0 = LaTeXFormatter.get_rate(key0)
+            string_key0 = LaTeXFormatter._format_rate(key0)
 
             # Join the states in the create states list.
             create_string0 = "+".join(create_states0)
@@ -247,83 +284,9 @@ class LaTeXFormatter(Formatter):
 
             return state0_
 
-        def validate_equation(equation0: tuple) -> None:
-            """ Validates that the equation is given in the proper format.
-
-                :param equation0: The tuple that contains, in order: 1. The
-                 state for which the master equation will be written. 2. The
-                 dictionary of the states that will decay to the state for which
-                 the master equation will be written; where the keys are the
-                 associated decay rate constants for each process. Multiplicity
-                 of the states are included. 3. The dictionary of the states to
-                 which the state will decay due to the different processes;
-                 where the keys are the associated decay rate constants for each
-                 process. Multiplicity of the states are included.
-            """
-
-            # Check that the equation is tuple.
-            if not isinstance(equation0, (tuple,)):
-                raise TypeError(f"The equation must be a tuple. Current type: {type(equation0)}.")
-
-            # Of length 3.
-            elif not len(equation0) == 3:
-                raise TypeError(f"The equation must be a tuple of three entries."
-                                f" Current type: {type(equation0)}, Length = {len(equation0)}"
-                                )
-
-            # Validate that the zeroth entry is a state.
-            validate_state(equation0[0])
-
-            # Validate that the first and second entries are dictionaries.
-            if not (isinstance(equation0[1], (dict,)) and isinstance(equation0[2], (dict,))):
-                raise TypeError("The two last entries of the tuple must be dictionaries. "
-                                f" Dictionary entry [1] = {type(equation[1])},"
-                                f" Dictionary entry [2] = {type(equation[2])}."
-                                )
-
-            # Get the keys to the dictionaries.
-            keys0_1 = set(key0 for key0 in equation0[1].keys())
-            keys0_2 = set(key0 for key0 in equation0[2].keys())
-
-            # If their keys are different.
-            if not keys0_1 == keys0_2:
-                raise ValueError(f"Both Dictionaries must have the same keys"
-                                 f" Keys for equation[1]: {keys0_1},"
-                                 f" Keys for equation[2]: {keys0_2}.")
-
-        def validate_state(state0: tuple) -> None:
-            """ Validates that the state is given in the proper format.
-
-                :param state0: A state that must be in the format,
-                 ((particle0, index0), ... ,(particleN, indexN),).
-            """
-
-            # Check that it is a tuple.
-            if not isinstance(state0, (tuple,)):
-                raise TypeError(f"The state parameter must be a tuple. Current type: {type(state0)}")
-
-            # Check that the elements are tuples.
-            for j0, substate0 in enumerate(state0):
-                # Check that it is a tuple.
-                if not isinstance(substate0, (tuple,)):
-                    raise TypeError(f"The substates of a state must be tuple."
-                                    f" State = {state0}, Substate Entry = {j0},"
-                                    f" Substate = {substate0}, Current type: {type(substate0)}"
-                                    )
-
-                # Of length 2.
-                elif not len(substate0) == 2:
-                    raise TypeError(f"The substates of a state must be tuple of length 2. "
-                                    f" State = {state0}, Substate Entry = {j0},"
-                                    f" Substate = {substate0},  Current length of substate: {len(substate0)}."
-                                    )
-
         # //////////////////////////////////////////////////////////////////////
         # Implementation
         # //////////////////////////////////////////////////////////////////////
-
-        # Validate the equation.
-        validate_equation(equation)
 
         # ----------------------------------------------------------------------
         # Get the left-hand of the equation.
