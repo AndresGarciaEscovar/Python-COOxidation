@@ -18,6 +18,7 @@ from typing import Iterable, Union
 # Classes.
 # ------------------------------------------------------------------------------
 
+# TODO: Continue here.
 
 class Generator(ABC):
     """ Generates the differential equations in different formats.
