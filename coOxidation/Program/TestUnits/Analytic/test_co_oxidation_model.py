@@ -57,8 +57,8 @@ class TestEquationGenerator(unittest.TestCase):
         contracted_state, original_states = system._get_contracted_state(states, 2)
 
         # The resulting state must be the same as the contracted state.
-        self.assertTupleEqual(resulting_state, contracted_state)
-        self.assertTupleEqual(states, original_states)
+        self.asserttupleEqual(resulting_state, contracted_state)
+        self.asserttupleEqual(states, original_states)
 
         # ----------------------------------------------------------------------
         # Not good states to contract.
@@ -78,8 +78,8 @@ class TestEquationGenerator(unittest.TestCase):
         contracted_state, original_states = system._get_contracted_state(states, 2)
 
         # The resulting state must be the same as the contracted state.
-        self.assertTupleEqual(contracted_state, resulting_state)
-        self.assertTupleEqual(states, original_states)
+        self.asserttupleEqual(contracted_state, resulting_state)
+        self.asserttupleEqual(states, original_states)
 
         # ----------------------------------------------------------------------
         # Cannot contract the given index.
@@ -99,8 +99,8 @@ class TestEquationGenerator(unittest.TestCase):
         contracted_state, original_states = system._get_contracted_state(states, 1)
 
         # The resulting state must be the same as the contracted state.
-        self.assertTupleEqual(contracted_state, resulting_state)
-        self.assertTupleEqual(states, original_states)
+        self.asserttupleEqual(contracted_state, resulting_state)
+        self.asserttupleEqual(states, original_states)
 
         # ----------------------------------------------------------------------
         # Index contracts to one.
@@ -120,8 +120,8 @@ class TestEquationGenerator(unittest.TestCase):
         contracted_state, original_states = system._get_contracted_state(states, 0)
 
         # The resulting state must be the same as the contracted state.
-        self.assertTupleEqual(contracted_state, resulting_state)
-        self.assertTupleEqual(states, original_states)
+        self.asserttupleEqual(contracted_state, resulting_state)
+        self.asserttupleEqual(states, original_states)
 
     def test_get_decay_states(self):
         """ Tests that the _get_decay_states function is working properly.

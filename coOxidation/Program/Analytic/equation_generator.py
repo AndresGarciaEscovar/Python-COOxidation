@@ -488,23 +488,23 @@ class EquationGenerator(Generator):
         # For every equation.
         for i, equation in enumerate(self.equations):
             # Get the particular equation.
-            equation_strings.append(formatter0.get_equation(equation, order))
+            equation_strings.append(formatter0.format_equation(equation, order))
 
             # Get the initial conditions
-            initial_conditions_strings.append(formatter0.get_initial_condition(equation[0]))
+            initial_conditions_strings.append(formatter0.format_initial_condition(equation[0]))
 
             # Get the raw state strings.
-            raw_state_strings.append(formatter0.get_state_raw(equation[0]))
+            raw_state_strings.append(formatter0.format_state(equation[0], raw=True))
 
         # For every rate.
         for key in keys:
             # Get the rate value.
-            rates_value_strings.append(formatter0.get_rate_value(key))
+            rates_value_strings.append(formatter0.format_rate(key, 0.0))
 
         # For every constraint.
         for i, constraint in enumerate(self.constraints):
             # Get the constraint equations.
-            constraint_strings.append(formatter0.get_constraint(constraint))
+            constraint_strings.append(formatter0.format_constraint(constraint))
 
         # Quantities that will be formatted.
         format_quantities = {
@@ -516,7 +516,7 @@ class EquationGenerator(Generator):
         }
 
         # Get the string to save.
-        save_string = formatter0.join_equations(format_quantities)
+        save_string = formatter0.format_final(format_quantities)
 
         # Generate the file.
         save_to_file(save_string)
@@ -581,7 +581,7 @@ class EquationGenerator(Generator):
                 :return expanded_state0: The expanded state.
             """
 
-            # List where the constraints will be placed.
+            # list where the constraints will be placed.
             constraint_list0 = []
 
             # The index of the expanded states.

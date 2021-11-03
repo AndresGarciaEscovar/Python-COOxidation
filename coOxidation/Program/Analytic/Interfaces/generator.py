@@ -304,7 +304,7 @@ class Generator(ABC):
             # Format all the states of the decay states.
             states0_ = ", ".join(list(map(lambda x: format_state(x), equation0[1][key0])))
 
-            # List where the strings will be stored.
+            # list where the strings will be stored.
             strings0 = [key0, states0, states0_]
 
             # Format the strings.
@@ -1194,7 +1194,7 @@ class Generator(ABC):
         if not all(map(lambda x: len(x) == 2, state)):
             tmp_lengths = [str(len(x)) for x in state]
             raise TypeError(
-                f"All states must be tuples of length 2. Tuple lengths:"
+                f"All states must be tuples of length 2. tuple lengths:"
                 f" {tmp_lengths}"
             )
 
