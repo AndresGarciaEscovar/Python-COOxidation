@@ -581,7 +581,7 @@ class EquationGenerator(Generator):
                 :return expanded_state0: The expanded state.
             """
 
-            # list where the constraints will be placed.
+            # List where the constraints will be placed.
             constraint_list0 = []
 
             # The index of the expanded states.

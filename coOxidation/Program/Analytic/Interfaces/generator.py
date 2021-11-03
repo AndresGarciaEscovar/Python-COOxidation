@@ -304,7 +304,7 @@ class Generator(ABC):
             # Format all the states of the decay states.
             states0_ = ", ".join(list(map(lambda x: format_state(x), equation0[1][key0])))
 
-            # list where the strings will be stored.
+            # List where the strings will be stored.
             strings0 = [key0, states0, states0_]
 
             # Format the strings.
