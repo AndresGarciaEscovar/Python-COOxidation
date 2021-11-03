@@ -321,9 +321,9 @@ class COOxidationKMC:
             process will be attempted.
         """
 
-        # --------------------------------------------------------------------------
+        # //////////////////////////////////////////////////////////////////////
         # Auxiliary Functions.
-        # --------------------------------------------------------------------------
+        # //////////////////////////////////////////////////////////////////////
 
         def validate_sites(site_1_0, rate_id_1_0):
             """ Validates that the site and reaction index are in the proper range.
@@ -344,9 +344,9 @@ class COOxidationKMC:
                 raise ValueError(f"The requested reaction index is not valid, it must have a value between 6 and 8."
                                  f"rate_id_0: {rate_id_1_0}.")
 
-        # --------------------------------------------------------------------------
+        # //////////////////////////////////////////////////////////////////////
         # Implementation.
-        # --------------------------------------------------------------------------
+        # //////////////////////////////////////////////////////////////////////
 
         # Validate the indexes.
         validate_sites(site_0, rate_id_0)

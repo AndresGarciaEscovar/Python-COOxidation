@@ -404,9 +404,9 @@ class EquationGenerator(Generator):
             created, if at all. None, by default.
         """
 
-        # ----------------------------------------------------------------------
+        # //////////////////////////////////////////////////////////////////////
         # Auxiliary functions.
-        # ----------------------------------------------------------------------
+        # //////////////////////////////////////////////////////////////////////
 
         def save_to_file(save_string0):
             """ Saves the given string to given path.
@@ -460,9 +460,9 @@ class EquationGenerator(Generator):
 
             return save_path0
 
-        # ----------------------------------------------------------------------
+        # //////////////////////////////////////////////////////////////////////
         # Implementation.
-        # ----------------------------------------------------------------------
+        # //////////////////////////////////////////////////////////////////////
 
         # Validate the parameters before proceeding.
         save_path = validate_parameters()
@@ -529,7 +529,7 @@ class EquationGenerator(Generator):
     # Get Methods.
     # --------------------------------------------------------------------------
 
-    def _get_associated_operations(self):
+    def get_associated_operations(self):
         """ Returns a tuple with the 3-tuples that contain the operations that
             can be applied to the states of the system, the order of the process
             and the string representation of the state.
@@ -556,7 +556,7 @@ class EquationGenerator(Generator):
 
         return process_information
 
-    def _get_constraints(self, states):
+    def get_constraints(self, states):
         """ Given a set of numbered states, it gets the constraints of the
             system, i.e., the probability identities, 1 = sum(x in X) P(x),
             P(x) = sum(y in Y) P(x,y), P(y) = sum(x in X) P(x,y), etc; with
@@ -567,9 +567,9 @@ class EquationGenerator(Generator):
             :return:  The constrainst of the system as equalities.
         """
 
-        # ----------------------------------------------------------------------
+        # //////////////////////////////////////////////////////////////////////
         # Auxiliary functions.
-        # ----------------------------------------------------------------------
+        # //////////////////////////////////////////////////////////////////////
 
         def expand_state(state0, site0):
             """ Returns the expanded state at the given site.
@@ -607,9 +607,9 @@ class EquationGenerator(Generator):
 
             return constraint_list0
 
-        # ----------------------------------------------------------------------
+        # //////////////////////////////////////////////////////////////////////
         # Implementation.
-        # ----------------------------------------------------------------------
+        # //////////////////////////////////////////////////////////////////////
 
         # Get the UNIQUE lengths of all the states.
         state_lengths = list(set(map(len, states)))
@@ -637,25 +637,20 @@ class EquationGenerator(Generator):
                 # Add it to the constraint equation.
                 self.constraints.append((state, constraint_list,))
 
-    def _get_numbering(self, state):
+    def get_numbering(self, state):
         """ Returns a tuple with the possible numbering a state of length N can
             have. The format of a SINGLE state must be given in the format:
-
-            ( (particle_at_site1, numbering_scheme1),
-                            .
-                            .
-                            .
-              (particle_at_siteN, numbering_schemeN),
-            )
+            ( (particle_at_site1, numbering_scheme1),..., (particle_at_siteN,
+            numbering_schemeN)).
 
             :param state: The state to be numbered.
 
             :return: The list of possible numbered states in the given format.
         """
 
-        # ----------------------------------------------------------------------
+        # //////////////////////////////////////////////////////////////////////
         # Auxiliary functions.
-        # ----------------------------------------------------------------------
+        # //////////////////////////////////////////////////////////////////////
 
         def validate_unnumbered_state(state0):
             """ Validates that the length of the state is consistent.
@@ -668,9 +663,9 @@ class EquationGenerator(Generator):
                 raise ValueError(f"The state must contain at least one site and at most {self.sites_number}. "
                                  f"Requested state sites: {len(state0)}")
 
-        # ----------------------------------------------------------------------
+        # //////////////////////////////////////////////////////////////////////
         # Implementation.
-        # ----------------------------------------------------------------------
+        # //////////////////////////////////////////////////////////////////////
 
         # Validate the state.
         validate_unnumbered_state(state)
@@ -695,68 +690,11 @@ class EquationGenerator(Generator):
 
         return all_states
 
-    def _get_process_functions(self):
-        """ Returns all the pointers to the functions that operate on the
-            different states to, potentially, modify them.
-
-            :return process_functions: A dictionary, whose keys are the string
-            represenation of the rates, with the functions that will potentially
-            modify a state.
-        """
-
-        # Get the associated operations.
-        operations = self._get_associated_operations()
-
-        # Get the rate strings tuple.
-        process_functions = tuple((operation[1], operation[2],) for operation in operations)
-
-        # Convert it into a dictionary.
-        process_functions = dict(process_functions)
-
-        return process_functions
-
-    def _get_process_orders(self):
-        """ Returns all the dictionary of integers that represent the minimum
-            number of sites required for the given processes to take place.
-
-            :return rates_order: A dictionary, whose keys are the string
-            represenation of the rates, with the integers that represent the
-            minimum number of sites required for the given processes to take
-            place.
-        """
-
-        # Get the associated operations.
-        operations = self._get_associated_operations()
-
-        # Get the rate strings tuple.
-        rates_orders = tuple((operation[1], operation[0], ) for operation in operations)
-
-        # Convert it into a dictionary.
-        rates_orders = dict(rates_orders)
-
-        return rates_orders
-
-    def _get_process_rates(self):
-        """ Returns all the string representation of the rates associated with
-            the class.
-
-            :return rates_strings: A tuple with the string rates associated with
-            the class.
-        """
-
-        # Get the associated operations.
-        operations = self._get_associated_operations()
-
-        # Get the rate strings tuple.
-        rates_strings = tuple(operation[1] for operation in operations)
-
-        return rates_strings
-
     # --------------------------------------------------------------------------
     # Other Methods.
     # --------------------------------------------------------------------------
 
-    def _reduce_to_unique_states(self, state_dictionary, target_state):
+    def reduce_to_unique_states(self, state_dictionary, target_state):
         """ Given a dictionary of states, it attempts to contract all the keys.
 
             :param state_dictionary: The dictionary of states to be reduced.
