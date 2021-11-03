@@ -10,5 +10,4 @@ if __name__ == "__main__":
 
     print(EquationGenerator(3).get_nth_order_equations(True))
 
-
-
+    # TODO: CONTINUE IN THE equation_generator.py FILE.
