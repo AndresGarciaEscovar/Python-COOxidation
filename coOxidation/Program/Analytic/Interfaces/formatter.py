@@ -6,7 +6,7 @@
 
 # Imports: General.
 from abc import ABC, abstractmethod
-from typing import Tuple, Union
+from typing import Union
 
 # ------------------------------------------------------------------------------
 # Classes.
@@ -29,7 +29,7 @@ class Formatter(ABC):
 
     @staticmethod
     @abstractmethod
-    def format_constraint(constraint: Tuple[Tuple, Tuple]) -> str:
+    def format_constraint(constraint: tuple[tuple, tuple]) -> str:
         """ Gets the string that represents a constraint of the system in
             the given format.
 
@@ -43,7 +43,7 @@ class Formatter(ABC):
 
     @staticmethod
     @abstractmethod
-    def format_equation(equation: Tuple, order: int = 0) -> str:
+    def format_equation(equation: tuple, order: int = 0) -> str:
         """ Gets the string that represents an equation from a Master Equation
             in the given format.
 
@@ -89,7 +89,7 @@ class Formatter(ABC):
 
     @staticmethod
     @abstractmethod
-    def format_initial_condition(state: Tuple, time: Union[float, int, str] = 0.0, value: Union[float, int, str] = 0.0) -> str:
+    def format_initial_condition(state: tuple, time: Union[float, int, str] = 0.0, value: Union[float, int, str] = 0.0) -> str:
         """ Gets the string that represents a state equal to a given initial
             condition that, by default, is set to zero.
 
@@ -123,7 +123,7 @@ class Formatter(ABC):
 
     @staticmethod
     @abstractmethod
-    def format_state(state: Tuple, order: int = 0, raw: bool = False):
+    def format_state(state: tuple, order: int = 0, raw: bool = False):
         """ Gets the string that represents a state in the given format.
 
             :param state: A state in the format, ((particle0, index0), ... ,
@@ -163,4 +163,3 @@ class Formatter(ABC):
         }
 
         return formatter_functions
-

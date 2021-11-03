@@ -5,7 +5,7 @@
 # ------------------------------------------------------------------------------
 
 # Imports: General.
-from typing import List, Tuple, Union
+from typing import Union
 
 # Imports: User-defined.
 from coOxidation.Program.Analytic.Interfaces.formatter import Formatter
@@ -21,35 +21,7 @@ class LaTeXFormatter(Formatter):
     """
 
     # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-    # Public Interface.
-    # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-
-    # --------------------------------------------------------------------------
-    # Format Methods.
-    # --------------------------------------------------------------------------I
-
-    @staticmethod
-    def get_format_methods() -> dict:
-        """ Returns a dictionary with the possible quantities to be formatted.
-
-            :return: A dictionary with the possible quantities to be obtained by
-             the LaTeX formatter.
-        """
-
-        # The dictionary of the possible features to format.
-        formatter_functions = {
-            "constraint": LaTeXFormatter._format_constraint,
-            "equation": LaTeXFormatter._format_equation,
-            "final": LaTeXFormatter._format_final,
-            "initial condition": LaTeXFormatter._format_initial_condition,
-            "rate": LaTeXFormatter._format_rate,
-            "state": LaTeXFormatter._format_state
-        }
-
-        return formatter_functions
-
-    # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-    # Private Interface.
+    # Methods.
     # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
     # --------------------------------------------------------------------------
@@ -57,7 +29,7 @@ class LaTeXFormatter(Formatter):
     # --------------------------------------------------------------------------
 
     @staticmethod
-    def _format_constraint(constraint: Tuple) -> str:
+    def format_constraint(constraint: tuple) -> str:
         """ Gets the string that represents a constraint of the system in
             LaTeX format.
 
@@ -67,34 +39,20 @@ class LaTeXFormatter(Formatter):
             :return: The string that represents the constraint in LaTeX format.
         """
 
-        # ----------------------------------------------------------------------
         # Format the left side.
-        # ----------------------------------------------------------------------
+        left_side = LaTeXFormatter.format_state(constraint[0])
 
-        # Get the representation of the left-hand state.
-        left_side = LaTeXFormatter._format_state(constraint[0])
-
-        # ----------------------------------------------------------------------
         # Format the right side.
-        # ----------------------------------------------------------------------
-
-        # Get the representation of the right-hand states.
-        right_side = map(LaTeXFormatter._format_state, constraint[1])
-
-        # Format it in LaTeX form.
+        right_side = map(LaTeXFormatter.format_state, constraint[1])
         right_side = " + ".join(right_side)
 
-        # ----------------------------------------------------------------------
         # Join the strings.
-        # ----------------------------------------------------------------------
-
-        # Join the strings.
-        constraint_ = left_side + " = " + right_side
+        constraint_ = "".join([left_side, " = ", right_side])
 
         return constraint_
 
     @staticmethod
-    def _format_equation(equation: Tuple, order: int = 0) -> str:
+    def format_equation(equation: tuple, order: int = 0) -> str:
         """ Gets the string that represents an equation from a Master Equation
             in LaTeX format.
 
@@ -120,7 +78,7 @@ class LaTeXFormatter(Formatter):
         # Auxiliary functions.
         # //////////////////////////////////////////////////////////////////////
 
-        def format_create_decay(key0: str, create_states0: List, decay_states0: List) -> str:
+        def format_create_decay(key0: str, create_states0: list, decay_states0: list) -> str:
             """ Given the decay states and the key, it formats the string of
                 decay states.
 
@@ -137,21 +95,16 @@ class LaTeXFormatter(Formatter):
                  equation.
             """
 
-            # Get the string representation of the key.
-            string_key0 = LaTeXFormatter._format_rate(key0)
+            string_key0 = LaTeXFormatter.format_rate(key0)
 
-            # Join the states in the create states list.
             create_string0 = "+".join(create_states0)
+            decay_string0 = "".join(["-", "-".join(decay_states0)])
 
-            # Join the states in the decay states list.
-            decay_string0 = "-" + "-".join(decay_states0)
-
-            # Join the strings.
-            create_decay_string0 = f"+{string_key0} \\left(" + create_string0 + decay_string0 + f"\\right)"
+            create_decay_string0 = "".join([f"+{string_key0} \\left(", create_string0, decay_string0, f"\\right)"])
 
             return create_decay_string0
 
-        def format_create_decay_single(key0: str, states0: List, decay0: bool = False) -> str:
+        def format_create_decay_single(key0: str, states0: list, decay0: bool = False) -> str:
             """ Given the decay states and the key, it formats the string of
                 decay states.
 
@@ -182,23 +135,15 @@ class LaTeXFormatter(Formatter):
                      state that represents the state without the pre-factor.
                 """
 
-                # Auxiliary variables.
                 j1 = 0
                 str1 = ""
-
-                # Every character in the string.
                 for character1 in state1:
-                    # If the character is not a number.
                     if not str.isnumeric(character1):
                         break
 
-                    # Add the character to the string.
                     str1 += character1
-
-                    # Add one to the counter.
                     j1 += 1
 
-                # Format the string properly.
                 state1 = state1[j1:] if j1 < len(state1) else state1
 
                 return str1, state1
@@ -207,23 +152,16 @@ class LaTeXFormatter(Formatter):
             # Implementation.
             # //////////////////////////////////////////////////////////////////
 
-            # Get the string representation of the key.
-            key0_ = LaTeXFormatter._format_rate(key0)
+            key0_ = LaTeXFormatter.format_rate(key0)
 
-            # Initialize the string and the negative sign as needed.
             create_decay_string0 = "-" if decay0 else "+"
-
-            # If there is only one state.
             if len(states0) == 1:
-                # Get the prefactor and state.
                 prefactor0, create_decay_string0_0 = get_prefactor(states0[0])
-
-                # Join the string.
-                create_decay_string0 += f"{prefactor0} {key0_} {create_decay_string0_0}"
+                create_decay_string0 = "".join([create_decay_string0, f"{prefactor0} {key0_} {create_decay_string0_0}"])
 
             else:
-                # Join the states.
-                create_decay_string0 += f"{key0_} \\left(" + "+".join(states0) + "\\right)"
+                create_decay_string0_ = "".join([f"{key0_} \\left(", "+".join(states0), "\\right)"])
+                create_decay_string0 = "".join([create_decay_string0, create_decay_string0_])
 
             return create_decay_string0
 
@@ -237,24 +175,16 @@ class LaTeXFormatter(Formatter):
                 :return: The string formatted with adequate spacing.
             """
 
-            # Strip all the leading and trailing spaces.
             equation0_ = equation0.strip()
 
-            # Save the negative character if needed.
-            first_character0 = "-" if equation0_[0] == "-" else ""
-
-            # Determine if there is a positive or negative sign at the start.
+            character0 = "-" if equation0_[0] == "-" else ""
             equation0_ = equation0_[1:] if equation0_[0] == "-" or equation0_[0] == "+" else equation0_
-
-            # Strip all the leading and trailing spaces, again.
             equation0_ = equation0_.strip()
 
-            # Space the positive and negative signs correctly.
             equation0_ = " + ".join(equation0_.split("+"))
             equation0_ = " - ".join(equation0_.split("-"))
 
-            # Add the first character.
-            equation0_ = first_character0 + equation0_
+            equation0_ = character0 + equation0_
 
             return equation0_
 
@@ -271,11 +201,8 @@ class LaTeXFormatter(Formatter):
                  multiplicity.
             """
 
-            # Get the multiplicity.
             state0_ = str(state0[1]) if state0[1] > 1 else ""
-
-            # Get the state representation.
-            state0_ += LaTeXFormatter._format_state(state0[0], order0)
+            state0_ = "".join([state0_, LaTeXFormatter.format_state(state0[0], order0)])
 
             return state0_
 
@@ -287,80 +214,47 @@ class LaTeXFormatter(Formatter):
         # Get the left-hand of the equation.
         # ----------------------------------------------------------------------
 
-        # Get the differential form.
-        diff_state = "\\frac{d" + LaTeXFormatter._format_state(equation[0]) + "}{dt} ="
+        diff_state = "".join(["\\frac{d", LaTeXFormatter.format_state(equation[0]), "}{dt} ="])
 
         # ----------------------------------------------------------------------
         # Get the right-hand of the equation.
         # ----------------------------------------------------------------------
 
-        # ------------------------ Setup the variables -------------------------
-
-        # Auxiliary variables.
+        # Setup the variables.
         keys = tuple(key for key in equation[1].keys())
-
-        # The string where the equation will be stored.
         equation_string = ""
-
-        # Get the create states dictionary.
         create = equation[1]
-
-        # Get the decay states dictionary.
         decay = equation[2]
-
-        # ----------- Get the string representation for each process -----------
 
         # For every key.
         for key in keys:
-
-            # ------------- Get the create and decay state strings -------------
-
-            # Get the create states representations.
             create_states = [format_state_multiplicity(state, order) for state in create[key]]
-
-            # Get the decay states representations.
             decay_states = [format_state_multiplicity(state, order) for state in decay[key]]
 
-            # ----------- Consider the formatting in different cases -----------
-
-            # If there are decay states but no creation states.
+            # Consider the different formatting cases.
             if len(decay_states) > 0 and len(create_states) == 0:
-                # Get the decay string.
                 decay_string = format_create_decay_single(key, decay_states, decay0=True)
-
-                # Add to the equation string.
                 equation_string += decay_string
 
-            # If there are no decay states, but there are creation states.
             elif len(decay_states) == 0 and len(create_states) > 0:
-                # Get the create string.
                 create_string = format_create_decay_single(key, create_states, decay0=False)
-
-                # Add to the equation string.
                 equation_string += create_string
 
-            # If there are both decay states and creation states.
             elif len(decay_states) > 0 and len(create_states) > 0:
-                # Get the decay and create string.
                 create_decay_string = format_create_decay(key, create_states, decay_states)
-
-                # Add to the equation string.
                 equation_string += create_decay_string
 
         # ----------------------------------------------------------------------
         # Finish formatting the equation string.
         # ----------------------------------------------------------------------
 
-        # Finish formatting the spacing.
         equation_string = format_equation_string(equation_string)
-
-        # Join the strings.
         equation_string = diff_state + equation_string
 
         return equation_string
 
     @staticmethod
-    def _format_final(quantities: dict) -> str:
+    def format_final(quantities: dict) -> str:
         """ Formats the equations and the different quantities such that they
             are ready to be saved in a string.
 
@@ -391,9 +285,7 @@ class LaTeXFormatter(Formatter):
                  formatted for LaTeX.
             """
 
-            # Join the constrains list.
             constraint_list0 = "\n".join(quantities0["constraints"])
-
             return constraint_list0
 
         def format_equations(quantities0: dict) -> str:
@@ -407,13 +299,8 @@ class LaTeXFormatter(Formatter):
                  equations, with the initial conditions.
             """
 
-            # Join the list of equations with the initial conditions.
-            equations0 = "\n".join(quantities0["equations"]) + "\n" + "\n".join(quantities0["initial conditions"])
-
-            # Format spacing of the equality sign properly.
+            equations0 = "\n".join(["\n".join(quantities0["equations"]), "\n".join(quantities0["initial conditions"])])
             equations0 = "= ".join(equations0.split("="))
-
-            # Format the equations so that they read easily when exported to LaTeX.
             equations0 = equations0[:-1] if equations0[-1] == "\n" else equations0
 
             return equations0
@@ -429,9 +316,7 @@ class LaTeXFormatter(Formatter):
                  system.
             """
 
-            # Join the list of rates.
             rates_list0 = "\n".join(quantities0["rate values"])
-
             return rates_list0
 
         def format_raw_states(quantities0: dict) -> str:
@@ -444,9 +329,7 @@ class LaTeXFormatter(Formatter):
                 :return: The raw states printed as a LaTeX list.
             """
 
-            # Join the list of equations with the initial conditions.
             states0 = "\n".join(quantities0["raw states"])
-
             return states0
 
         # //////////////////////////////////////////////////////////////////////
@@ -457,30 +340,19 @@ class LaTeXFormatter(Formatter):
         # Get strings of the different quantities.
         # ----------------------------------------------------------------------
 
-        # Get the constraints string.
         constraints_list = format_constraints(quantities)
-
-        # Get the formatted equations and initial conditions string.
         equations_list = format_equations(quantities)
-
-        # Get the rates list string.
         rates_list = format_rates(quantities)
-
-        # Get the list of raw variables string.
         raw_states_list = format_raw_states(quantities)
 
-        # ----------------------------------------------------------------------
-        # Join the final string.
-        # ----------------------------------------------------------------------
+        formatted_system = [
+            rates_list, raw_states_list, equations_list, constraints_list
+        ]
 
-        # Join the strings in the proper order string.
-        formatted_system = rates_list + "\n" + raw_states_list + "\n"
-        formatted_system += equations_list + "\n" + constraints_list
-
-        return formatted_system
+        return "\n".join(formatted_system)
 
     @staticmethod
-    def _format_initial_condition(state: Tuple, time: Union[float, str] = 0.0, value: Union[float, str] = 0.0) -> str:
+    def format_initial_condition(state: tuple, time: Union[float, str] = 0.0, value: Union[float, str] = 0.0) -> str:
         """ Gets the string that represents a state equal to a given initial
             condition that, by default, is set to zero.
 
@@ -497,16 +369,13 @@ class LaTeXFormatter(Formatter):
              time-dependent state, in LaTeX format.
         """
 
-        # Get the basic state, i.e., the raw state.
-        initial_condition = LaTeXFormatter._format_state(state, raw=True)
-
-        # Add the time dependence and the initial value.
-        initial_condition += "_{t_{0} =" + f"{str(time)}" + "} = " + f"{value}"
+        initial_condition = LaTeXFormatter.format_state(state, raw=True)
+        initial_condition = "".join([initial_condition, "_{t_{0} =", f"{str(time)}", "} = ", f"{value}"])
 
         return initial_condition
 
     @staticmethod
-    def _format_rate(rate: str, value: Union[float, int, str] = None) -> str:
+    def format_rate(rate: str, value: Union[float, int, str] = None) -> str:
         """ Gets the string that represents the rate constant in LaTeX format.
             The value is added if needed.
 
@@ -518,21 +387,16 @@ class LaTeXFormatter(Formatter):
             :return: The rate constant in LaTeX format.
         """
 
-        # Split the string.
         rate_string = rate.split(".")
-
-        # Join the string properly.
         rate_string = "_{".join(rate_string) + "}" * (len(rate_string) - 1)
 
-        # If there is a rate value to add.
         if value is not None:
-            # Add the value.
-            rate_string += " = " + str(value)
+            rate_string = "".join([rate_string, " = ", str(value)])
 
         return rate_string
 
     @staticmethod
-    def _format_state(state: Tuple, order: int = 0, raw: bool = False) -> str:
+    def format_state(state: tuple, order: int = 0, raw: bool = False) -> str:
         """ Gets the string that represents a state in LaTeX format.
 
             :param state: A tuple that represents the state in the format,
@@ -541,6 +405,9 @@ class LaTeXFormatter(Formatter):
             :param order: The order to which the state must be approximated.
              If zero, the state is NOT approximated.
 
+            :param raw: True, if the raw states must be included. False,
+             otherwise.
+
             :return: The state, to the given order, in LaTeX format.
         """
 
@@ -548,7 +415,7 @@ class LaTeXFormatter(Formatter):
         # Auxiliary functions.
         # //////////////////////////////////////////////////////////////////////
 
-        def format_component(component0: Tuple) -> str:
+        def format_component(component0: tuple) -> str:
             """ Formats an entry of a state properly.
 
                 :param component0: The component of a state to be formatted.
@@ -556,12 +423,10 @@ class LaTeXFormatter(Formatter):
                 :return: The component of a state in string format.
             """
 
-            # Get the representation of the single component.
             state0 = f"{component0[0]}" + "_{" + f"{component0[1]}" + "}"
-
             return state0
 
-        def get_denominator(numerator0: List) -> List:
+        def get_denominator(numerator0: list) -> list:
             """ Gets the denominator for the equations. This is obtained from
                 the numerator.
 
@@ -572,28 +437,20 @@ class LaTeXFormatter(Formatter):
                  numerator, that will go in the denominator.
             """
 
-            # Auxiliary variables.
             denominator0 = []
 
-            # For every ith state.
             for i0, state0_0 in enumerate(numerator0):
-                # For every jth state.
                 for j0, state0_1 in enumerate(numerator0):
-                    # The denominator will be the intersection of the states.
                     if j0 <= i0:
                         continue
 
-                    # Get the intersecting states.
                     intersection0 = list(set(state0_0).intersection(set(state0_1)))
-
-                    # If there are intersecting states.
                     if len(intersection0) > 0:
-                        # Extend the list if there is intersection.
                         denominator0.append(intersection0)
 
             return denominator0
 
-        def get_numerator(state0: Tuple, order0: int) -> List:
+        def get_numerator(state0: tuple, order0: int) -> list:
             """ Gets the split state to the nth order, using a mean-field
                 approximation.
 
@@ -606,21 +463,16 @@ class LaTeXFormatter(Formatter):
                  order mean field approximation.
             """
 
-            # The list where the numerator terms will be stored.
             numerator0 = []
-
-            # For every index in the state.
             for i0, _ in enumerate(state0):
-                # Cannot generate more states.
                 if i0 + order0 > len(state0):
                     break
 
-                # Append the substate.
                 numerator0.append(state0[i0: i0 + order0])
 
             return numerator0
 
-        def get_state(state0: Tuple, raw0: bool) -> str:
+        def get_state(state0: tuple, raw0: bool) -> str:
             """ Given a state, returns the string representation in LaTeX
                 format.
 
@@ -632,56 +484,58 @@ class LaTeXFormatter(Formatter):
                 :return: The reprensentation of a state in LaTeX format.
             """
 
-            # No need to check the raw condition.
             if raw0:
                 pass
 
-            # Get the exact representation of the state.
-            state0_ = "\\left<" + ",".join(map(format_component, state0)) + "\\right>"
+            state0_ = ["\\left<", ",".join(format_component(state0_) for state0_ in state0), "\\right>"]
 
-            return state0_
+            return "".join(state0_)
 
         # //////////////////////////////////////////////////////////////////////
         # Implementation.
         # //////////////////////////////////////////////////////////////////////
 
-        # ----------------------------------------------------------------------
-        # The trivial case.
-        # ----------------------------------------------------------------------
-
-        # If the requested order is zero.
+        # Trivial case.
         if order == 0 or order >= len(state):
-            # Get the string representation of the state.
             state_string = get_state(state, raw)
-
             return state_string
 
-        # ----------------------------------------------------------------------
         # Get the numerator and denominator.
-        # ----------------------------------------------------------------------
-
-        # Get the numerator states.
         numerator = get_numerator(state, order)
-
-        # Get the denominator states.
         denominator = get_denominator(numerator)
 
-        # ----------------------------------------------------------------------
         # Get the strings for the numerator and denominator.
-        # ----------------------------------------------------------------------
-
-        # Strings for the numerator states.
-        numerator = map(get_state, numerator)
-
-        # Format the string.
+        numerator = map(lambda x: get_state(x, raw), numerator)
         state_string = "".join(numerator)
 
-        # Get the denominator strings.
+        # Format the denominator.
         if len(denominator) > 0:
-            # Strings for the denominator states.
-            denominator = map(get_state, denominator)
-
-            # Format the string.
-            state_string = "\\frac{" + state_string + "}{" + "".join(denominator) + "}"
+            denominator = map(lambda x: get_state(x, raw), denominator)
+            state_string = ["\\frac{", state_string, "}{", "".join(denominator), "}"]
+            state_string = "".join(state_string)
 
         return state_string
+
+    # --------------------------------------------------------------------------
+    # Get Methods.
+    # --------------------------------------------------------------------------I
+
+    @staticmethod
+    def get_format_methods() -> dict:
+        """ Returns a dictionary with the possible quantities to be formatted.
+
+            :return: A dictionary with the possible quantities to be obtained by
+             the LaTeX formatter.
+        """
+
+        # The dictionary of the possible features to format.
+        formatter_functions = {
+            "constraint": LaTeXFormatter.format_constraint,
+            "equation": LaTeXFormatter.format_equation,
+            "final": LaTeXFormatter.format_final,
+            "initial condition": LaTeXFormatter.format_initial_condition,
+            "rate": LaTeXFormatter.format_rate,
+            "state": LaTeXFormatter.format_state
+        }
+
+        return formatter_functions
