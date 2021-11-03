@@ -97,8 +97,10 @@ class EquationGenerator(Generator):
     # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
     @property
-    def k_o_ads(self):
+    def k_o_ads(self) -> str:
         """ Gets the oxygen adsorption order.
+
+            :return: The oxygen adsorption parameter.
         """
         return cp.deepcopy(self.__k_o_ads)
 
@@ -115,8 +117,10 @@ class EquationGenerator(Generator):
     # --------------------------------------------------------------------------
 
     @property
-    def k_o_des(self):
+    def k_o_des(self) -> str:
         """ Gets the oxygen desorption order.
+
+            :return: The oxygen desorption parameter.
         """
         return cp.deepcopy(self.__k_o_des)
 
@@ -133,8 +137,10 @@ class EquationGenerator(Generator):
     # --------------------------------------------------------------------------
 
     @property
-    def k_o_dif(self):
+    def k_o_dif(self) -> str:
         """ Gets the oxygen diffusion order.
+
+            :return: The oxygen diffusion parameter.
         """
         return cp.deepcopy(self.__k_o_dif)
 
@@ -151,8 +157,10 @@ class EquationGenerator(Generator):
     # --------------------------------------------------------------------------
 
     @property
-    def k_co_ads(self):
+    def k_co_ads(self) -> str:
         """ Gets the carbon monoxide adsorption order.
+
+            :return: The carbon monoxide adsorption parameter.
         """
         return cp.deepcopy(self.__k_co_ads)
 
@@ -169,8 +177,10 @@ class EquationGenerator(Generator):
     # --------------------------------------------------------------------------
 
     @property
-    def k_co_des(self):
+    def k_co_des(self) -> str:
         """ Gets the carbon monoxide desorption order.
+
+            :return: The carbon monoxide desorption parameter.
         """
         return cp.deepcopy(self.__k_co_des)
 
@@ -187,8 +197,10 @@ class EquationGenerator(Generator):
     # --------------------------------------------------------------------------
 
     @property
-    def k_co_dif(self):
+    def k_co_dif(self) -> str:
         """ Gets the carbon monoxide diffusion order.
+
+            :return: The carbon monoxide diffusion parameter.
         """
         return cp.deepcopy(self.__k_co_dif)
 
@@ -205,8 +217,10 @@ class EquationGenerator(Generator):
     # --------------------------------------------------------------------------
 
     @property
-    def k_coo_lh(self):
+    def k_coo_lh(self) -> str:
         """ Gets the carbon monoxide - oxygen reaction order.
+
+            :return: The Langmuir-Hinshelwood reaction parameter.
         """
         return cp.deepcopy(self.__k_coo_lh)
 
@@ -223,8 +237,10 @@ class EquationGenerator(Generator):
     # --------------------------------------------------------------------------
 
     @property
-    def k_coo_er(self):
+    def k_coo_er(self) -> str:
         """ Gets the carbon monoxide - oxygen  gas-phase reaction order.
+
+            :return: The Elay-Rideal reaction parameter.
         """
         return cp.deepcopy(self.__k_coo_er)
 
@@ -241,8 +257,10 @@ class EquationGenerator(Generator):
     # --------------------------------------------------------------------------
 
     @property
-    def o_o_ads(self):
+    def o_o_ads(self) -> int:
         """ Gets the oxygen adsorption order.
+
+            :return: The oxygen adsorption order.
         """
         return cp.deepcopy(self.__o_o_ads)
 
@@ -259,8 +277,10 @@ class EquationGenerator(Generator):
     # --------------------------------------------------------------------------
 
     @property
-    def o_o_des(self):
+    def o_o_des(self) -> int:
         """ Gets the oxygen desorption order.
+
+            :return: The oxygen desorption order.
         """
         return cp.deepcopy(self.__o_o_des)
 
@@ -277,8 +297,10 @@ class EquationGenerator(Generator):
     # --------------------------------------------------------------------------
 
     @property
-    def o_o_dif(self):
+    def o_o_dif(self) -> int:
         """ Gets the oxygen diffusion order.
+
+            :return: The oxygen diffusion order.
         """
         return cp.deepcopy(self.__o_o_dif)
 
@@ -295,8 +317,10 @@ class EquationGenerator(Generator):
     # --------------------------------------------------------------------------
 
     @property
-    def o_co_ads(self):
+    def o_co_ads(self) -> int:
         """ Gets the carbon monoxide adsorption order.
+
+            :return: The oxygen adsorption order.
         """
         return cp.deepcopy(self.__o_co_ads)
 
@@ -313,8 +337,10 @@ class EquationGenerator(Generator):
     # --------------------------------------------------------------------------
 
     @property
-    def o_co_des(self):
+    def o_co_des(self) -> int:
         """ Gets the carbon monoxide desorption order.
+
+            :return: The carbon monoxide desorption order.
         """
         return cp.deepcopy(self.__o_co_des)
 
@@ -331,8 +357,10 @@ class EquationGenerator(Generator):
     # --------------------------------------------------------------------------
 
     @property
-    def o_co_dif(self):
+    def o_co_dif(self) -> int:
         """ Gets the carbon monoxide diffusion order.
+
+            :return: The carbon monoxide diffusion order.
         """
         return cp.deepcopy(self.__o_co_dif)
 
@@ -349,8 +377,10 @@ class EquationGenerator(Generator):
     # --------------------------------------------------------------------------
 
     @property
-    def o_coo_lh(self):
+    def o_coo_lh(self) -> int:
         """ Gets the carbon monoxide - oxygen reaction order.
+
+            :return: The Langmuir-Hinshelwood reaction order.
         """
         return cp.deepcopy(self.__o_coo_lh)
 
@@ -367,8 +397,10 @@ class EquationGenerator(Generator):
     # --------------------------------------------------------------------------
 
     @property
-    def o_coo_er(self):
+    def o_coo_er(self) -> int:
         """ Gets the carbon monoxide - oxygen  gas-phase reaction order.
+
+            :return: The Elay-Rideal reaction order.
         """
         return cp.deepcopy(self.__o_coo_er)
 
@@ -383,8 +415,860 @@ class EquationGenerator(Generator):
         pass
 
     # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-    # Public Interface.
+    # Methods.
     # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+    # --------------------------------------------------------------------------
+    # Get Methods.
+    # --------------------------------------------------------------------------
+
+    def get_associated_operations(self) -> tuple:
+        """ Returns a tuple with the 3-tuples that contain the operations that
+            can be applied to the states of the system, the order of the process
+            and the string representation of the state.
+
+            :return: A tuple with the 3-tuples that contain the operations that
+             can be applied to the states of the system, the order of the
+             process and the string representation of the state, in the order:
+             (process order, process rate constant, pointer to function)
+        """
+
+        # Define the operations.
+        process_information = (
+            (self.o_o_ads, self.k_o_ads, self.process_oxygen_adsorb,),
+            (self.o_o_des, self.k_o_des, self.process_oxygen_desorb,),
+            (self.o_o_dif, self.k_o_dif, self.process_oxygen_diffusion,),
+            (self.o_co_ads, self.k_co_ads, self.process_carbon_monoxide_adsorb,),
+            (self.o_co_des, self.k_co_des, self.process_carbon_monoxide_desorb,),
+            (self.o_co_dif, self.k_co_dif, self.process_carbon_monoxide_diffusion,),
+            (self.o_coo_lh, self.k_coo_lh, self.process_reaction_lh_reaction,),
+            (self.o_coo_er, self.k_coo_er, self.process_reaction_er_reaction,)
+        )
+
+        return process_information
+
+    def get_constraints(self, states: list) -> None:
+        """ Given a set of numbered states, it stores the constraints of the
+            system in the self.constrainst variable, i.e., the probability
+            identities, 1 = sum(x in X) P(x), P(x) = sum(y in Y) P(x,y),
+            P(y) = sum(x in X) P(x,y), etc; with 0 <= P(x) <= 1 for x in X.
+
+
+            :param states: ALL of the "left-hand" states of the system.
+        """
+
+        # //////////////////////////////////////////////////////////////////////
+        # Auxiliary functions.
+        # //////////////////////////////////////////////////////////////////////
+
+        def expand_state(state0: tuple, site0: int) -> list:
+            """ Returns the expanded state at the given site.
+
+                :param state0: The state that is to be expanded.
+
+                :param site0: The site at which it must be expanded.
+
+                :return: The expanded state.
+            """
+
+            # List where the constraints will be placed.
+            constraint_list0 = []
+
+            # The index of the expanded states.
+            index_to_add = state0[site0][1]
+            index_to_add += 1 if site0 == -1 else -1
+
+            # Normalize the index.
+            site0 = 0 if site0 == 0 else len(state0)
+
+            # Add the states with the indexes.
+            for state0_0 in self.states:
+                expanded_state0 = list(cp.deepcopy(state0))
+                new_state = (state0_0, index_to_add,)
+                expanded_state0.insert(site0, new_state)
+                constraint_list0.append(tuple(expanded_state0))
+
+            return constraint_list0
+
+        # //////////////////////////////////////////////////////////////////////
+        # Implementation.
+        # //////////////////////////////////////////////////////////////////////
+
+        state_lengths = list(set(len(state) for state in states))
+        state_lengths = sorted(state_lengths)[:-1]
+
+        if len(state_lengths) == 0:
+            return
+
+        max_length = max(state_lengths)
+        for state in states:
+            if len(state) <= max_length:
+                index = state[-1][1]
+                constraint_list = expand_state(state, -1) if index < self.sites_number else expand_state(state, 0)
+                self.constraints.append((state, constraint_list,))
+
+    def get_numbering(self, state: tuple):
+        """ Returns a tuple with the possible numbering a state of length N can
+            have. The format of a SINGLE state must be given in the format:
+            ( (particle_at_site1, numbering_scheme1),..., (particle_at_siteN,
+            numbering_schemeN)).
+
+            :param state: The state to be numbered.
+
+            :return: The list of possible numbered states in the given format.
+        """
+
+        all_states = []
+        for i in range(self.sites_number):
+            if i + len(state) > self.sites_number:
+                break
+
+            tmp_state = cp.deepcopy(state)
+            tmp_list = list(range(i, i + len(state)))
+            all_states.append(tuple((tmp_state[j], x + 1) for j, x in enumerate(tmp_list)))
+
+        return all_states
+
+    # --------------------------------------------------------------------------
+    # Process Carbon Monoxide Methods.
+    # --------------------------------------------------------------------------
+
+    def process_carbon_monoxide_adsorb(self, initial_state: tuple):
+        """ Given a state, returns the list of states that are generated by the
+            adsorption of carbon monoxide. Adsorption of carbon monoxide
+            requires just a single empty site for the process to happen.
+
+            :param initial_state: The state to be analyzed.
+
+            :return: final_states: A list of final states that are generated due
+            to the process of carbon monoxide adsorption.
+        """
+
+        # //////////////////////////////////////////////////////////////////////
+        # Auxiliary functions.
+        # //////////////////////////////////////////////////////////////////////
+
+        def append_to_final_states(state0: tuple):
+            """ Appends the given state to the final state list, with the
+                correct format.
+
+                :param state0: The state to be appended.
+            """
+
+            # Get the final state.
+            final_state = tuple((cp.deepcopy(entry), cp.deepcopy(tmp_indexes[j])) for j, entry in enumerate(state0))
+
+            # Validate the final state.
+            self._validate_state(final_state)
+
+            # Append to the list of possible final states.
+            final_states.append(final_state)
+
+        # //////////////////////////////////////////////////////////////////////
+        # Implementation.
+        # //////////////////////////////////////////////////////////////////////
+
+        # Auxiliary variables.
+        final_states = []
+
+        # Check that the length of the state is consistent.
+        if len(initial_state) < self.o_co_ads:
+            return final_states
+
+        # ----------------------------------------------------------------------
+        # Get the list of states and the numbering.
+        # ----------------------------------------------------------------------
+
+        # Get the numpy decomposition of the state.
+        tmp_particles, tmp_indexes = self.get_state_elements(initial_state)
+
+        # ----------------------------------------------------------------------
+        # Get the resulting states.
+        # ----------------------------------------------------------------------
+
+        # Check all the possible sites.
+        for i, state in enumerate(tmp_particles):
+            # Always get a copy of the initial state first.
+            tmp_state_0 = cp.deepcopy(list(tmp_particles))
+
+            # Adsorption is only possible if the site is empty.
+            if state == 'E':
+                tmp_state_0[i] = "CO"
+                append_to_final_states(tmp_state_0)
+
+        return final_states
+
+    def process_carbon_monoxide_desorb(self, initial_state: tuple):
+        """ Given a state, returns the list of states that are generated by the
+            desorption of carbon monoxide. Desorption of carbon monoxide
+            requires just a single site with carbon monoxide for the process to
+            happen.
+
+            :param initial_state: The state to be analyzed.
+
+            :return: final_states: A list of final states that are generated due
+            to the process of carbon monoxide desorption.
+        """
+
+        # //////////////////////////////////////////////////////////////////////
+        # Auxiliary functions.
+        # //////////////////////////////////////////////////////////////////////
+
+        def append_to_final_states(state0: tuple):
+            """ Appends the given state to the final state list, with the
+                correct format.
+
+                :param state0: The state to be appended.
+            """
+
+            # Get the final state.
+            final_state = tuple((cp.deepcopy(entry), cp.deepcopy(tmp_indexes[j])) for j, entry in enumerate(state0))
+
+            # Validate the final state.
+            self._validate_state(final_state)
+
+            # Append to the list of possible final states.
+            final_states.append(final_state)
+
+        # //////////////////////////////////////////////////////////////////////
+        # Implementation.
+        # //////////////////////////////////////////////////////////////////////
+
+        # Auxiliary variables.
+        final_states = []
+
+        # Check that the length of the state is consistent.
+        if len(initial_state) < self.o_co_des:
+            return final_states
+
+        # ----------------------------------------------------------------------
+        # Get the list of states and the numbering.
+        # ----------------------------------------------------------------------
+
+        # Get the decomposition of the state.
+        tmp_particles, tmp_indexes = self._get_state_elements(initial_state)
+
+        # ----------------------------------------------------------------------
+        # Get the resulting states.
+        # ----------------------------------------------------------------------
+
+        # Check all the possible sites.
+        for i, state in enumerate(tmp_particles):
+            # Always get a copy of the initial state first.
+            tmp_state_0 = cp.deepcopy(list(tmp_particles))
+
+            # Desorption is only possible if the site contains a carbon monoxide.
+            if state == 'CO':
+                tmp_state_0[i] = "E"
+                append_to_final_states(tmp_state_0)
+
+        return final_states
+
+    def process_carbon_monoxide_diffusion(self, initial_state: tuple):
+        """
+            Given a state, returns the list of states that are generated by the
+            diffusion of carbon monoxide to adjacent sites. Adsorption of carbon
+            monoxide requires two sites, one empty site and an adjacent site
+            with carbon monoxide.
+
+            :param initial_state: The state to be analyzed.
+
+            :return: final_states: A list of final states that are generated due
+            to the process of carbon monoxide diffusion.
+        """
+
+        # //////////////////////////////////////////////////////////////////////
+        # Auxiliary functions.
+        # //////////////////////////////////////////////////////////////////////
+
+        def append_to_final_states(state0: tuple):
+            """ Appends the given state to the final state list, with the
+                correct format.
+
+                :param state0: The state to be appended.
+            """
+
+            # Get the final state.
+            final_state = tuple((cp.deepcopy(entry), cp.deepcopy(tmp_indexes[j])) for j, entry in enumerate(state0))
+
+            # Validate the final state.
+            self._validate_state(final_state)
+
+            # Append to the list of possible final states.
+            final_states.append(final_state)
+
+        # //////////////////////////////////////////////////////////////////////
+        # Implementation.
+        # //////////////////////////////////////////////////////////////////////
+
+        # Auxiliary variables.
+        final_states = []
+
+        # Check that the length of the state is consistent.
+        if len(initial_state) < self.o_co_dif:
+            return final_states
+
+        # ----------------------------------------------------------------------
+        # Get the list of states and the numbering.
+        # ----------------------------------------------------------------------
+
+        # Get the numpy decomposition of the state.
+        tmp_particles, tmp_indexes = self.get_state_elements(initial_state)
+
+        # ----------------------------------------------------------------------
+        # Get the resulting states.
+        # ----------------------------------------------------------------------
+
+        # Check all the possible sites.
+        for i, state in enumerate(list(tmp_particles)):
+            # Get out of the loop before the last element.
+            if i == len(tmp_particles) - 1:
+                break
+
+            # Always get a copy of the initial state first.
+            tmp_state_0 = cp.deepcopy(list(tmp_particles))
+
+            # Can only diffuse to adjacent sites.
+            indexes_valid = tmp_indexes[i] + 1 == tmp_indexes[i + 1]
+
+            # Can only happen with an empty site and a site with carbon monoxide.
+            particles_valid = tmp_particles[i] == "E" and tmp_particles[i + 1] == "CO"
+            particles_valid = particles_valid or (tmp_particles[i] == "CO" and tmp_particles[i + 1] == "E")
+
+            # Check to see if carbon monoxide diffusion happens.
+            if particles_valid and indexes_valid:
+                tmp_state_0[i], tmp_state_0[i + 1] = tmp_state_0[i + 1], tmp_state_0[i]
+                append_to_final_states(tmp_state_0)
+
+        return final_states
+
+    # --------------------------------------------------------------------------
+    # Process Oxygen Methods.
+    # --------------------------------------------------------------------------
+
+    def process_oxygen_adsorb(self, initial_state: tuple):
+        """ Given a state, returns the list of states that are generated by the
+            adsorption of oxygen. Adsorption of oxygen requires two sites, both
+            sites must be neighbors and be empty for the process to happen.
+
+            :param initial_state: The state to be analyzed.
+
+            :return: final_states: A list of final states that are generated due
+            to the process of oxygen adsorption.
+        """
+
+        # //////////////////////////////////////////////////////////////////////
+        # Auxiliary functions.
+        # //////////////////////////////////////////////////////////////////////
+
+        def append_to_final_states(state0: tuple):
+            """ Appends the given state to the final state list, with the
+                correct format.
+
+                :param state0: The state to be appended.
+            """
+
+            # Get the final state.
+            final_state = tuple((cp.deepcopy(entry), cp.deepcopy(tmp_indexes[j])) for j, entry in enumerate(state0))
+
+            # Validate the final state.
+            self._validate_state(final_state)
+
+            # Append to the list of possible final states.
+            final_states.append(final_state)
+
+        # //////////////////////////////////////////////////////////////////////
+        # Implementation.
+        # //////////////////////////////////////////////////////////////////////
+
+        # Auxiliary variables.
+        final_states = []
+
+        # Check that the length of the state is consistent.
+        if len(initial_state) < self.o_o_ads:
+            return final_states
+
+        # ----------------------------------------------------------------------
+        # Get the list of states and the numbering.
+        # ----------------------------------------------------------------------
+
+        # Get the numpy decomposition of the state.
+        tmp_particles, tmp_indexes = self._get_state_elements(initial_state)
+
+        # ----------------------------------------------------------------------
+        # Get the resulting states.
+        # ----------------------------------------------------------------------
+
+        # Check all the possible sites.
+        for i, _ in enumerate(tmp_particles):
+            # Get out of the loop before the last element.
+            if i == len(tmp_particles) - 1:
+                break
+
+            # Always get a copy of the initial state first.
+            tmp_state_0 = cp.deepcopy(list(tmp_particles))
+
+            # Can only associate with adjacent sites.
+            indexes_valid = tmp_indexes[i] + 1 == tmp_indexes[i + 1]
+
+            # Can only happen with two adjacent oxygens.
+            particles_valid = tmp_particles[i] == "E" and tmp_particles[i + 1] == "E"
+
+            # Check if oxygen adsorption can happen.
+            if particles_valid and indexes_valid:
+                tmp_state_0[i], tmp_state_0[i + 1] = "O", "O"
+                append_to_final_states(tmp_state_0)
+
+        return final_states
+
+    def process_oxygen_desorb(self, initial_state: tuple):
+        """ Given a state, returns the list of states that are generated by the
+            desorption of oxygen. Desorption of oxygen requires two sites, both
+            sites must be neighbors and contain oxygen for the process to
+            happen.
+
+            :param initial_state: The state to be analyzed.
+
+            :return: final_states: A list of final states that are generated due
+            to the process of oxygen desorption.
+        """
+
+        # //////////////////////////////////////////////////////////////////////
+        # Auxiliary functions.
+        # //////////////////////////////////////////////////////////////////////
+
+        def append_to_final_states(state0: tuple):
+            """ Appends the given state to the final state list, with the
+                correct format.
+
+                :param state0: The state to be appended.
+            """
+
+            # Get the final state.
+            final_state = tuple((cp.deepcopy(entry), cp.deepcopy(tmp_indexes[j])) for j, entry in enumerate(state0))
+
+            # Validate the final state.
+            self._validate_state(final_state)
+
+            # Append to the list of possible final states.
+            final_states.append(final_state)
+
+        # //////////////////////////////////////////////////////////////////////
+        # Implementation.
+        # //////////////////////////////////////////////////////////////////////
+
+        # Auxiliary variables.
+        final_states = []
+
+        # Check that the length of the state is consistent.
+        if len(initial_state) < self.o_o_des:
+            return final_states
+
+        # ----------------------------------------------------------------------
+        # Get the list of states and the numbering.
+        # ----------------------------------------------------------------------
+
+        # Get the numpy decomposition of the state.
+        tmp_particles, tmp_indexes = self._get_state_elements(initial_state)
+
+        # ----------------------------------------------------------------------
+        # Get the resulting states.
+        # ----------------------------------------------------------------------
+
+        # Check all the possible sites.
+        for i, _ in enumerate(tmp_particles):
+            # Get out of the loop before the last element.
+            if i == len(tmp_particles) - 1:
+                break
+
+            # Always get a copy of the initial state first.
+            tmp_state_0 = cp.deepcopy(list(tmp_particles))
+
+            # Can only associate with adjacent sites.
+            indexes_valid = tmp_indexes[i] + 1 == tmp_indexes[i + 1]
+
+            # Can only happen with two adjacent oxygens.
+            particles_valid = tmp_particles[i] == "O" and tmp_particles[i + 1] == "O"
+
+            # Check if oxygen desorption can happen.
+            if particles_valid and indexes_valid:
+                tmp_state_0[i], tmp_state_0[i + 1] = "E", "E"
+                append_to_final_states(tmp_state_0)
+
+        return final_states
+
+    def process_oxygen_diffusion(self, initial_state: tuple):
+        """ Given a state, returns the list of states that are generated by the
+            diffusion of oxygen to adjacent sites. Adsorption of oxygen requires
+            two sites, one empty site and an adjacent site with oxygen.
+
+            :param initial_state: The state to be analyzed.
+
+            :return: final_states: A list of final states that are generated due
+            to the process of oxygen diffusion.
+        """
+
+        # //////////////////////////////////////////////////////////////////////
+        # Auxiliary functions.
+        # //////////////////////////////////////////////////////////////////////
+
+        def append_to_final_states(state0: tuple):
+            """ Appends the given state to the final state list, with the
+                correct format.
+
+                :param state0: The state to be appended.
+            """
+
+            # Get the final state.
+            final_state = tuple((cp.deepcopy(entry), cp.deepcopy(tmp_indexes[j])) for j, entry in enumerate(state0))
+
+            # Validate the final state.
+            self._validate_state(final_state)
+
+            # Append to the list of possible final states.
+            final_states.append(final_state)
+
+        # //////////////////////////////////////////////////////////////////////
+        # Implementation.
+        # //////////////////////////////////////////////////////////////////////
+
+        # Auxiliary variables.
+        final_states = []
+
+        # Check that the length of the state is consistent.
+        if len(initial_state) < self.o_o_dif:
+            return final_states
+
+        # ----------------------------------------------------------------------
+        # Get the list of states and the numbering.
+        # ----------------------------------------------------------------------
+
+        # Get the numpy decomposition of the state.
+        tmp_particles, tmp_indexes = self._get_state_elements(initial_state)
+
+        # ----------------------------------------------------------------------
+        # Get the resulting states.
+        # ----------------------------------------------------------------------
+
+        # Check all the possible sites.
+        for i, _ in enumerate(tmp_particles):
+            # Get out of the loop before the last element.
+            if i == len(tmp_particles) - 1:
+                break
+
+            # Always get a copy of the initial state first.
+            tmp_state_0 = cp.deepcopy(list(tmp_particles))
+
+            # Can only diffuse to adjacent sites.
+            indexes_valid = tmp_indexes[i] + 1 == tmp_indexes[i + 1]
+
+            # Can only happen with an empty site and a site with oxygen.
+            particles_valid = tmp_particles[i] == "E" and tmp_particles[i + 1] == "O"
+            particles_valid = particles_valid or (tmp_particles[i] == "O" and tmp_particles[i + 1] == "E")
+
+            # Check if oxygen diffusion can happen.
+            if particles_valid and indexes_valid:
+                tmp_state_0[i], tmp_state_0[i + 1] = tmp_state_0[i + 1], tmp_state_0[i]
+                append_to_final_states(tmp_state_0)
+
+        return final_states
+
+    # --------------------------------------------------------------------------
+    # Process Reaction Methods.
+    # --------------------------------------------------------------------------
+
+    def process_reaction_er_reaction(self, initial_state: tuple):
+        """ Given a state, returns the list of states that are generated by an
+            Elay-Rideal type of reaction. This reaction requires a single site
+            with oxygen.
+
+            :param initial_state: The state to be analyzed.
+
+            :return: final_states: A list of final states that are generated due
+            to the process of an Elay-Rideal reaction.
+        """
+
+        # //////////////////////////////////////////////////////////////////////
+        # Auxiliary functions.
+        # //////////////////////////////////////////////////////////////////////
+
+        def append_to_final_states(state0: tuple):
+            """ Appends the given state to the final state list, with the
+                correct format.
+
+                :param state0: The state to be appended.
+            """
+
+            # Get the final state.
+            final_state = tuple((cp.deepcopy(entry), cp.deepcopy(tmp_indexes[j])) for j, entry in enumerate(state0))
+
+            # Validate the final state.
+            self._validate_state(final_state)
+
+            # Append to the list of possible final states.
+            final_states.append(final_state)
+
+        # //////////////////////////////////////////////////////////////////////
+        # Implementation.
+        # //////////////////////////////////////////////////////////////////////
+
+        # Auxiliary variables.
+        final_states = []
+
+        # Check that the length of the state is consistent.
+        if len(initial_state) < self.o_coo_er:
+            return final_states
+
+        # ----------------------------------------------------------------------
+        # Get the list of states and the numbering.
+        # ----------------------------------------------------------------------
+
+        # Get the numpy decomposition of the state.
+        tmp_particles, tmp_indexes = self._get_state_elements(initial_state)
+
+        # ----------------------------------------------------------------------
+        # Get the resulting states.
+        # ----------------------------------------------------------------------
+
+        # Check all the possible sites.
+        for i, state in enumerate(tmp_particles):
+            # Always get a copy of the initial state first.
+            tmp_state_0 = cp.deepcopy(list(tmp_particles))
+
+            # An Elay-Rideal reaction is only possible if the site contains oxygen.
+            if state == 'O':
+                tmp_state_0[i] = "E"
+                append_to_final_states(tmp_state_0)
+
+        return final_states
+
+    def process_reaction_lh_reaction(self, initial_state: tuple):
+        """ Given a state, returns the list of states that are generated by a
+            Langmuir-Hinshelwood type of reaction. This reaction requires two
+            adjacent sites, one with carbon monoxide and the other one with
+            oxygen.
+
+            :param initial_state: The state to be analyzed.
+
+            :return: final_states: A list of final states that are generated due
+            to the process of a Langmuir-Hinshelwood reaction.
+        """
+
+        # //////////////////////////////////////////////////////////////////////
+        # Auxiliary functions.
+        # //////////////////////////////////////////////////////////////////////
+
+        def append_to_final_states(state0: tuple):
+            """ Appends the given state to the final state list, with the
+                correct format.
+
+                :param state0: The state to be appended.
+            """
+
+            # Get the final state.
+            final_state = tuple((cp.deepcopy(entry), cp.deepcopy(tmp_indexes[j])) for j, entry in enumerate(state0))
+
+            # Validate the final state.
+            self._validate_state(final_state)
+
+            # Append to the list of possible final states.
+            final_states.append(final_state)
+
+        # //////////////////////////////////////////////////////////////////////
+        # Implementation.
+        # //////////////////////////////////////////////////////////////////////
+
+        # Auxiliary variables.
+        final_states = []
+
+        # Check that the length of the state is consistent.
+        if len(initial_state) < self.o_coo_lh:
+            return final_states
+
+        # ----------------------------------------------------------------------
+        # Get the list of states and the numbering.
+        # ----------------------------------------------------------------------
+
+        # Get the numpy decomposition of the state.
+        tmp_particles, tmp_indexes = self._get_state_elements(initial_state)
+
+        # ----------------------------------------------------------------------
+        # Get the resulting states.
+        # ----------------------------------------------------------------------
+
+        # Check all the possible sites.
+        for i, _ in enumerate(tmp_particles):
+            # Get out of the loop before the last element.
+            if i == len(tmp_particles) - 1:
+                break
+
+            # Always get a copy of the initial state first.
+            tmp_state_0 = cp.deepcopy(list(tmp_particles))
+
+            # Can only react with adjacent sites.
+            indexes_valid = tmp_indexes[i] + 1 == tmp_indexes[i + 1]
+
+            # Can only happen with adjacent carbon moxide and oxygen filled sites.
+            particles_valid = tmp_particles[i] == "CO" and tmp_particles[i + 1] == "O"
+            particles_valid = particles_valid or (tmp_particles[i] == "O" and tmp_particles[i + 1] == "CO")
+
+            # Check if the Langmuir-Hinshelwood reaction can happen.
+            if particles_valid and indexes_valid:
+                tmp_state_0[i], tmp_state_0[i + 1] = "E", "E"
+                append_to_final_states(tmp_state_0)
+
+        return final_states
+
+    # --------------------------------------------------------------------------
+    # Reduce Methods.
+    # --------------------------------------------------------------------------
+
+    def reduce_to_unique_states(self, state_dictionary, target_state):
+        """ Given a dictionary of states, it attempts to contract all the keys.
+
+            :param state_dictionary: The dictionary of states to be reduced.
+
+            :param target_state: The state that is being targeted to appear in
+            the reduced list.
+
+            :return: A list of the reduced states in the format
+                    (state, multiplicity).
+        """
+
+        # //////////////////////////////////////////////////////////////////////
+        # Auxiliary functions.
+        # //////////////////////////////////////////////////////////////////////
+
+        def add_remove_states(combinations0):
+            """ From the list of UNIQUE states to be examined for contraction,
+                returns the index to be added and the indexes to be contracted.
+                Contractions are preferred occur in the last index.
+
+                :param: combinations0: The combinations of the states in lists of
+                length len(self.states).
+
+                :return: A 2-tuple where the first entry is the state that
+                resulted from the contraction and the other entry is the list of
+                states that generated the contracted state.
+            """
+
+            # ------------------------------------------------------------------
+            # Try to contract on the right end.
+            # ------------------------------------------------------------------
+
+            # Apply the contraction to the right end of all the combinations.
+            contracted_states0 = list(map(lambda x: self._get_contracted_state(x, -1), combinations0))
+
+            # Choose only the ones that yield a non-empty state.
+            contracted_states0 = [contracted_state for contracted_state in contracted_states0 if len(contracted_state[0]) > 0]
+
+            # For every contracted state.
+            for contracted_state0 in contracted_states0:
+                # If the contracted state is compatible with the first state.
+                if subindexes_in_subtates(target_state, contracted_state0[0]):
+                    return contracted_state0[0], contracted_state0[1]
+
+            # ------------------------------------------------------------------
+            # Try to contract on the left end.
+            # ------------------------------------------------------------------
+
+            # Apply the contraction to the left end of all the combinations.
+            contracted_states0 = list(map(lambda x: self._get_contracted_state(x, 0), combinations0))
+
+            # Choose only the ones that yield a non-empty state.
+            contracted_states0 = [contracted_state0 for contracted_state0 in contracted_states0 if len(contracted_state0[0]) > 0]
+
+            # For every contracted state.
+            for contracted_state0 in contracted_states0:
+                # If the contracted state is compatible with the first state.
+                if subindexes_in_subtates(target_state, contracted_state0[0]):
+                    return contracted_state0[0], contracted_state0[1]
+
+            # ------------------------------------------------------------------
+            # Contraction not possible at either end.
+            # ------------------------------------------------------------------
+
+            return [], []
+
+        def subindexes_in_subtates(state0, state1):
+            """ Determines if the indexes of state0 are a subset o the indexes
+                in state1.
+
+                :param state0: The state whose indexes are to be verified as
+                being a subset of the indexes of state 1.
+
+                :param state1: The state whose indexes are to be verified
+                against those of state0.
+
+                :return: True, if the indexes of state0 are a proper subset of
+                the indexes of state1. False, otherwise.
+            """
+
+            # Get the set of all the indexes in state0.
+            indexes0 = set(index[1] for index in state0)
+
+            # Get the set of all the indexes in state0.
+            indexes1 = set(index[1] for index in state1)
+
+            return indexes0.issubset(indexes1)
+
+        # //////////////////////////////////////////////////////////////////////
+        # Implementation.
+        # //////////////////////////////////////////////////////////////////////
+
+        # Get the keys.
+        keys = state_dictionary.keys()
+
+        # Get a deep copy of the state_dictionary.
+        state_dictionary0 = cp.deepcopy(state_dictionary)
+
+        # For all the lists of states.
+        for key in keys:
+            # Auxiliary variables.
+            length_after = 0
+            length_before = 0
+            enter = True
+
+            # While this is true.
+            while not length_after == length_before or enter:
+                # Makes the cycle enter once.
+                enter = False
+
+                # Get the unique elements of the list.
+                unique_elements = list(set(state_dictionary0[key]))
+
+                # Get the length of the unique elements.
+                length_before = len(unique_elements)
+
+                # Get different state combinations from the unique state, to analyze for contraction.
+                combinations = list(itertools.combinations(unique_elements, len(self.states)))
+
+                # No need to continue if there are not enough combinations.
+                if len(combinations) == 0:
+                    break
+
+                # Get the state to add or remove.
+                state_to_add, states_to_remove = add_remove_states(combinations)
+
+                if len(state_to_add) > 0:
+                    # For every state to remove.
+                    for state_to_remove in states_to_remove:
+                        # For the repeated states.
+                        while state_dictionary0[key].count(state_to_remove) > 0:
+                            # Remove the state.
+                            state_dictionary0[key].remove(state_to_remove)
+
+                # Get the unique elements again.
+                unique_elements = list(set(state_dictionary0[key]))
+
+                # Get the length after.
+                length_after = len(unique_elements)
+
+        return state_dictionary0
+
+    # --------------------------------------------------------------------------
+    # Save Methods.
+    # --------------------------------------------------------------------------
 
     def save_equations(self, file_name="equations", format_type="latex", order=0, save_path=None):
         """ Generates the equations in the requested format, with the terms
@@ -520,912 +1404,6 @@ class EquationGenerator(Generator):
 
         # Generate the file.
         save_to_file(save_string)
-
-    # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-    # Private Interface.
-    # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-
-    # --------------------------------------------------------------------------
-    # Get Methods.
-    # --------------------------------------------------------------------------
-
-    def get_associated_operations(self):
-        """ Returns a tuple with the 3-tuples that contain the operations that
-            can be applied to the states of the system, the order of the process
-            and the string representation of the state.
-
-            :return process_information: A tuple with the 3-tuples that contain
-            the operations that can be applied to the states of the system, the
-            order of the process and the string representation of the state, in
-            the order:
-
-            (process order, process rate constant, pointer to function)
-        """
-
-        # Define the operations.
-        process_information = (
-            (self.o_o_ads, self.k_o_ads, self._oxygen_adsorb,),
-            (self.o_o_des, self.k_o_des, self._oxygen_desorb,),
-            (self.o_o_dif, self.k_o_dif, self._oxygen_diffusion,),
-            (self.o_co_ads, self.k_co_ads, self._carbon_monoxide_adsorb,),
-            (self.o_co_des, self.k_co_des, self._carbon_monoxide_desorb,),
-            (self.o_co_dif, self.k_co_dif, self._carbon_monoxide_diffusion,),
-            (self.o_coo_lh, self.k_coo_lh, self._lh_reaction,),
-            (self.o_coo_er, self.k_coo_er, self._er_reaction,)
-        )
-
-        return process_information
-
-    def get_constraints(self, states):
-        """ Given a set of numbered states, it gets the constraints of the
-            system, i.e., the probability identities, 1 = sum(x in X) P(x),
-            P(x) = sum(y in Y) P(x,y), P(y) = sum(x in X) P(x,y), etc; with
-            0 <= P(x) <= 1 for x in X.
-
-            :param states: ALL of the "left-hand" states of the system.
-
-            :return:  The constrainst of the system as equalities.
-        """
-
-        # //////////////////////////////////////////////////////////////////////
-        # Auxiliary functions.
-        # //////////////////////////////////////////////////////////////////////
-
-        def expand_state(state0, site0):
-            """ Returns the expanded state at the given site.
-
-                :param state0: The state that is to be expanded.
-
-                :param site0: The site at which it must be expanded.
-
-                :return expanded_state0: The expanded state.
-            """
-
-            # List where the constraints will be placed.
-            constraint_list0 = []
-
-            # The index of the expanded states.
-            index_to_add = state0[site0][1]
-            index_to_add += 1 if site0 == -1 else -1
-
-            # Normalize the index.
-            site0 = 0 if site0 == 0 else len(state0)
-
-            # Add the states with the indexes.
-            for state0_0 in self.states:
-                # Turn the state into a list.
-                expanded_state0 = list(cp.deepcopy(state0))
-
-                # The new state.
-                new_state = (state0_0, index_to_add,)
-
-                # Append it to the expanded state.
-                expanded_state0.insert(site0, new_state)
-
-                # Add it to the constraint list.
-                constraint_list0.append(tuple(expanded_state0))
-
-            return constraint_list0
-
-        # //////////////////////////////////////////////////////////////////////
-        # Implementation.
-        # //////////////////////////////////////////////////////////////////////
-
-        # Get the UNIQUE lengths of all the states.
-        state_lengths = list(set(map(len, states)))
-
-        # Sort the lengths, and remove the last item.
-        state_lengths = sorted(state_lengths)[:-1]
-
-        # If the order is greater than one, write the constraints.
-        if len(state_lengths) == 0:
-            return
-
-        # Take the maximum number.
-        max_length = max(state_lengths)
-
-        # For every state.
-        for state in states:
-            # Expand the state.
-            if len(state) <= max_length:
-                # Get the last index.
-                index = state[-1][1]
-
-                # Expand the state accordingly.
-                constraint_list = expand_state(state, -1) if index < self.sites_number else expand_state(state, 0)
-
-                # Add it to the constraint equation.
-                self.constraints.append((state, constraint_list,))
-
-    def get_numbering(self, state):
-        """ Returns a tuple with the possible numbering a state of length N can
-            have. The format of a SINGLE state must be given in the format:
-            ( (particle_at_site1, numbering_scheme1),..., (particle_at_siteN,
-            numbering_schemeN)).
-
-            :param state: The state to be numbered.
-
-            :return: The list of possible numbered states in the given format.
-        """
-
-        # //////////////////////////////////////////////////////////////////////
-        # Auxiliary functions.
-        # //////////////////////////////////////////////////////////////////////
-
-        def validate_unnumbered_state(state0):
-            """ Validates that the length of the state is consistent.
-
-                :param state0: The state to be validated.
-            """
-
-            # Validate the state.
-            if len(state0) == 0 or len(state0) > self.sites_number:
-                raise ValueError(f"The state must contain at least one site and at most {self.sites_number}. "
-                                 f"Requested state sites: {len(state0)}")
-
-        # //////////////////////////////////////////////////////////////////////
-        # Implementation.
-        # //////////////////////////////////////////////////////////////////////
-
-        # Validate the state.
-        validate_unnumbered_state(state)
-
-        # Auxiliary variables.
-        all_states = []
-
-        # Explore all the possibilities.
-        for i in range(self.sites_number):
-            # Only attempt if there are enough sites.
-            if i + len(state) > self.sites_number:
-                break
-
-            # Make a deep copy of the state.
-            tmp_state = cp.deepcopy(state)
-
-            # Get the numbering list.
-            tmp_list = list(range(i, i + len(state)))
-
-            # Add the state to the list of possible states.
-            all_states.append(tuple((tmp_state[j], x + 1) for j, x in enumerate(tmp_list)))
-
-        return all_states
-
-    # --------------------------------------------------------------------------
-    # Other Methods.
-    # --------------------------------------------------------------------------
-
-    def reduce_to_unique_states(self, state_dictionary, target_state):
-        """ Given a dictionary of states, it attempts to contract all the keys.
-
-            :param state_dictionary: The dictionary of states to be reduced.
-
-            :param target_state: The state that is being targeted to appear in
-            the reduced list.
-
-            :return: A list of the reduced states in the format
-                    (state, multiplicity).
-        """
-
-        # ----------------------------------------------------------------------
-        # Auxiliary functions.
-        # ----------------------------------------------------------------------
-
-        def add_remove_states(combinations0):
-            """ From the list of UNIQUE states to be examined for contraction,
-                returns the index to be added and the indexes to be contracted.
-                Contractions are preferred occur in the last index.
-
-                :param: combinations0: The combinations of the states in lists of
-                length len(self.states).
-
-                :return: A 2-tuple where the first entry is the state that
-                resulted from the contraction and the other entry is the list of
-                states that generated the contracted state.
-            """
-
-            # ------------------------------------------------------------------
-            # Try to contract on the right end.
-            # ------------------------------------------------------------------
-
-            # Apply the contraction to the right end of all the combinations.
-            contracted_states0 = list(map(lambda x: self._get_contracted_state(x, -1), combinations0))
-
-            # Choose only the ones that yield a non-empty state.
-            contracted_states0 = [contracted_state for contracted_state in contracted_states0 if len(contracted_state[0]) > 0]
-
-            # For every contracted state.
-            for contracted_state0 in contracted_states0:
-                # If the contracted state is compatible with the first state.
-                if subindexes_in_subtates(target_state, contracted_state0[0]):
-                    return contracted_state0[0], contracted_state0[1]
-
-            # ------------------------------------------------------------------
-            # Try to contract on the left end.
-            # ------------------------------------------------------------------
-
-            # Apply the contraction to the left end of all the combinations.
-            contracted_states0 = list(map(lambda x: self._get_contracted_state(x, 0), combinations0))
-
-            # Choose only the ones that yield a non-empty state.
-            contracted_states0 = [contracted_state0 for contracted_state0 in contracted_states0 if len(contracted_state0[0]) > 0]
-
-            # For every contracted state.
-            for contracted_state0 in contracted_states0:
-                # If the contracted state is compatible with the first state.
-                if subindexes_in_subtates(target_state, contracted_state0[0]):
-                    return contracted_state0[0], contracted_state0[1]
-
-            # ------------------------------------------------------------------
-            # Contraction not possible at either end.
-            # ------------------------------------------------------------------
-
-            return [], []
-
-        def subindexes_in_subtates(state0, state1):
-            """ Determines if the indexes of state0 are a subset o the indexes
-                in state1.
-
-                :param state0: The state whose indexes are to be verified as
-                being a subset of the indexes of state 1.
-
-                :param state1: The state whose indexes are to be verified
-                against those of state0.
-
-                :return: True, if the indexes of state0 are a proper subset of
-                the indexes of state1. False, otherwise.
-            """
-
-            # Get the set of all the indexes in state0.
-            indexes0 = set(index[1] for index in state0)
-
-            # Get the set of all the indexes in state0.
-            indexes1 = set(index[1] for index in state1)
-
-            return indexes0.issubset(indexes1)
-
-        # ----------------------------------------------------------------------
-        # Implementation.
-        # ----------------------------------------------------------------------
-
-        # Get the keys.
-        keys = state_dictionary.keys()
-
-        # Get a deep copy of the state_dictionary.
-        state_dictionary0 = cp.deepcopy(state_dictionary)
-
-        # For all the lists of states.
-        for key in keys:
-            # Auxiliary variables.
-            length_after = 0
-            length_before = 0
-            enter = True
-
-            # While this is true.
-            while not length_after == length_before or enter:
-                # Makes the cycle enter once.
-                enter = False
-
-                # Get the unique elements of the list.
-                unique_elements = list(set(state_dictionary0[key]))
-
-                # Get the length of the unique elements.
-                length_before = len(unique_elements)
-
-                # Get different state combinations from the unique state, to analyze for contraction.
-                combinations = list(itertools.combinations(unique_elements, len(self.states)))
-
-                # No need to continue if there are not enough combinations.
-                if len(combinations) == 0:
-                    break
-
-                # Get the state to add or remove.
-                state_to_add, states_to_remove = add_remove_states(combinations)
-
-                if len(state_to_add) > 0:
-                    # For every state to remove.
-                    for state_to_remove in states_to_remove:
-                        # For the repeated states.
-                        while state_dictionary0[key].count(state_to_remove) > 0:
-                            # Remove the state.
-                            state_dictionary0[key].remove(state_to_remove)
-
-                # Get the unique elements again.
-                unique_elements = list(set(state_dictionary0[key]))
-
-                # Get the length after.
-                length_after = len(unique_elements)
-
-        return state_dictionary0
-
-    # --------------------------------------------------------------------------
-    # Carbon monoxide exclusive methods.
-    # --------------------------------------------------------------------------
-
-    def _carbon_monoxide_adsorb(self, initial_state):
-        """ Given a state, returns the list of states that are generated by the
-            adsorption of carbon monoxide. Adsorption of carbon monoxide
-            requires just a single empty site for the process to happen.
-
-            :param initial_state: The state to be analyzed.
-
-            :return: final_states: A list of final states that are generated due
-            to the process of carbon monoxide adsorption.
-        """
-
-        # ----------------------------------------------------------------------
-        # Auxiliary functions.
-        # ----------------------------------------------------------------------
-
-        def append_to_final_states(state0):
-            """ Appends the given state to the final state list, with the
-                correct format.
-
-                :param state0: The state to be appended.
-            """
-
-            # Get the final state.
-            final_state = tuple((cp.deepcopy(entry), cp.deepcopy(tmp_indexes[j])) for j, entry in enumerate(state0))
-
-            # Validate the final state.
-            self._validate_state(final_state)
-
-            # Append to the list of possible final states.
-            final_states.append(final_state)
-
-        # ----------------------------------------------------------------------
-        # Implementation.
-        # ----------------------------------------------------------------------
-
-        # Auxiliary variables.
-        final_states = []
-
-        # Check that the length of the state is consistent.
-        if len(initial_state) < self.o_co_ads:
-            return final_states
-
-        # ----------------------------------------------------------------------
-        # Get the list of states and the numbering.
-        # ----------------------------------------------------------------------
-
-        # Get the numpy decomposition of the state.
-        tmp_particles, tmp_indexes = self._get_state_elements(initial_state)
-
-        # ----------------------------------------------------------------------
-        # Get the resulting states.
-        # ----------------------------------------------------------------------
-
-        # Check all the possible sites.
-        for i, state in enumerate(tmp_particles):
-            # Always get a copy of the initial state first.
-            tmp_state_0 = cp.deepcopy(list(tmp_particles))
-
-            # Adsorption is only possible if the site is empty.
-            if state == 'E':
-                tmp_state_0[i] = "CO"
-                append_to_final_states(tmp_state_0)
-
-        return final_states
-
-    def _carbon_monoxide_desorb(self, initial_state):
-        """ Given a state, returns the list of states that are generated by the
-            desorption of carbon monoxide. Desorption of carbon monoxide
-            requires just a single site with carbon monoxide for the process to
-            happen.
-
-            :param initial_state: The state to be analyzed.
-
-            :return: final_states: A list of final states that are generated due
-            to the process of carbon monoxide desorption.
-        """
-
-        # ----------------------------------------------------------------------
-        # Auxiliary functions.
-        # ----------------------------------------------------------------------
-
-        def append_to_final_states(state0):
-            """ Appends the given state to the final state list, with the
-                correct format.
-
-                :param state0: The state to be appended.
-            """
-
-            # Get the final state.
-            final_state = tuple((cp.deepcopy(entry), cp.deepcopy(tmp_indexes[j])) for j, entry in enumerate(state0))
-
-            # Validate the final state.
-            self._validate_state(final_state)
-
-            # Append to the list of possible final states.
-            final_states.append(final_state)
-
-        # ----------------------------------------------------------------------
-        # Implementation.
-        # ----------------------------------------------------------------------
-
-        # Auxiliary variables.
-        final_states = []
-
-        # Check that the length of the state is consistent.
-        if len(initial_state) < self.o_co_des:
-            return final_states
-
-        # ----------------------------------------------------------------------
-        # Get the list of states and the numbering.
-        # ----------------------------------------------------------------------
-
-        # Get the decomposition of the state.
-        tmp_particles, tmp_indexes = self._get_state_elements(initial_state)
-
-        # ----------------------------------------------------------------------
-        # Get the resulting states.
-        # ----------------------------------------------------------------------
-
-        # Check all the possible sites.
-        for i, state in enumerate(tmp_particles):
-            # Always get a copy of the initial state first.
-            tmp_state_0 = cp.deepcopy(list(tmp_particles))
-
-            # Desorption is only possible if the site contains a carbon monoxide.
-            if state == 'CO':
-                tmp_state_0[i] = "E"
-                append_to_final_states(tmp_state_0)
-
-        return final_states
-
-    def _carbon_monoxide_diffusion(self, initial_state):
-        """
-            Given a state, returns the list of states that are generated by the
-            diffusion of carbon monoxide to adjacent sites. Adsorption of carbon
-            monoxide requires two sites, one empty site and an adjacent site
-            with carbon monoxide.
-
-            :param initial_state: The state to be analyzed.
-
-            :return: final_states: A list of final states that are generated due
-            to the process of carbon monoxide diffusion.
-        """
-
-        # ----------------------------------------------------------------------
-        # Auxiliary functions.
-        # ----------------------------------------------------------------------
-
-        def append_to_final_states(state0):
-            """ Appends the given state to the final state list, with the
-                correct format.
-
-                :param state0: The state to be appended.
-            """
-
-            # Get the final state.
-            final_state = tuple((cp.deepcopy(entry), cp.deepcopy(tmp_indexes[j])) for j, entry in enumerate(state0))
-
-            # Validate the final state.
-            self._validate_state(final_state)
-
-            # Append to the list of possible final states.
-            final_states.append(final_state)
-
-        # ----------------------------------------------------------------------
-        # Implementation.
-        # ----------------------------------------------------------------------
-
-        # Auxiliary variables.
-        final_states = []
-
-        # Check that the length of the state is consistent.
-        if len(initial_state) < self.o_co_dif:
-            return final_states
-
-        # ----------------------------------------------------------------------
-        # Get the list of states and the numbering.
-        # ----------------------------------------------------------------------
-
-        # Get the numpy decomposition of the state.
-        tmp_particles, tmp_indexes = self._get_state_elements(initial_state)
-
-        # ----------------------------------------------------------------------
-        # Get the resulting states.
-        # ----------------------------------------------------------------------
-
-        # Check all the possible sites.
-        for i, state in enumerate(list(tmp_particles)):
-            # Get out of the loop before the last element.
-            if i == len(tmp_particles) - 1:
-                break
-
-            # Always get a copy of the initial state first.
-            tmp_state_0 = cp.deepcopy(list(tmp_particles))
-
-            # Can only diffuse to adjacent sites.
-            indexes_valid = tmp_indexes[i] + 1 == tmp_indexes[i + 1]
-
-            # Can only happen with an empty site and a site with carbon monoxide.
-            particles_valid = tmp_particles[i] == "E" and tmp_particles[i + 1] == "CO"
-            particles_valid = particles_valid or (tmp_particles[i] == "CO" and tmp_particles[i + 1] == "E")
-
-            # Check to see if carbon monoxide diffusion happens.
-            if particles_valid and indexes_valid:
-                tmp_state_0[i], tmp_state_0[i + 1] = tmp_state_0[i + 1], tmp_state_0[i]
-                append_to_final_states(tmp_state_0)
-
-        return final_states
-
-    # --------------------------------------------------------------------------
-    # Oxygen exclusive methods.
-    # --------------------------------------------------------------------------
-
-    def _oxygen_adsorb(self, initial_state):
-        """ Given a state, returns the list of states that are generated by the
-            adsorption of oxygen. Adsorption of oxygen requires two sites, both
-            sites must be neighbors and be empty for the process to happen.
-
-            :param initial_state: The state to be analyzed.
-
-            :return: final_states: A list of final states that are generated due
-            to the process of oxygen adsorption.
-        """
-
-        # ----------------------------------------------------------------------
-        # Auxiliary functions.
-        # ----------------------------------------------------------------------
-
-        def append_to_final_states(state0):
-            """ Appends the given state to the final state list, with the
-                correct format.
-
-                :param state0: The state to be appended.
-            """
-
-            # Get the final state.
-            final_state = tuple((cp.deepcopy(entry), cp.deepcopy(tmp_indexes[j])) for j, entry in enumerate(state0))
-
-            # Validate the final state.
-            self._validate_state(final_state)
-
-            # Append to the list of possible final states.
-            final_states.append(final_state)
-
-        # ----------------------------------------------------------------------
-        # Implementation.
-        # ----------------------------------------------------------------------
-
-        # Auxiliary variables.
-        final_states = []
-
-        # Check that the length of the state is consistent.
-        if len(initial_state) < self.o_o_ads:
-            return final_states
-
-        # ----------------------------------------------------------------------
-        # Get the list of states and the numbering.
-        # ----------------------------------------------------------------------
-
-        # Get the numpy decomposition of the state.
-        tmp_particles, tmp_indexes = self._get_state_elements(initial_state)
-
-        # ----------------------------------------------------------------------
-        # Get the resulting states.
-        # ----------------------------------------------------------------------
-
-        # Check all the possible sites.
-        for i, _ in enumerate(tmp_particles):
-            # Get out of the loop before the last element.
-            if i == len(tmp_particles) - 1:
-                break
-
-            # Always get a copy of the initial state first.
-            tmp_state_0 = cp.deepcopy(list(tmp_particles))
-
-            # Can only associate with adjacent sites.
-            indexes_valid = tmp_indexes[i] + 1 == tmp_indexes[i + 1]
-
-            # Can only happen with two adjacent oxygens.
-            particles_valid = tmp_particles[i] == "E" and tmp_particles[i + 1] == "E"
-
-            # Check if oxygen adsorption can happen.
-            if particles_valid and indexes_valid:
-                tmp_state_0[i], tmp_state_0[i + 1] = "O", "O"
-                append_to_final_states(tmp_state_0)
-
-        return final_states
-
-    def _oxygen_desorb(self, initial_state):
-        """ Given a state, returns the list of states that are generated by the
-            desorption of oxygen. Desorption of oxygen requires two sites, both
-            sites must be neighbors and contain oxygen for the process to
-            happen.
-
-            :param initial_state: The state to be analyzed.
-
-            :return: final_states: A list of final states that are generated due
-            to the process of oxygen desorption.
-        """
-
-        # ----------------------------------------------------------------------
-        # Auxiliary functions.
-        # ----------------------------------------------------------------------
-
-        def append_to_final_states(state0):
-            """ Appends the given state to the final state list, with the
-                correct format.
-
-                :param state0: The state to be appended.
-            """
-
-            # Get the final state.
-            final_state = tuple((cp.deepcopy(entry), cp.deepcopy(tmp_indexes[j])) for j, entry in enumerate(state0))
-
-            # Validate the final state.
-            self._validate_state(final_state)
-
-            # Append to the list of possible final states.
-            final_states.append(final_state)
-
-        # ----------------------------------------------------------------------
-        # Implementation.
-        # ----------------------------------------------------------------------
-
-        # Auxiliary variables.
-        final_states = []
-
-        # Check that the length of the state is consistent.
-        if len(initial_state) < self.o_o_des:
-            return final_states
-
-        # ----------------------------------------------------------------------
-        # Get the list of states and the numbering.
-        # ----------------------------------------------------------------------
-
-        # Get the numpy decomposition of the state.
-        tmp_particles, tmp_indexes = self._get_state_elements(initial_state)
-
-        # ----------------------------------------------------------------------
-        # Get the resulting states.
-        # ----------------------------------------------------------------------
-
-        # Check all the possible sites.
-        for i, _ in enumerate(tmp_particles):
-            # Get out of the loop before the last element.
-            if i == len(tmp_particles) - 1:
-                break
-
-            # Always get a copy of the initial state first.
-            tmp_state_0 = cp.deepcopy(list(tmp_particles))
-
-            # Can only associate with adjacent sites.
-            indexes_valid = tmp_indexes[i] + 1 == tmp_indexes[i + 1]
-
-            # Can only happen with two adjacent oxygens.
-            particles_valid = tmp_particles[i] == "O" and tmp_particles[i + 1] == "O"
-
-            # Check if oxygen desorption can happen.
-            if particles_valid and indexes_valid:
-                tmp_state_0[i], tmp_state_0[i + 1] = "E", "E"
-                append_to_final_states(tmp_state_0)
-
-        return final_states
-
-    def _oxygen_diffusion(self, initial_state):
-        """ Given a state, returns the list of states that are generated by the
-            diffusion of oxygen to adjacent sites. Adsorption of oxygen requires
-            two sites, one empty site and an adjacent site with oxygen.
-
-            :param initial_state: The state to be analyzed.
-
-            :return: final_states: A list of final states that are generated due
-            to the process of oxygen diffusion.
-        """
-
-        # ----------------------------------------------------------------------
-        # Auxiliary functions.
-        # ----------------------------------------------------------------------
-
-        def append_to_final_states(state0):
-            """ Appends the given state to the final state list, with the
-                correct format.
-
-                :param state0: The state to be appended.
-            """
-
-            # Get the final state.
-            final_state = tuple((cp.deepcopy(entry), cp.deepcopy(tmp_indexes[j])) for j, entry in enumerate(state0))
-
-            # Validate the final state.
-            self._validate_state(final_state)
-
-            # Append to the list of possible final states.
-            final_states.append(final_state)
-
-        # ----------------------------------------------------------------------
-        # Implementation.
-        # ----------------------------------------------------------------------
-
-        # Auxiliary variables.
-        final_states = []
-
-        # Check that the length of the state is consistent.
-        if len(initial_state) < self.o_o_dif:
-            return final_states
-
-        # ----------------------------------------------------------------------
-        # Get the list of states and the numbering.
-        # ----------------------------------------------------------------------
-
-        # Get the numpy decomposition of the state.
-        tmp_particles, tmp_indexes = self._get_state_elements(initial_state)
-
-        # ----------------------------------------------------------------------
-        # Get the resulting states.
-        # ----------------------------------------------------------------------
-
-        # Check all the possible sites.
-        for i, _ in enumerate(tmp_particles):
-            # Get out of the loop before the last element.
-            if i == len(tmp_particles) - 1:
-                break
-
-            # Always get a copy of the initial state first.
-            tmp_state_0 = cp.deepcopy(list(tmp_particles))
-
-            # Can only diffuse to adjacent sites.
-            indexes_valid = tmp_indexes[i] + 1 == tmp_indexes[i + 1]
-
-            # Can only happen with an empty site and a site with oxygen.
-            particles_valid = tmp_particles[i] == "E" and tmp_particles[i + 1] == "O"
-            particles_valid = particles_valid or (tmp_particles[i] == "O" and tmp_particles[i + 1] == "E")
-
-            # Check if oxygen diffusion can happen.
-            if particles_valid and indexes_valid:
-                tmp_state_0[i], tmp_state_0[i + 1] = tmp_state_0[i + 1], tmp_state_0[i]
-                append_to_final_states(tmp_state_0)
-
-        return final_states
-
-    # --------------------------------------------------------------------------
-    # Reaction Carbon monoxide - oxygen, exclusive methods.
-    # --------------------------------------------------------------------------
-
-    def _lh_reaction(self, initial_state):
-        """ Given a state, returns the list of states that are generated by a
-            Langmuir-Hinshelwood type of reaction. This reaction requires two
-            adjacent sites, one with carbon monoxide and the other one with
-            oxygen.
-
-            :param initial_state: The state to be analyzed.
-
-            :return: final_states: A list of final states that are generated due
-            to the process of a Langmuir-Hinshelwood reaction.
-        """
-
-        # ----------------------------------------------------------------------
-        # Auxiliary functions.
-        # ----------------------------------------------------------------------
-
-        def append_to_final_states(state0):
-            """ Appends the given state to the final state list, with the
-                correct format.
-
-                :param state0: The state to be appended.
-            """
-
-            # Get the final state.
-            final_state = tuple((cp.deepcopy(entry), cp.deepcopy(tmp_indexes[j])) for j, entry in enumerate(state0))
-
-            # Validate the final state.
-            self._validate_state(final_state)
-
-            # Append to the list of possible final states.
-            final_states.append(final_state)
-
-        # ----------------------------------------------------------------------
-        # Implementation.
-        # ----------------------------------------------------------------------
-
-        # Auxiliary variables.
-        final_states = []
-
-        # Check that the length of the state is consistent.
-        if len(initial_state) < self.o_coo_lh:
-            return final_states
-
-        # ----------------------------------------------------------------------
-        # Get the list of states and the numbering.
-        # ----------------------------------------------------------------------
-
-        # Get the numpy decomposition of the state.
-        tmp_particles, tmp_indexes = self._get_state_elements(initial_state)
-
-        # ----------------------------------------------------------------------
-        # Get the resulting states.
-        # ----------------------------------------------------------------------
-
-        # Check all the possible sites.
-        for i, _ in enumerate(tmp_particles):
-            # Get out of the loop before the last element.
-            if i == len(tmp_particles) - 1:
-                break
-
-            # Always get a copy of the initial state first.
-            tmp_state_0 = cp.deepcopy(list(tmp_particles))
-
-            # Can only react with adjacent sites.
-            indexes_valid = tmp_indexes[i] + 1 == tmp_indexes[i + 1]
-
-            # Can only happen with adjacent carbon moxide and oxygen filled sites.
-            particles_valid = tmp_particles[i] == "CO" and tmp_particles[i + 1] == "O"
-            particles_valid = particles_valid or (tmp_particles[i] == "O" and tmp_particles[i + 1] == "CO")
-
-            # Check if the Langmuir-Hinshelwood reaction can happen.
-            if particles_valid and indexes_valid:
-                tmp_state_0[i], tmp_state_0[i + 1] = "E", "E"
-                append_to_final_states(tmp_state_0)
-
-        return final_states
-
-    def _er_reaction(self, initial_state):
-        """ Given a state, returns the list of states that are generated by an
-            Elay-Rideal type of reaction. This reaction requires a single site
-            with oxygen.
-
-            :param initial_state: The state to be analyzed.
-
-            :return: final_states: A list of final states that are generated due
-            to the process of an Elay-Rideal reaction.
-        """
-
-        # ----------------------------------------------------------------------
-        # Auxiliary functions.
-        # ----------------------------------------------------------------------
-
-        def append_to_final_states(state0):
-            """ Appends the given state to the final state list, with the
-                correct format.
-
-                :param state0: The state to be appended.
-            """
-
-            # Get the final state.
-            final_state = tuple((cp.deepcopy(entry), cp.deepcopy(tmp_indexes[j])) for j, entry in enumerate(state0))
-
-            # Validate the final state.
-            self._validate_state(final_state)
-
-            # Append to the list of possible final states.
-            final_states.append(final_state)
-
-        # ----------------------------------------------------------------------
-        # Implementation.
-        # ----------------------------------------------------------------------
-
-        # Auxiliary variables.
-        final_states = []
-
-        # Check that the length of the state is consistent.
-        if len(initial_state) < self.o_coo_er:
-            return final_states
-
-        # ----------------------------------------------------------------------
-        # Get the list of states and the numbering.
-        # ----------------------------------------------------------------------
-
-        # Get the numpy decomposition of the state.
-        tmp_particles, tmp_indexes = self._get_state_elements(initial_state)
-
-        # ----------------------------------------------------------------------
-        # Get the resulting states.
-        # ----------------------------------------------------------------------
-
-        # Check all the possible sites.
-        for i, state in enumerate(tmp_particles):
-            # Always get a copy of the initial state first.
-            tmp_state_0 = cp.deepcopy(list(tmp_particles))
-
-            # An Elay-Rideal reaction is only possible if the site contains oxygen.
-            if state == 'O':
-                tmp_state_0[i] = "E"
-                append_to_final_states(tmp_state_0)
-
-        return final_states
 
     # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
     # Constructors and Dunder Methods.
