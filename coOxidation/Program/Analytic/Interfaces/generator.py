@@ -18,7 +18,6 @@ from typing import Iterable, Union
 # Classes.
 # ------------------------------------------------------------------------------
 
-# TODO: Continue here.
 
 class Generator(ABC):
     """ Generates the differential equations in different formats.
@@ -84,6 +83,28 @@ class Generator(ABC):
     def equations(self) -> None:
         """ Cannot delete this variable."""
         raise AttributeError("Cannot delete the equations.")
+    # --------------------------------------------------------------------------
+
+    @property
+    def order(self) -> int:
+        """ Gets the number of sites in the lattice.
+
+            :return: Returns the number of sites that the system has.
+        """
+        return self.__order
+
+    @order.setter
+    def order(self, order: int) -> None:
+        """ Sets the order to which the equations must be calculated.
+
+            :param order: The order to which the equations must be calculated.
+        """
+        self.__order = min(int(abs(order)), self.sites_number)
+
+    @order.deleter
+    def order(self) -> None:
+        """ Cannot delete this variable."""
+        raise AttributeError("Cannot delete the order.")
 
     # --------------------------------------------------------------------------
 
@@ -102,11 +123,8 @@ class Generator(ABC):
             :param sites_number: Sets the number of sites that the system has.
         """
 
-        # Set the sites number.
         self.__sites_number = int(sites_number)
-
-        # Validate the sites number.
-        self._validate_sites_number()
+        self.validate_sites_number()
 
     @sites_number.deleter
     def sites_number(self) -> None:
@@ -143,7 +161,169 @@ class Generator(ABC):
     # Get Methods.
     # --------------------------------------------------------------------------
 
-    def get_nth_order_equations(self, order: int = 0, display: bool = False) -> None:
+    @abstractmethod
+    def get_associated_operations(self) -> tuple:
+        """ Returns a tuple with the 3-tuples that contain the operations that
+            can be applied to the states of the system, the order of the process
+            and the string representation of the state.
+
+            :return: A tuple with the 3-tuples that contain the order of the
+             process, the string representation of rate associated with the
+             process and the operations that can be applied to the states. Given
+             in the order: (process order, process rate constant, pointer to
+             function).
+        """
+
+        # Define the operations.
+        process_information = (
+            # (process order, process rate constant, process function)
+            (None, None, None),
+        )
+
+        return process_information
+
+    @abstractmethod
+    def get_constraints(self, states: list) -> tuple:
+        """ Given a set of numbered states, it gets the constraints of the
+            system, i.e., the probability identities, 1 = sum(x in X) P(x),
+            P(x) = sum(y in Y) P(x,y), P(y) = sum(x in X) P(x,y), etc; with
+            0 <= P(x) <= 1 for x in X.
+
+            :param states: A tuple that containst all of the "left-hand" states
+             of the system.
+
+            :return: The constrainsts of the system as equalities.
+        """
+        pass
+
+    def get_contracted_state(self, states: list, index: int = -1) -> tuple:
+        """ From a list of states, it returns the completely contracted state.
+            For this to happen, the list of states must contain as much states
+            as there arr possible number of states and the indexes of ALL the
+            states must be the same.
+
+            :param states: The list of states that are to be contracted.
+
+            :param index: The index of the list to be contracted. It must be an
+             integer number between zero and the length of one of the states, or
+             a negative integer number, i.e., an index that indicates the index
+             of the array to be contracted.
+
+            :return: A tuple with the contracted state and the original states
+             that were contracted; if the return value is an empty tuple, it
+             means that the state cannot be contracted.
+        """
+
+        # //////////////////////////////////////////////////////////////////////
+        # Auxiliary functions.
+        # //////////////////////////////////////////////////////////////////////
+
+        def get_particles_and_indexes(states0: list, indexes0: list, particles0: list) -> None:
+            """ Decomposes the states into individual particles and indexes
+                tuples, then appends them to the indexes and particles list.
+
+                :param states0: The list of the states to be contracted.
+
+                :param indexes0: The list in which the indexes must be added.
+
+                :param particles0: The list where the particle of the states are
+                 stored.
+            """
+
+            for i0, state0 in enumerate(states0):
+                particles0_, indexes0_ = self.get_state_elements(state0)
+
+                indexes0.append(indexes0_)
+                particles0.append(list(particles0_))
+
+        # //////////////////////////////////////////////////////////////////////
+        # Implementation.
+        # //////////////////////////////////////////////////////////////////////
+
+        # Make the index positive.
+        while index < 0:
+            index += len(states[0])
+
+        # Set the variables.
+        indexes, particles = [], []
+        get_particles_and_indexes(states, indexes, particles)
+        particles = np.array(particles)
+
+        # Compare indexes.
+        indexes = set(indexes)
+        if not len(indexes) == 1:
+            return tuple(), states
+        indexes = list(indexes.pop())
+
+        # Particles must match the states.
+        if not set(tuple(particles[:, index])) == set(self.states):
+            return tuple(), states
+
+        # Delete the column and validate.
+        particles = np.delete(particles, index, axis=1)
+        particles = {tuple(particle) for particle in particles}
+        if not len(particles) == 1:
+            return tuple(), states
+        particles = list(particles.pop())
+
+        # Remove the given index.
+        indexes.pop(index)
+        if len(indexes) == 0:
+            return (1,), states
+
+        contracted = tuple(item for item in zip(particles, indexes))
+        return contracted, states
+
+    def get_decay_states(self, state: tuple, operations: dict) -> tuple:
+        """ Given a state and a set of operations, it returns the states that
+            are a generated when ALL the possible operations are performed on
+            a given state.
+
+            :param state: A tuple that represents a state on which to operate.
+
+            :param operations: A dictionary with all the possible operations of
+             the system.
+
+            :return: A 2-tuple that contains the original state and a dictionary
+             with all the possible states generated by the specific collection
+             of operations.
+        """
+
+        self.validate_sites_number()
+        decay_states = {}
+        keys = operations.keys()
+
+        # ----------------------------------------------------------------------
+        # Get the decay states.
+        # ----------------------------------------------------------------------
+
+        for key in keys:
+            decay_states[key] = operations[key](state)
+
+        return state, decay_states
+
+    def get_multiplicity(self, processes: dict) -> dict:
+        """ Given the decay/created states dictionary, it returns a dictionary
+            with the UNIQUE states for each process and their multiplicity.
+
+            :param processes: The dictionary of processes associated with a
+             state.
+
+            :return: A dictionary with the UNIQUE states for each process and
+             their multiplicity.
+        """
+
+        self.validate_sites_number()
+        multiplicity = {}
+        keys = processes.keys()
+
+        for key in keys:
+            unique = set(processes[key])
+            multiplicity[key] = [(state, processes[key].count(state)) for state in unique]
+
+        return multiplicity
+
+    def get_nth_order_equations(self, display: bool = False) -> None:
         """ Gets the nth order equations for the system in the format: (state,
             decay_states, create_states); where "decay_states" and
             "create_states" are the dictionaries that contain the states to
@@ -152,65 +332,249 @@ class Generator(ABC):
 
             Saves the equations to the variables for them to be processed later.
 
-            :param order: The lowest order to which the equations are to be
-             calculated.
-
             :param display: If the table of equations must be displayed in the
              console.
         """
 
-        # ----------------------------------------------------------------------
-        # Empty the equations list.
-        # ----------------------------------------------------------------------
-
-        # Empty the equations list.
+        # ALWAYS empty the equations list.
         self.equations = []
 
-        # ----------------------------------------------------------------------
         # Get the states to perform the calculation.
-        # ----------------------------------------------------------------------
+        states_left = self.get_states_left()
+        states_right = self.get_states_right()
 
-        # Get the lowest order states.
-        states_left = self._get_states_left(order)
-
-        # Get the other involved states.
-        states_right = self._get_states_right(order)
-
-        # ----------------------------------------------------------------------
         # Get the decay states.
-        # ----------------------------------------------------------------------
-
-        # An alias to the function to make it shorter.
-        function = self._get_decay_states
-
-        # Dictionary of processes.
-        processes = self._get_process_functions()
-
-        # Get the decay states for each of the right-hand states.
+        function = self.get_decay_states
+        processes = self.get_process_functions()
         decay_states = list(map(lambda x: function(x, processes), states_right))
 
-        # ----------------------------------------------------------------------
         # Get the create and decay state(s) of the left-hand states.
-        # ----------------------------------------------------------------------
-
-        # Get both the decay and creation dictionaries for each state.
         for state_left in states_left:
-            # Get the list of create states.
-            dictionary_create = self._get_products_create(state_left, decay_states)
-
-            # Get the list of decay states.
-            dictionary_decay = self._get_products_decay(state_left, decay_states)
-
-            # Append it to the equations.
+            dictionary_create = self.get_products_create(state_left, decay_states)
+            dictionary_decay = self.get_products_decay(state_left, decay_states)
             self.equations.append((state_left, dictionary_create, dictionary_decay,))
 
-        # Get the constraints.
-        self._get_constraints(states_left)
+        self.get_constraints(states_left)
 
-        # If the equations must be displayed.
         if display:
-            # Print the equations.
             self.print_equation_states()
+
+    @abstractmethod
+    def get_numbering(self, state: tuple) -> list:
+        """ Returns a tuple with the possible numbering a state of length N can
+            have. The format of a SINGLE state must be given in the format:
+            ( (particle_at_site1, numbering_scheme1),..., (particle_at_siteN,
+            numbering_schemeN))
+
+            :param state: The state to be numbered.
+
+            :return: The list of possible numbered states in the given format.
+        """
+        pass
+
+    def get_process_functions(self) -> dict:
+        """ Returns all the pointers to the functions that operate on the
+            different states to, potentially, modify them.
+
+            :return: A dictionary, whose keys are the string represenation of
+             the rates, with the functions that will potentially modify a state.
+        """
+
+        operations = self.get_associated_operations()
+        process_functions = dict((operation[1], operation[2],) for operation in operations)
+
+        return process_functions
+
+    def get_process_orders(self) -> dict:
+        """ Returns all the dictionary of integers that represent the minimum
+            number of sites required for the given processes to take place.
+
+            :return: A dictionary, whose keys are the string represenation of
+             the rates, with the integers that represent the minimum number of
+             sites required for the given processes to take place.
+        """
+
+        operations = self.get_associated_operations()
+        rates_orders = dict((operation[1], operation[0], ) for operation in operations)
+
+        return rates_orders
+
+    def get_process_rates(self) -> tuple:
+        """ Returns all the string representation of the rates associated with
+            the class.
+
+            :return: A tuple with the string rates associated with
+             the class.
+        """
+
+        operations = self.get_associated_operations()
+        rates_strings = tuple(operation[1] for operation in operations)
+
+        return rates_strings
+
+    def get_products_create(self, state: tuple, states_decay: list):
+        """ Given a state and the list of states, whose decay states due to the
+            different process must be included, it returns of the states that
+            create the given state.
+
+            :param state: The state that must be created from the other states.
+
+            :param states_decay: A list of states and their decay products. It
+             must be in the format. (state, 2-tuple with state and dictionary
+             with decay states).
+
+            :return: A 2-tuple with the state and a dictionary with the UNIQUE
+             lowest order states that will create the state through a given
+             process.
+        """
+
+        keys = states_decay[0][1].keys()
+        create_dictionary = {key: [] for key in keys}
+
+        for state_decay in states_decay:
+            if self.get_is_substate(state, state_decay[0]):
+                continue
+
+            for key in keys:
+                for state_0 in state_decay[1][key]:
+                    if not self.get_is_substate(state, state_0):
+                        continue
+
+                    create_dictionary[key].append(state_decay[0])
+
+        create_dictionary = self.reduce_to_unique_states(create_dictionary, state)
+        create_dictionary = self.get_multiplicity(create_dictionary)
+
+        return create_dictionary
+
+    def get_products_decay(self, state: tuple, states_decay: list):
+        """ Given a state and the list of states, whose decay states due to the
+            different process must be included, it returns of the states that
+            make the first state decay.
+
+            :param state: The state whose decay process are to be obtained.
+
+            :param states_decay: A list of states and their decay products. It
+             must be in the format. (state, 2-tuple with state and dictionary
+             with decay states).
+
+            :return: A 2-tuple with the state and a dictionary with the UNIQUE
+             lowest order states that will make it decay through a given
+             process.
+        """
+
+        keys = states_decay[0][1].keys()
+        decay_dictionary = {key: [] for key in keys}
+
+        for state_decay in states_decay:
+            if not self.get_is_substate(state, state_decay[0]):
+                continue
+
+            for key in keys:
+                for state_0 in state_decay[1][key]:
+                    if self.get_is_substate(state, state_0):
+                        continue
+
+                    decay_dictionary[key].append(state_decay[0])
+
+        decay_dictionary = self.reduce_to_unique_states(decay_dictionary, state)
+        decay_dictionary = self.get_multiplicity(decay_dictionary)
+
+        return decay_dictionary
+
+    def get_state_elements(self, state: tuple) -> tuple:
+        """ Gets two tuples one with the elements of the given state; one with
+            all the particles and the other one with the indexes.
+
+            :param state: The representation of the state, that must be in
+            the standard form.
+
+            :return: A 2-tuple that contains the particles in the state and its
+            numerical indexes in the order:
+
+            (particles, numerical indexes)
+        """
+
+        particle_list = tuple(entry[0] for entry in state)
+        index_list = tuple(entry[1] for entry in state)
+
+        self.validate_sites_number()
+
+        return particle_list, index_list
+
+    def get_states(self, order: int = 1) -> list:
+        """ Given the order, it returns a list of ALL the possible combinations
+            of the system variables, i.e., all the possible combinations of the
+            variables in N slots, where N=order; NON-NUMBERED.
+
+            :param order: The order of the requested states.
+
+            :return: A list of all the possible states of the given order.
+        """
+        return list(product(*[cp.deepcopy(self.states) for _ in range(order)]))
+
+    def get_states_left(self) -> list:
+        """ Returns a list of the numbered lowest order states for the
+            equations to be written in; i.e., the states that have the
+            differential operator d/dt.
+
+            :return: A list of the non-numbered lowest order states for the
+             equations to be written in.
+        """
+
+        # Setup the variables.
+        states = []
+        states_0 = []
+        order0 = 1 if self.order == 0 else self.order
+
+        if order0 < self.sites_number:
+            for i in range(1, order0 + 1):
+                states_0.extend(self.get_states(i))
+
+        else:
+            states_0.extend(self.get_states(self.sites_number))
+
+        # For every un-numbered state.
+        for state_0 in states_0:
+            states.extend(self.get_numbering(state_0))
+
+        return states
+
+    def get_states_right(self) -> list:
+        """ Returns a list of the numbered states that will potentially appear
+            in the derivative term.
+
+            :return: A list of the non-numbered lowest order states for the
+             equations to be written in.
+        """
+
+        # Set the variables.
+        orders = []
+        states = []
+        states_0 = []
+        order0 = 1 if self.order == 0 else self.order
+
+        if order0 < self.sites_number:
+            processes_orders = list(set(order_0[0] for order_0 in self.get_associated_operations()))
+
+            for order_0 in range(1, order0 + 1):
+                orders.extend([order_0 + order_1 - 1 for order_1 in processes_orders])
+
+            # Order vectors cannot be longer than the total number of sites.
+            maximum_order = max(orders)
+            maximum_order = min(maximum_order, self.sites_number)
+
+            for i in range(1, maximum_order + 1):
+                states_0.extend(self.get_states(i))
+
+        else:
+            states_0.extend(self.get_states(self.sites_number))
+
+        # For every un-numbered state.
+        for state0 in states_0:
+            states.extend(self.get_numbering(state0))
+
+        return states
 
     # --------------------------------------------------------------------------
     # Print Methods.
@@ -429,15 +793,33 @@ class Generator(ABC):
             del str_
 
     # --------------------------------------------------------------------------
+    # Reduce Methods.
+    # --------------------------------------------------------------------------
+
+    @abstractmethod
+    def reduce_to_unique_states(self, state_list, target_state):
+        """ Given a list of states, it attempts to contract
+
+            :param state_list: The list of states to be reduced.
+
+            :param target_state: The state that is being targeted to appear in
+            the reduced list.
+
+            :return: A list of the reduced states in the format (state,
+            multiplicity).
+        """
+        pass
+
+    # --------------------------------------------------------------------------
     # Save Methods.
     # --------------------------------------------------------------------------
 
     @abstractmethod
-    def save_equations(self, file_name: str = None, format_type: str = None, order: int = 0, save_path: str = None) -> None:
+    def save_equations(self, file: str = None, format_type: str = None, order: int = 0, save_path: str = None) -> None:
         """ Generates the equations in the requested format, with the terms
             approximated to the given order.
 
-            :param file_name: The name of the file where the equations are to be
+            :param file: The name of the file where the equations are to be
              saved; must be extensionless. Named equations by default.
 
             :param format_type: A string that represents the format of the
@@ -452,6 +834,19 @@ class Generator(ABC):
         """
         pass
 
+    # --------------------------------------------------------------------------
+    # Validate Methods.
+    # --------------------------------------------------------------------------
+
+    def validate_sites_number(self) -> None:
+        """ Validates that the constrainst of the system have the proper format.
+        """
+
+        if not isinstance(self.sites_number, (int,)) or self.sites_number < 1:
+            raise ValueError(
+                "The number of sites must an integer greater than zero."
+            )
+
     # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
     # Private Interface.
     # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
@@ -460,222 +855,7 @@ class Generator(ABC):
     # Get Methods.
     # --------------------------------------------------------------------------
 
-    @abstractmethod
-    def _get_associated_operations(self) -> tuple:
-        """ Returns a tuple with the 3-tuples that contain the operations that
-            can be applied to the states of the system, the order of the process
-            and the string representation of the state.
-
-            :return: A tuple with the 3-tuples that contain the operations that
-             can be applied to the states of the system, the order of the
-             process and the string representation of the state, in the order:
-             (process order, process rate constant, pointer to function).
-        """
-
-        # Define the operations.
-        process_information = (
-            # (process order, process rate constant, process function)
-            (None, None, None),
-        )
-
-        return process_information
-
-    @abstractmethod
-    def _get_constraints(self, states: tuple) -> tuple:
-        """ Given a set of numbered states, it gets the constraints of the
-            system, i.e., the probability identities, 1 = sum(x in X) P(x),
-            P(x) = sum(y in Y) P(x,y), P(y) = sum(x in X) P(x,y), etc; with
-            0 <= P(x) <= 1 for x in X.
-
-            :param states: A tuple that containst all of the "left-hand" states
-             of the system.
-
-            :return: The constrainsts of the system as equalities.
-        """
-        pass
-
-    def _get_contracted_state(self, states: list, index: int = -1) -> tuple:
-        """ From a list of states, it returns the completely contracted state.
-            For this to happen, the list of states must contain as much states
-            as there arr possible number of states and the indexes of ALL the
-            states must be the same.
-
-            :param states: The list of states that are to be contracted.
-
-            :param index: The index of the list to be contracted. It must be an
-             integer number between zero and the length of one of the states, or
-             a negative integer number, i.e., an index that indicates the index
-             of the array to be contracted.
-
-            :return: A tuple with the contracted state and the original states
-             that were contracted; if the return value is an empty tuple, it
-             means that the state cannot be contracted.
-        """
-
-        # //////////////////////////////////////////////////////////////////////
-        # Auxiliary functions.
-        # //////////////////////////////////////////////////////////////////////
-
-        def get_particles_and_indexes(states0: list, indexes0: list, particles0: list) -> None:
-            """ Decomposes the states into individual particles and indexes
-                tuples, then appends them to the indexes and particles list.
-
-                :param states0: The list of the states to be contracted.
-
-                :param indexes0: The list in which the indexes must be added.
-
-                :param particles0: The list where the particle of the states are
-                 stored.
-            """
-
-            # Go through each state.
-            for i0, state0 in enumerate(states0):
-                # Get the particles and indexes of the state.
-                particles0_, indexes0_ = self._get_state_elements(state0)
-
-                # Append them to their respective lists.
-                indexes0.append(indexes0_)
-                particles0.append(list(particles0_))
-
-        def validate_states(states0: list, index0: int) -> bool:
-            """ Checks that the states are valid to perform an index
-                contraction operation.
-
-                :param states0: The list of the states to be contracted.
-
-                :param index0: The index of the list to be contracted. It must
-                 be a number between zero and the length of one of the states,
-                 or a negative number, i.e., an index that indicates the
-                 component of the states to be contracted. The length of the
-                 states to be contracted must be the same.
-
-                :return: True, if the state is valid for contraction. False,
-                 otherwise.
-            """
-
-            # All the states are the same length and the number of length of all the states is the same.
-            is_valid0 = len(states0) == len(self.states) and len(set(map(lambda x: len(x), states0))) == 1
-
-            # For every state.
-            for state0 in states0:
-                # Validate the state.
-                self._validate_state(state0)
-
-            # Raise an error if the index is not valid.
-            if index0 >= len(states0[0]) or not isinstance(index0, int):
-                raise ValueError(
-                    "The requested entry for contraction must be a negative integer or a positive integer less than"
-                    f" {len(states0[0])}. Current value: {index0}, Type: {type(index0)}."
-                )
-
-            return is_valid0
-
-        # //////////////////////////////////////////////////////////////////////
-        # Implementation.
-        # //////////////////////////////////////////////////////////////////////
-
-        # While the index is negative.
-        while index < 0:
-            # Add the length of any of the states.
-            index += len(states[0])
-
-        # Validate the states before attempting the contraction.
-        if not validate_states(states, index):
-            return tuple([]), states
-
-        # ----------------------------------------------------------------------
-        # Set the variables where the information will be stored.
-        # ----------------------------------------------------------------------
-
-        # Auxiliary variables.
-        indexes = []
-        particles = []
-
-        # Get the particles and indexes.
-        get_particles_and_indexes(states, indexes, particles)
-
-        # ----------------------------------------------------------------------
-        # Validate the indexes for contraction.
-        # ----------------------------------------------------------------------
-
-        # If there are different indexes do not continue.
-        if not len(set(indexes)) == 1:
-            return tuple([]), states
-
-        # Get the particles in the column to be contracted.
-        particles_ = [states[i][index][0] for i, _ in enumerate(self.states)]
-
-        # Check that the desired row contains all the states.
-        if not set(particles_) == set(self.states):
-            return tuple([]), states
-
-        # Turn the particles states into a list.
-        particles = list(map(list, particles))
-
-        # Remove the given component.
-        for j, _ in enumerate(self.states):
-            particles[j].pop(index)
-        particles = list(map(tuple, particles))
-
-        # Check that the rest of the rest of the components have the same element.
-        if not len(set(particles)) == 1:
-            return tuple([]), states
-
-        # The contracted index can be the zeroth index.
-        indexes = list(indexes[0])
-
-        # Without the given index.
-        indexes.pop(index)
-
-        # Remember to use the probability identity.
-        if len(indexes) == 0:
-            return (1,), states
-
-        # Get the contracted state.
-        contracted = tuple((state_, indexes[i]) for i, state_ in enumerate(particles[0]))
-
-        return contracted, states
-
-    def _get_decay_states(self, state: tuple, operations: dict) -> tuple:
-        """ Given a state and a set of operations, it returns the states that
-            are a generated when ALL the possible operations are performed on
-            a given state.
-
-            :param state: A tuple that represents a state on which to operate.
-
-            :param operations: A dictionary with all the possible operations of
-             the system.
-
-            :return: A 2-tuple that contains the original state and a dictionary
-             with all the possible states generated by the specific collection
-             of operations.
-        """
-
-        # Validate the state.
-        self._validate_state(state)
-
-        # ----------------------------------------------------------------------
-        # Initialize the variables.
-        # ----------------------------------------------------------------------
-
-        # Initialize a dictionary.
-        decay_states = {}
-
-        # Get the dictionary keys.
-        keys = operations.keys()
-
-        # ----------------------------------------------------------------------
-        # Get the decay states.
-        # ----------------------------------------------------------------------
-
-        # For each process.
-        for key in keys:
-            # Get all the decay states.
-            decay_states[key] = operations[key](state)
-
-        return state, decay_states
-
-    def _get_is_substate(self, state1: tuple, state2: tuple) -> bool:
+    def get_is_substate(self, state1: tuple, state2: tuple) -> bool:
         """ Determines if state 1 is a substate, or proper substate, of state 2;
             they must be in the same format; order matters in this case.
 
@@ -687,574 +867,22 @@ class Generator(ABC):
              state2. False, otherwise.
         """
 
-        # Validate the first state.
-        self._validate_state(state1)
-
-        # Validate the second state.
-        self._validate_state(state2)
-
-        # State 1 cannot be a substate of state 2.
         if len(state1) > len(state2):
             return False
 
-        # If the states are equal no need to continue.
         if state1 == state2:
             return True
 
-        # Sort substate 1 in index order.
         substate1 = sorted(state1, key=lambda x: (x[1], x[0]))
-
-        # Get all the possible combinations of the components in state 2.
         substate2 = list(map(tuple, itertools.combinations(state2, len(substate1))))
 
-        # For every combination of state 2.
         for substate in substate2:
-            # If an equality is found.
             if substate1 == sorted(substate, key=lambda x: (x[1], x[0])):
                 return True
 
+        self.validate_sites_number()
+
         return False
-
-    def _get_multiplicity(self, state_dictionary: dict) -> dict:
-        """ Given the decay/created states dictionary, it returns a dictionary
-            with the UNIQUE states for each process and their multiplicity.
-
-            :param state_dictionary: The dictionary of processes associated with
-             a state.
-
-            :return: A dictionary with the UNIQUE states for each process and
-             their multiplicity.
-        """
-
-        # ----------------------------------------------------------------------
-        # Initialize the variables.
-        # ----------------------------------------------------------------------
-
-        # The dictionary that contains the UNIQUE processes and multiplicities.
-        multiplicity = {}
-
-                # Get the dictionary keys.
-        keys = state_dictionary.keys()
-
-        # ----------------------------------------------------------------------
-        # Get the unique states.
-        # ----------------------------------------------------------------------
-
-        # For each process.
-        for key in keys:
-            # Get the unique states.
-            unique = set(state_dictionary[key])
-
-            # Validate the states.
-            for state in state_dictionary[key]:
-                self._validate_state(state)
-
-            # Get the new dictionary entry.
-            multiplicity[key] = [(state, state_dictionary[key].count(state)) for state in unique]
-
-        return multiplicity
-
-    @abstractmethod
-    def _get_numbering(self, state):
-        """ Returns a tuple with the possible numbering a state of length N can
-            have. The format of a SINGLE state must be given in the format:
-
-            ( (particle_at_site1, numbering_scheme1),
-                            .
-                            .
-                            .
-              (particle_at_siteN, numbering_schemeN),
-            )
-
-            :param state: The state to be numbered.
-
-            :return: The list of possible numbered states in the given format.
-        """
-        pass
-
-    @abstractmethod
-    def _get_process_functions(self):
-        """ Returns all the pointers to the functions that operate on the
-            different states to, potentially, modify them.
-
-            :return process_functions: A dictionary, whose keys are the string
-            represenation of the rates, with the functions that will potentially
-            modify a state.
-        """
-
-        # Get the associated operations.
-        operations = self._get_associated_operations()
-
-        # Get the rate strings tuple.
-        process_functions = tuple((operation[1], operation[2],) for operation in operations)
-
-        # Convert it into a dictionary.
-        process_functions = dict(process_functions)
-
-        return process_functions
-
-    @abstractmethod
-    def _get_process_orders(self):
-        """ Returns all the dictionary of integers that represent the minimum
-            number of sites required for the given processes to take place.
-
-            :return rates_order: A dictionary, whose keys are the string
-            represenation of the rates, with the integers that represent the
-            minimum number of sites required for the given processes to take
-            place.
-        """
-
-        # Get the associated operations.
-        operations = self._get_associated_operations()
-
-        # Get the rate strings tuple.
-        rates_orders = tuple((operation[1], operation[0], ) for operation in operations)
-
-        # Convert it into a dictionary.
-        rates_orders = dict(rates_orders)
-
-        return rates_orders
-
-    @abstractmethod
-    def _get_process_rates(self):
-        """ Returns all the string representation of the rates associated with
-            the class.
-
-            :return rates_strings: A tuple with the string rates associated with
-            the class.
-        """
-
-        # Get the associated operations.
-        operations = self._get_associated_operations()
-
-        # Get the rate strings tuple.
-        rates_strings = tuple(operation[1] for operation in operations)
-
-        return rates_strings
-
-    def _get_products_create(self, state, states_decay):
-        """ Given a state and the list of states, whose decay states due to the
-            different process must be included, it returns of the states that
-            create the given state.
-
-            :param state: The state that must be created from the other states.
-
-            :param states_decay: A list of states and their decay products. It
-            must be in the format.
-                (state, 2-tuple with state and dictionary with decay states)
-
-            :return: A 2-tuple with the state and a dictionary with the UNIQUE
-            lowest order states that will create the state through a given
-            process.
-        """
-
-        # ----------------------------------------------------------------------
-        # Implementation.
-        # ----------------------------------------------------------------------
-
-        # Get the keys to the dictionary.
-        keys = states_decay[0][1].keys()
-
-        # Start an empty dictionary of lists, from the keys.
-        create_dictionary = {key: [] for key in keys}
-
-        # For all the decay states.
-        for state_decay in states_decay:
-            # Only non-substates are possible..
-            if self._get_is_substate(state, state_decay[0]):
-                continue
-
-            # For all the processes.
-            for key in keys:
-                # For all the states formed by a particular process.
-                for state_0 in state_decay[1][key]:
-                    # Only possible if the state appears in the original.
-                    if not self._get_is_substate(state, state_0):
-                        continue
-
-                    # Add the state to the dictionary.
-                    create_dictionary[key].append(state_decay[0])
-
-        # Reduce the entries of the dictionary.
-        create_dictionary = self._reduce_to_unique_states(create_dictionary, state)
-
-        # Reduce the entries of the dictionary.
-        create_dictionary = self._get_multiplicity(create_dictionary)
-
-        return create_dictionary
-
-    def _get_products_decay(self, state, states_decay):
-        """ Given a state and the list of states, whose decay states due to the
-            different process must be included, it returns of the states that
-            make the first state decay.
-
-            :param state: The state whose decay process are to be obtained.
-
-            :param states_decay: A list of states and their decay products. It
-            must be in the format.
-                (state, 2-tuple with state and dictionary with decay states)
-
-            :return: A 2-tuple with the state and a dictionary with the UNIQUE
-            lowest order states that will make it decay through a given process.
-        """
-
-        # ----------------------------------------------------------------------
-        # Implementation.
-        # ----------------------------------------------------------------------
-
-        # Get the keys to the dictionary.
-        keys = states_decay[0][1].keys()
-
-        # Start an empty dictionary of lists, from the keys.
-        decay_dictionary = {key: [] for key in keys}
-
-        # For all the decay states.
-        for state_decay in states_decay:
-            # Only substates are possible..
-            if not self._get_is_substate(state, state_decay[0]):
-                continue
-
-            # For all the processes.
-            for key in keys:
-                # For all the states formed by a particular process.
-                for state_0 in state_decay[1][key]:
-                    # Only if the state does not appear in the original.
-                    if self._get_is_substate(state, state_0):
-                        continue
-
-                    # Add the state to the dictionary.
-                    decay_dictionary[key].append(state_decay[0])
-
-        # Reduce the entries of the dictionary.
-        decay_dictionary = self._reduce_to_unique_states(decay_dictionary, state)
-
-        # Reduce the entries of the dictionary.
-        decay_dictionary = self._get_multiplicity(decay_dictionary)
-
-        return decay_dictionary
-
-    def _get_states(self, order: int = 1) -> tuple:
-        """ Given the order, it returns a list of ALL the possible combinations
-            of the system variables, i.e., all the possible combinations of the
-            variables in N slots, where N=order; NON-NUMBERED.
-
-            :param order: The order of the requested states.
-
-            :return: A list of all the possible states of the given order.
-        """
-
-        # ----------------------------------------------------------------------
-        # Auxiliary functions.
-        # ----------------------------------------------------------------------
-
-        def validate_order():
-            """ Validates that the order to which the equations are requested
-                is valid.
-            """
-
-            # Check the requested order is greater than zero.
-            if order <= 0:
-                raise ValueError(
-                    "The order parameter must be greater than zero."
-                )
-
-            # Check that the order parameter is not more than the number of sites.
-            if order > self.sites_number:
-                raise ValueError(
-                    f"The order parameter must less than or equal to {self.sites_number}."
-                )
-
-        # ----------------------------------------------------------------------
-        # Implementation.
-        # ----------------------------------------------------------------------
-
-        # Validate that the order is valid.
-        validate_order()
-
-        # Get an iterator to get the states.
-        all_states = product(*[cp.deepcopy(self.states) for _ in range(order)])
-
-        # Make the states into a list.
-        all_states = list(all_states)
-
-        return all_states
-
-    def _get_states_left(self, order):
-        """ Returns a list of the numbered lowest order states for the
-            equations to be written in; i.e., the states that have the
-            differential operator d/dt.
-
-            :param order: The order to which the equation is to be written.
-
-            :return states: A list of the non-numbered lowest order states for
-            the equations to be written in.
-        """
-
-        # ----------------------------------------------------------------------
-        # Auxiliary functions.
-        # ----------------------------------------------------------------------
-
-        def validate_order():
-            """ Validates that the order is an integer greater than or equal to
-                zero.
-            """
-
-            # If the order is not valid.
-            if order < 0 or not isinstance(order, (int,)):
-                raise ValueError(
-                    f"The order must be an integer number greater than or equal"
-                    f" to zero. Current order = {order}, Type: {type(order)}"
-                )
-
-        # ----------------------------------------------------------------------
-        # Implementation.
-        # ----------------------------------------------------------------------
-
-        # Validate the order.
-        validate_order()
-
-        # Auxiliary variables.
-        states = []
-        states_0 = []
-
-        # Fix the order, if needed.
-        order0 = 1 if order == 0 else order
-        order0 = order0 if order < self.sites_number else self.sites_number
-
-        # Get the states up to the given order.
-        if order0 < self.sites_number:
-            # Up until the requested order.
-            for i in range(1, order0 + 1):
-                # Get the un-numbered states.
-                states_0.extend(self._get_states(i))
-        else:
-            # Exact Equations.
-            states_0.extend(self._get_states(self.sites_number))
-
-        # For every un-numbered state.
-        for state_0 in states_0:
-            # Get the numbered states.
-            states.extend(self._get_numbering(state_0))
-
-        return states
-
-    def _get_states_right(self, order):
-        """ Returns a list of the numbered states that will potentially appear
-            in the derivative term.
-
-            :param order: The order to which the equation is to be written.
-
-            :return states: A list of the non-numbered lowest order states for
-            the equations to be written in.
-        """
-
-        # ----------------------------------------------------------------------
-        # Auxiliary functions.
-        # ----------------------------------------------------------------------
-
-        def validate_order():
-            """ Validates that the order is an integer greater than or equal to
-                zero.
-            """
-
-            # If the order is not valid.
-            if order < 0 or not isinstance(order, (int,)):
-                raise ValueError(
-                    f"The order must be a number greater than or equal to zero."
-                    f" Current order = {order}, Type = {type(order)}"
-                )
-
-        # ----------------------------------------------------------------------
-        # Implementation.
-        # ----------------------------------------------------------------------
-
-        # Validate the order.
-        validate_order()
-
-        # Auxiliary variables.
-        orders = []
-        states = []
-        states_0 = []
-
-        # Fix the order, if needed.
-        order0 = 1 if order == 0 else order
-        order0 = order0 if order < self.sites_number else self.sites_number
-
-        # Get the states up to the given order.
-        if order0 < self.sites_number:
-            # Get the orders of the process.
-            processes_orders = list(set(order_0[0] for order_0 in self._get_associated_operations()))
-
-            # For each length of states.
-            for order_0 in range(1, order0 + 1):
-                # Get the maximum order.
-                orders.extend([order_0 + order_1 - 1 for order_1 in processes_orders])
-
-            # Order vectors cannot be longer than the total number of sites.
-            maximum_order = max(orders)
-            maximum_order = min(maximum_order, self.sites_number)
-
-            # For all the orders, up to the maximum order.
-            for i in range(1, maximum_order + 1):
-                # Get the states.
-                states_0.extend(self._get_states(i))
-
-        else:
-            # Exact Equations.
-            states_0.extend(self._get_states(self.sites_number))
-
-        # For every non-numbered state
-        for state0 in states_0:
-            # Number the states associated with the non-numbered state.
-            states.extend(self._get_numbering(state0))
-
-        return states
-
-    def _get_state_elements(self, state):
-        """ Gets two tuples one with the elements of the given state; one with
-            all the particles and the other one with the indexes.
-
-            :param state: The representation of the state, that must be in
-            the standard form.
-
-            :return: A 2-tuple that contains the particles in the state and its
-            numerical indexes in the order:
-
-            (particles, numerical indexes)
-        """
-
-        # Validate the state.
-        self._validate_state(state)
-
-        # Get the numpy representation of the particles of the state.
-        particle_list = tuple(entry[0] for entry in state)
-
-        # Get the numpy representation of the indexes of the state.
-        index_list = tuple(entry[1] for entry in state)
-
-        return particle_list, index_list
-
-    # --------------------------------------------------------------------------
-    # Other Methods.
-    # --------------------------------------------------------------------------
-
-    @abstractmethod
-    def _reduce_to_unique_states(self, state_list, target_state):
-        """ Given a list of states, it attempts to contract
-
-            :param state_list: The list of states to be reduced.
-
-            :param target_state: The state that is being targeted to appear in
-            the reduced list.
-
-            :return: A list of the reduced states in the format (state,
-            multiplicity).
-        """
-        pass
-
-    # --------------------------------------------------------------------------
-    # Validation Methods.
-    # --------------------------------------------------------------------------
-
-    def _validate_sites_number(self) -> None:
-        """ Validates that the constrainst of the system have the proper format.
-        """
-
-        # Verify the number of sites is a positive integer.
-        if self.sites_number < 1:
-            raise ValueError(
-                "The number of sites must an integer greater than zero."
-            )
-
-    def _validate_state(self, state: tuple) -> None:
-        """ Validates that the state is a collection of 2-tuples and that
-            the tuples have the form ("particle", "site"); where "particle" is
-            in the set self.states and "site" is an integer in the range
-            [1, self.sites].
-
-            :param state: The state to validate.
-        """
-
-        # Make a copy of the state.
-        state = cp.deepcopy(state)
-
-        # ----------------------------------------------------------------------
-        # Check that the state is made of tuples of length 2.
-        # ----------------------------------------------------------------------
-
-        # Check that each entry in the state is a tuple.
-        if not all(map(lambda x: isinstance(x, (tuple,)), state)):
-            tmp_types = [str(type(x)) for x in state]
-            raise TypeError(
-                f"A state must be a collection of tuples, at least one elements"
-                f" is not a tuple. State: {state}, Types of state: {tmp_types}."
-            )
-
-        # Check that each entry in the state is 2 sites long.
-        if not all(map(lambda x: len(x) == 2, state)):
-            tmp_lengths = [str(len(x)) for x in state]
-            raise TypeError(
-                f"All states must be tuples of length 2. tuple lengths:"
-                f" {tmp_lengths}"
-            )
-
-        # Check that the maximum length of the state is the number of sites.
-        if not 1 <= len(state) <= self.sites_number:
-            raise ValueError(
-                f"The current length of the state list is not valid, it must be"
-                f"in the range [1, {self.sites_number}].  Current legth:"
-                f" {len(state)}."
-            )
-
-        # ----------------------------------------------------------------------
-        # Set the auxiliary variables.
-        # ----------------------------------------------------------------------
-
-        # Get the particles.
-        state = np.array(state)
-
-        # Get the particles and the numbering of the states.
-        particles = list(state[:, 0])
-        numbering = tuple([int(x[1]) for x in state])
-
-        # ----------------------------------------------------------------------
-        # Check the state.
-        # ----------------------------------------------------------------------
-
-        # Check that the states are made of valid particles.
-        if not all(map(lambda x: x in self.states, particles)):
-            raise ValueError(
-                f"The states are not valid, they must be in the list "
-                f"{self.states}. Current particles in the state: {particles}."
-            )
-
-        # ----------------------------------------------------------------------
-        # Check the numbering.
-        # ----------------------------------------------------------------------
-
-        # Check that the length of the state is greater than zero and less than or equal to the maximum number of sites.
-        if not 1 <= len(numbering) <= self.sites_number:
-            raise ValueError(
-                f"The current length of the numbering list is not valid, it "
-                f"must be in the range [1, {self.sites_number}].  Current "
-                f"length: {len(numbering)}."
-            )
-
-        # Check that the numbering of the state is greater than zero and less than or equal to the maximum number of
-        # sites.
-        if not all(map(lambda x: 0 < x <= self.sites_number, numbering)):
-            raise ValueError(
-                f"The numbering of the states must be in the range [1,"
-                f" {self.sites_number}]. There is an index that is not in this "
-                f"range: {numbering}."
-            )
-
-        # Check that the numbering for each site is unique.
-        if not len(set(numbering)) == len(numbering):
-            raise ValueError(
-                f"Indexes in the numbering list MUST be unique. There is a "
-                f"non-unique index: {numbering}."
-            )
 
     # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
     # Constructor, Dunder Methods and Dunder Variables.
@@ -1275,21 +903,12 @@ class Generator(ABC):
              system can take.
         """
 
-        # ----------------------------------------------------------------------
-        # Define the default model parameters.
-        # ----------------------------------------------------------------------
-
-        # Define the number of sites the system has.
+        # sites_number must always go first.
         self.sites_number = sites_number
-
-        # Define the possible unique states each site of the system can take.
         self.states = states
-
-        # Define the list where the constraint equations are saved.
         self.constraints = []
-
-        # Define the list where the equations are saved.
         self.equations = []
+        self.order = 0
 
     # --------------------------------------------------------------------------
     # Dunder Methods.
