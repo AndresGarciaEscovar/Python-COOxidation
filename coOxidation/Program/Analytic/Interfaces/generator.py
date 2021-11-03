@@ -29,6 +29,8 @@ class Generator(ABC):
 
         - self.sites_number: The number of sites the system has.
 
+        - self.order: The order to which the equations must be approximated.
+
         - self.states: the unique states a site can take at a given time.
     """
 
@@ -87,17 +89,18 @@ class Generator(ABC):
 
     @property
     def order(self) -> int:
-        """ Gets the number of sites in the lattice.
+        """ Gets the order to which the equations must be approximated.
 
-            :return: Returns the number of sites that the system has.
+            :return: Returns the order to which the equations must be
+             approximated.
         """
         return self.__order
 
     @order.setter
     def order(self, order: int) -> None:
-        """ Sets the order to which the equations must be calculated.
+        """ Sets the order to which the equations must be approximated.
 
-            :param order: The order to which the equations must be calculated.
+            :param order: The order to which the equations must be approximated.
         """
         self.__order = min(int(abs(order)), self.sites_number)
 
@@ -154,7 +157,7 @@ class Generator(ABC):
         raise AttributeError("Cannot delete the states.")
 
     # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-    # Public Interface.
+    # Methods.
     # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
     # --------------------------------------------------------------------------
@@ -301,6 +304,35 @@ class Generator(ABC):
             decay_states[key] = operations[key](state)
 
         return state, decay_states
+
+    def get_is_substate(self, state1: tuple, state2: tuple) -> bool:
+        """ Determines if state 1 is a substate, or proper substate, of state 2;
+            they must be in the same format; order matters in this case.
+
+            :param state1: The state that is to be found within state2.
+
+            :param state2: The state where state1 is going to be searched.
+
+            :return: True if state1 is a substate, or proper substate, of
+             state2. False, otherwise.
+        """
+
+        if len(state1) > len(state2):
+            return False
+
+        if state1 == state2:
+            return True
+
+        substate1 = sorted(state1, key=lambda x: (x[1], x[0]))
+        substate2 = list(map(tuple, itertools.combinations(state2, len(substate1))))
+
+        for substate in substate2:
+            if substate1 == sorted(substate, key=lambda x: (x[1], x[0])):
+                return True
+
+        self.validate_sites_number()
+
+        return False
 
     def get_multiplicity(self, processes: dict) -> dict:
         """ Given the decay/created states dictionary, it returns a dictionary
@@ -596,21 +628,14 @@ class Generator(ABC):
                 :return: A string representing the state, with its multiplicity.
             """
 
-            # Do not bother with empty states.
             if state0 is None or state0 == tuple():
                 return ""
 
-            # Get the state.
             state0_ = state0[0]
-
-            # Get the multiplicity.
             multiplicity0 = state0[1]
 
-            # Format the state.
-            state0_ = "<" + ",".join(map(lambda x: f"{x[0]}{x[1]}", state0_)) + ">"
-
-            # Get the multiplicity and attach it if necessary.
-            state0_ = str(multiplicity0) + state0_ if multiplicity0 > 1 else state0_
+            state0_ = "".join(["<", ",".join(map(lambda x: f"{x[0]}{x[1]}", state0_)), ">"])
+            state0_ = "".join([str(multiplicity0), state0_]) if multiplicity0 > 1 else state0_
 
             return state0_
 
@@ -627,24 +652,13 @@ class Generator(ABC):
                  columns to generate the table.
             """
 
-            # Get the keys and sort them.
             keys0 = sorted(column_names0.keys(), reverse=True)
-
-            # Get the lengths of the strings.
             lengths0 = list(map(lambda x: len(column_names0[x]), keys0))
 
-            # ---------------------- For the decay states ----------------------
-
-            # Get the strings representing the decay states.
             for key0 in equation0[1].keys():
-                # Format all the states of the create states.
-                states0 = ", ".join(list(map(lambda x: format_state(x), equation0[2][key0])))
-
-                # Format all the states of the decay states.
-                states0_ = ", ".join(list(map(lambda x: format_state(x), equation0[1][key0])))
-
-                # Get the maximum lengths.
-                lengths0 = list(map(lambda x, y: max(x, len(y)), lengths0, [key0, states0, states0_]))
+                states0 = ", ".join([format_state(state0) for state0 in equation0[2][key0]])
+                states0_ = ", ".join([format_state(state0) for state0 in equation0[1][key0]])
+                lengths0 = [max(item0) for item0 in zip(lengths0, [len(key0), len(states0), len(states0_)])]
 
             return tuple(lengths0)
 
@@ -662,29 +676,18 @@ class Generator(ABC):
                 :return: The string that represents the terms in the equation.
             """
 
-            # Format all the states of the create states.
             states0 = ", ".join(list(map(lambda x: format_state(x), equation0[2][key0])))
-
-            # Format all the states of the decay states.
             states0_ = ", ".join(list(map(lambda x: format_state(x), equation0[1][key0])))
-
-            # List where the strings will be stored.
             strings0 = [key0, states0, states0_]
 
-            # Format the strings.
             for i0, string0 in enumerate(strings0):
-                # If it is the first string.
                 if i0 == 0:
-                    # Justify the text in the center.
                     strings0[i0] = f"{strings0[i0]:^{column_widths0[i0]}}"
-
                     continue
 
-                # Justify the text towards the left.
                 strings0[i0] = f"{strings0[i0]:<{column_widths0[i0]}}"
 
-            # Join the strings.
-            strings0 = get_separator(column_widths) + "\n" + "|" + "|".join(strings0) + "|" + "\n"
+            strings0 = "".join([get_separator(column_widths), "\n", "|", "|".join(strings0), "|", "\n"])
 
             return strings0
 
@@ -700,14 +703,9 @@ class Generator(ABC):
                 :return: The string that represents the header of the table.
             """
 
-            # Get the header.
             header0 = sorted(column_names0.keys(), reverse=True)
-
-            # Get the formatted strings.
             header0 = [f"{column_names0[key0]:^{column_widths0[i0]}}" for i0, key0 in enumerate(header0)]
-
-            # Join the strings properly.
-            header0 = get_separator(column_widths) + "\n" + "|" + "|".join(header0) + "|"
+            header0 = "".join([get_separator(column_widths), "\n", "|", "|".join(header0), "|"])
 
             return header0
 
@@ -720,11 +718,8 @@ class Generator(ABC):
                 :return: A string with the row separator.
             """
 
-            # Get the separator string.
             separator0 = ["-" * length0 for length0 in column_widths0]
-
-            # Join the separators.
-            separator0 = "-" + "-".join(separator0) + "-"
+            separator0 = "".join(["-", "-".join(separator0), "-"])
 
             return separator0
 
@@ -735,10 +730,8 @@ class Generator(ABC):
                  otherwise.
             """
 
-            # Check that the equations list is not empty.
             if len(self.equations) == 0:
                 print("There are no equations to print.")
-
                 return False
             
             return True
@@ -751,10 +744,6 @@ class Generator(ABC):
         if not validate_equations():
             return
 
-        # ----------------------------------------------------------------------
-        # Define the names of the columns.
-        # ----------------------------------------------------------------------
-
         # The dictionary with the names of the columns.
         column_names = {
             "create": "Create Processes",
@@ -762,34 +751,17 @@ class Generator(ABC):
             "key": "Rate Constant"
         }
 
-        # ----------------------------------------------------------------------
         # Get the column contents.
-        # ----------------------------------------------------------------------
-
-        # For every equation in the equations list.
         for i, equation in enumerate(self.equations):
-
-            # # Print the state.
             print("State: ", format_state((equation[0], 1)))
 
-            # Get the column widths.
             column_widths = get_column_widths(column_names, equation)
-
-            # Print the header.
             str_ = get_header(column_names, column_widths) + "\n"
-
-            # For every key.
             for j, key in enumerate(equation[1].keys()):
-                # Get the equation terms.
                 str_ += get_equation(key, equation, column_widths)
 
-            # Print the separator.
             str_ += get_separator(column_widths) + "\n"
-
-            # Print the table.
             print(str_)
-
-            # Release the memory.
             del str_
 
     # --------------------------------------------------------------------------
@@ -829,8 +801,11 @@ class Generator(ABC):
              equations must be approximated. Zeroth order, or less, means that
              the equations will be written in an exact way.
 
-            :param save_path: The path where a file with the equations is to be
-             created, if at all. None, by default.
+            :param save_path: The path of the file where the equations must be
+             saved.
+
+            :param: The path where a file with the equations is to be created,
+             if at all. None, by default.
         """
         pass
 
@@ -846,43 +821,6 @@ class Generator(ABC):
             raise ValueError(
                 "The number of sites must an integer greater than zero."
             )
-
-    # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-    # Private Interface.
-    # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-
-    # --------------------------------------------------------------------------
-    # Get Methods.
-    # --------------------------------------------------------------------------
-
-    def get_is_substate(self, state1: tuple, state2: tuple) -> bool:
-        """ Determines if state 1 is a substate, or proper substate, of state 2;
-            they must be in the same format; order matters in this case.
-
-            :param state1: The state that is to be found within state2.
-
-            :param state2: The state where state1 is going to be searched.
-
-            :return: True if state1 is a substate, or proper substate, of
-             state2. False, otherwise.
-        """
-
-        if len(state1) > len(state2):
-            return False
-
-        if state1 == state2:
-            return True
-
-        substate1 = sorted(state1, key=lambda x: (x[1], x[0]))
-        substate2 = list(map(tuple, itertools.combinations(state2, len(substate1))))
-
-        for substate in substate2:
-            if substate1 == sorted(substate, key=lambda x: (x[1], x[0])):
-                return True
-
-        self.validate_sites_number()
-
-        return False
 
     # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
     # Constructor, Dunder Methods and Dunder Variables.
@@ -909,7 +847,3 @@ class Generator(ABC):
         self.constraints = []
         self.equations = []
         self.order = 0
-
-    # --------------------------------------------------------------------------
-    # Dunder Methods.
-    # --------------------------------------------------------------------------
