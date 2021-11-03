@@ -35,7 +35,7 @@ class FormatterManager:
     }
 
     # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-    # Public Interface.
+    # Methods.
     # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
     # --------------------------------------------------------------------------
@@ -52,9 +52,7 @@ class FormatterManager:
             :return:  The requested formatter.
         """
 
-        # Delete blank spaces and make it lower case.
         formatter_ = formatter.strip().lower()
-
         return FormatterManager._FORMATTERS[formatter_]
 
     @staticmethod
