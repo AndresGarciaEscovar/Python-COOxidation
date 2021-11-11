@@ -32,7 +32,7 @@ class COOxidationAnalysis:
         info = data[:2]
         data = data[2:-1]
 
-        labels = (info[1][1], info[1][2], info[1][3])
+        labels = tuple(label for label in info[1][1:])
         fig, axes = pyplot.subplots(ncols=len(data))
         for i, axis in enumerate(data):
             data_ = data[i][1:]
