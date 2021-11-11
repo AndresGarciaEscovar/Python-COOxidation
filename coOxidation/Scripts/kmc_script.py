@@ -18,4 +18,3 @@ if __name__ == "__main__":
         simulation.statistics_save("results.txt")
 
         COOxidationAnalysis.plot_results("results.txt")
-
