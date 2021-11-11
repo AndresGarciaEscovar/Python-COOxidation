@@ -10,7 +10,10 @@ from setuptools import setup, find_packages
 # To setup the package.
 setup(name='coOxidation',
       version='0.1',
-      description='Gets the analytic equations and performs Kinetic Monte Carlo (KMC) simulations for CO adsorption on a ruthenium(111) surface.',
+      description=(
+            "Gets the analytic equations and performs Kinetic Monte Carlo (KMC)"
+            " simulations for CO adsorption on a ruthenium(111) surface."
+      ),
       url='https://github.com/AndresGarciaEscovar/Python-COOxidation',
       author='Andres Garcia Escovar group',
       author_email='andrumen@hotmail.com',

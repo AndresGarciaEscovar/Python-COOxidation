@@ -15,7 +15,8 @@ if __name__ == "__main__":
     system = EquationGenerator(sites_number)
 
     # Get the nth order equations.
-    system.get_nth_order_equations(order=order, display=True)
+    system.order = 2
+    system.get_nth_order_equations(display=True)
 
     # Generate the equations.
     system.save_equations(file_name="tmp", format_type="Mathematica", order=order, save_path=os.path.dirname(__file__))

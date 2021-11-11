@@ -5,10 +5,10 @@
 # ------------------------------------------------------------------------------
 
 # Imports: General.
-import copy as cp
-import numpy as np
-import os
-import random
+import numpy
+
+# Imports: User-defined.
+from coOxidation.Program.KMC.COOxidation_parameters import COOxidationKMCParameters
 
 # ------------------------------------------------------------------------------
 # Classes.
@@ -18,570 +18,337 @@ import random
 class COOxidationKMC:
 
     # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-    # Constants and Variables.
+    # Methods.
     # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
     # --------------------------------------------------------------------------
-    # Constants.
+    # Choose Methods.
     # --------------------------------------------------------------------------
 
-    # The current directory where the file is located.
-    CURRENT_DIRECTORY = os.path.dirname(__file__)
+    def choose_process(self) -> int:
+        """ Randomly chooses a process from the available processes.
+
+            :return: The id of the process to be executed.
+        """
+        random, id_ = self.get_float(self.rates[-1]), numpy.inf
+        for i, rate in enumerate(self.rates):
+            if random < rate:
+                return i
+
+        raise ValueError("A number within the processes must be returned")
+
+    def choose_move(self) -> None:
+        """ Chooses a random move to be performed.
+        """
+
+        # Get the site and process
+        process_id = self.choose_process()
+
+        # Perform an adsorption/desorption/diffusion/reaction move.
+        if process_id in [0, 3]:  # Adsorption.
+            two = process_id == 0
+            self.process_adsorb(self.get_sites(two=two), process_id)
+            return
+
+        if process_id in [1, 4]:  # Desorption.
+            two = process_id == 1
+            self.process_desorb(self.get_sites(two=two), process_id)
+            return
+
+        if process_id in [2, 5]:  # Diffusion.
+            self.process_diffusion(self.get_sites(two=True), process_id)
+            return
+
+        if process_id in [6, 7]:  # Reaction
+            two = process_id == 6
+            self.process_reaction(self.get_sites(two=two), process_id)
+            return
+
+        raise ValueError(f"The selected rate must be between 0 and 7. Selected process: {process_id}")
 
     # --------------------------------------------------------------------------
-    # Getters and Setters.
+    # Get Methods.
     # --------------------------------------------------------------------------
 
-    @property
-    def configuration_list(self) -> list:
-        """ Returns the configuration list.
+    def get_float(self, base: float) -> float:
+        """ Gets a random number in the range (lower_0, upper_0)
 
-            :return: The state of the cells.
-        """
-        return self.__configuration_list
-
-    @configuration_list.setter
-    def configuration_list(self, configuration_list: list):
-        """ Sets the configuration to the given list.
-
-            :param configuration_list: The new configuration list.
-        """
-        self.__configuration_list = configuration_list
-
-    @configuration_list.deleter
-    def configuration_list(self):
-        """ Cannot delete this variable.
-        """
-        raise AttributeError("Cannot delete the configuration_list.")
-
-    # --------------------------------------------------------------------------
-
-    @property
-    def elapsed_time(self) -> float:
-        """ Returns the elapsed time.
-
-            :return: The elapsed time of the simulation; in simulation units.
-        """
-        return self.__elapsed_time
-
-    @elapsed_time.setter
-    def elapsed_time(self, elapsed_time: float):
-        """ Sets the elapsed time.
-            
-            :param elapsed_time: The elapsed time.
-        """
-        self.__elapsed_time = elapsed_time
-
-    @elapsed_time.deleter
-    def elapsed_time(self):
-        """ Cannot delete this variable.
-        """
-        raise AttributeError("Cannot delete the elapsed_time.")
-
-    # --------------------------------------------------------------------------
-
-    @property
-    def final_state_count(self) -> list:
-        """ Returns the final state count after a simulation.
-
-            :return: The list that contains the statistics of the simulation.
-        """
-        return self.__final_state_count
-
-    @final_state_count.setter
-    def final_state_count(self, final_state_count: list):
-        """ Sets the new final_state_count.
-
-            :param final_state_count: The list of dictionaries that contains the
-             statistics.
+            :param  base: The base number to return a random floating point
+             number x in the range 0 < x < base. If the base is zero, it returns
+             zero.
         """
 
-        self.__final_state_count = final_state_count
+        if base == 0.0:
+            return 0.0
 
-    @final_state_count.deleter
-    def final_state_count(self):
-        """ Cannot delete this variable.
-        """
-        raise AttributeError("Cannot delete the final_state_count.")
+        number = self.generator.random()
+        while not (0.0 < number < 1.0):
+            number = self.generator.random()
 
-    # --------------------------------------------------------------------------
+        return number * base
 
-    @property
-    def maximum_time(self) -> float:
-        """ Returns the maximum time the simulation should run for, in
-            simulation time units.
-
-            :return: The maximum time the simulation should run for; in
-             simulation time units.
-        """
-        return cp.deepcopy(self.__maximum_time)
-
-    @maximum_time.setter
-    def maximum_time(self, maximum_time: float):
-        """ Sets the maximum time the simulation should run for; in simulation
-            time units.
-
-            :param maximum_time: The maximum time the simulation should run for;
-             in simulation time units.
-        """
-
-        try:
-            self.__maximum_time
-
-        except AttributeError:
-            self.__maximum_time = np.abs(maximum_time)
-
-    @maximum_time.deleter
-    def maximum_time(self):
-        """ Cannot delete this variable.
-        """
-        raise AttributeError("Cannot delete the maximum_time.")
-
-    # --------------------------------------------------------------------------
-
-    @property
-    def steps_number(self) -> int:
-        """ Returns the steps number of the simulation.
-
-            :return: The number of steps that the simulation ran for.
-        """
-        return cp.deepcopy(self.__steps_number)
-
-    @steps_number.setter
-    def steps_number(self, steps_number: int):
-        """ Sets the number of steps the simulation must be run for.
-
-            :param steps_number: The number of steps the simulation must be run
-             for.
-        """
-
-        try:
-            # Can only be set once.
-            self.__steps_number
-
-        except AttributeError:
-            self.__steps_number = np.abs(steps_number)
-
-    @steps_number.deleter
-    def steps_number(self):
-        """ Cannot delete this variable.
-        """
-        raise AttributeError("Cannot delete the steps_number.")
-
-    # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-    # Public Interface.
-    # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-
-    # --------------------------------------------------------------------------
-    # Get Functions.
-    # --------------------------------------------------------------------------
-
-    def get_rates(self) -> list:
+    @staticmethod
+    def get_rates() -> tuple:
         """ Gets the rates of the system. More rates can be added if needed.
 
             :return: The cumulative rates of the system.
         """
 
-        # There are 9 rates in total.
-        rates_0 = [0 for _ in range(9)]
+        rates = (
+            2 * 1.0,  # Oxygen adsorption rate.
+            2 * 1.0,  # Oxygen desorption rate.
+            2 * 1.0,  # Oxygen diffusion rate.
+            1 * 1.0,  # Carbon monoxide adsorption rate.
+            1 * 1.0,  # Carbon monoxide desorption rate.
+            2 * 1.0,  # Carbon monoxide diffusion rate.
+            2 * 1.0,  # Langmuir-Hinshelwood reaction rate.
+            1 * 1.0,  # Elay-Rideal reaction rate.
+        )
+        rates = tuple(sum(rates[0:i + 1]) for i, _ in enumerate(rates))
+        return rates
 
-        # ----------------------------------------------------------------------
-        # Oxygen related rates.
-        # ----------------------------------------------------------------------
+    def get_sites(self, two=False) -> list:
+        """ Gets a list with a single site. If a second one is requested, it
+            returns the neighbor site towards the left or right, with equal
+            probability.
 
-        # Oxygen adsorption, always try to adsorb on neighboring sites (left or
-        # right) with a rate of 1.
-        rates_0[0] = 2 * 1.0
+            :param two: If two sites are requested.
 
-        # Oxygen desorption, always try to desorb from neighboring sites (left
-        # or right) with a rate of 1.
-        rates_0[1] = 2 * 1.0
-
-        # Oxygen diffusion, two possible moves (left or right) with a rate of 1.
-        rates_0[2] = 2 * 1.0
-
-        # ----------------------------------------------------------------------
-        # Carbon monoxide related rates.
-        # ----------------------------------------------------------------------
-
-        # Carbon monoxide adsorption.
-        rates_0[3] = 1.0
-
-        # Carbon monoxide desorption.
-        rates_0[4] = 1.0
-
-        # Carbon monoxide diffusion, two possible moves (left or right) with a
-        # rate of 1.
-        rates_0[5] = 2 * 1.0
-
-        # ----------------------------------------------------------------------
-        # Carbon monoxide - oxygen interaction related rates.
-        # ----------------------------------------------------------------------
-
-        # Carbon monoxide - oxygen neighbor reaction on surface, two possible
-        # reaction sites (left or right) with a rate of 1.
-        rates_0[6] = 2 * 1.0
-
-        # Carbon monoxide - oxygen reaction in gas (i.e., oxygen on surface
-        # binds to CO in gas)
-        rates_0[7] = 1.0
-
-        # Carbon monoxide - oxygen reaction anywhere in lattice, two possible
-        # reaction sites (i.e., not the chosen site) with a rate of 1.
-        rates_0[8] = 2 * 0.0
-
-        # ----------------------------------------------------------------------
-        # Calculate the cumulative rates.
-        # ----------------------------------------------------------------------
-
-        rates_0 = np.array([sum(rates_0[0:i + 1]) for i, _ in enumerate(rates_0)], dtype=np.double)
-
-        return rates_0
-
-    # --------------------------------------------------------------------------
-    # Move Functions.
-    # --------------------------------------------------------------------------
-
-    def adsorb_desorb_particle(self, site_0, rate_id_0):
-        """ Tries to adsorb a carbon monoxide atom or an oxygen pair, or desorbs
-            an oxygen atom or a carbon monoxide atom.
-
-            :param site_0: The site at which the process will take place.
-
-            :param rate_id_0: The rate that was chosen; determines the process
-             adsorption or desorption and the particle type that will undergo
-             the process.
+            :return: A list of sites.
         """
 
-        # Check for adsortion/desorption of oxygen.
-        if rate_id_0 == 0 or rate_id_0 == 1:
+        sites = [self.generator.integers(0, len(self))]  # type: list
+        if two:
+            site = sites[0] + self.generator.choice([-1, 1])
+            sites.append(site)
 
-            # Choose a neighbor site.
-            site_1 = site_0 + 1 if self.choose_random_number(0, 1) <= 0.5 else site_0 - 1
+        return sites
 
-            # Check that the site is NOT out of bounds.
-            if site_1 < 0 or site_1 > 2:
-                return
+    # --------------------------------------------------------------------------
+    # Process Methods.
+    # --------------------------------------------------------------------------
 
-            if rate_id_0 == 0 and self.configuration_list[site_0] == "E" and self.configuration_list[site_1] == "E":
-                self.configuration_list[site_0] = "O"
-                self.configuration_list[site_1] = "O"
-                return
+    def process_adsorb(self, sites: list, process_id: int) -> None:
+        """ Tries to adsorb a carbon monoxide molecule or an oxygen pair.
 
-            if rate_id_0 == 1 and self.configuration_list[site_0] == "O" and self.configuration_list[site_1] == "O":
-                self.configuration_list[site_0] = "E"
-                self.configuration_list[site_1] = "E"
-                return
+            :param sites: The list of sites that are involved in the adsorption
+             process. The zeroth site will always be a valid site, if there are
+             more sites, these must be calculated before hand.
 
-        # Check for adsortion/desorption of carbon monoxide.
-        elif rate_id_0 == 3 or rate_id_0 == 4:
-
-            if rate_id_0 == 3 and self.configuration_list[site_0] == "E":
-                self.configuration_list[site_0] = "CO"
-                return
-
-            if rate_id_0 == 4 and self.configuration_list[site_0] == "CO":
-                self.configuration_list[site_0] = "E"
-                return
-
-    def move_particle(self, site_0, rate_id_0):
-        """ Tries to hop a carbon monoxide atom, or an oxygen atom, to a nearest
-            neighbor side with equal probability.
-
-            :param site_0: The site at which the process will take place.
-
-            :param rate_id_0: The rate that was chosen; determines which atom is the
-            one that will be hopping.
+            :param process_id: The id of the process.
         """
 
-        # Choose a random direction.
-        site_1 = site_0 + 1 if self.choose_random_number(0, 1) <= 0.5 else site_0 - 1
-
-        # Check that the site is NOT out of bounds.
-        if site_1 < 0 or site_1 > 2:
+        if not self.lattice[sites[0]] == 'E':
             return
 
-        # Conditions under which a swap is possible.
-        cond_0 = rate_id_0 == 2 and self.configuration_list[site_0] == "O" and self.configuration_list[site_1] == "E"
-        cond_1 = rate_id_0 == 5 and self.configuration_list[site_0] == "CO" and self.configuration_list[site_1] == "E"
+        if process_id == 0:
+            if not (self.validate_in_lattice(sites[1]) and self.lattice[sites[1]] == 'E'):
+                return
 
-        # Make the particle exchange.
-        if cond_0 or cond_1:
-            tmp_part_0 = cp.deepcopy(self.configuration_list[site_0])
-            self.configuration_list[site_0] = self.configuration_list[site_1]
-            self.configuration_list[site_1] = tmp_part_0
+            self.lattice[sites[0]], self.lattice[sites[1]] = 'O', 'O'
+            return
 
-    def react_particle(self, site_0, rate_id_0):
-        """ Reacts a particle or a pair of particles according to the chosen rate,
-            i.e., empties the site(s).
+        self.lattice[sites[0]] = 'CO'
 
-            :param site_0: The site at which the process will take place.
+    def process_desorb(self, sites: list, process_id: int) -> None:
+        """ Tries to desorb a carbon monoxide molecule or an oxygen pair.
 
-            :param rate_id_0: The rate that was chosen; determines which desorption
-            process will be attempted.
+            :param sites: The list of sites that are involved in the adsorption
+             process. The zeroth site will always be a valid site, if there are
+             more sites, these must be calculated before hand.
+
+            :param process_id: The id of the process.
+        """
+
+        if self.lattice[sites[0]] == 'E':
+            return
+
+        if process_id == 1:
+            if not self.validate_in_lattice(sites[1]):
+                return
+
+            if not (self.lattice[sites[0]] == 'O' and self.lattice[sites[1]] == 'O'):
+                return
+
+            self.lattice[sites[0]], self.lattice[sites[1]] = 'E', 'E'
+            return
+
+        self.lattice[sites[0]] = 'E' if self.lattice[sites[0]] == 'CO' else self.lattice[sites[0]]
+
+    def process_diffusion(self, sites: list, process_id: int) -> None:
+        """ Tries to diffuse a carbon monoxide molecule or an oxygen atom.
+
+            :param sites: The list of sites that are involved in the adsorption
+             process. The zeroth site will always be a valid site, if there are
+             more sites, these must be calculated before hand.
+
+            :param process_id: The id of the process.
+        """
+
+        if self.lattice[sites[0]] == 'E':
+            return
+
+        if not (self.validate_in_lattice(sites[1]) and self.lattice[sites[1]] == 'E'):
+            return
+
+        if (process_id == 2 and self.lattice[sites[0]] == 'O') or (process_id == 5 and self.lattice[sites[0]] == 'CO'):
+            self.lattice[sites[0]],  self.lattice[sites[1]] = self.lattice[sites[1]],  self.lattice[sites[0]]
+
+    def process_reaction(self, sites: list, process_id: int) -> None:
+        """ Tries to perform a dissociative reaction between carbon monoxide
+            and oxygen.
+
+            :param sites: The list of sites that are involved in the adsorption
+             process. The zeroth site will always be a valid site, if there are
+             more sites, these must be calculated before hand.
+
+            :param process_id: The id of the process.
+        """
+
+        if self.lattice[sites[0]] == 'E':
+            return
+
+        if process_id == 7:
+            if self.lattice[sites[0]] == 'O':
+                self.lattice[sites[0]] = 'E'
+            return
+
+        if not self.validate_in_lattice(sites[1]):
+            return
+
+        states = ['CO', 'O']
+        states.remove(self.lattice[sites[0]])
+        if self.lattice[sites[1]] == states[0]:
+            self.lattice[sites[0]],  self.lattice[sites[1]] = 'E',  'E'
+
+    # --------------------------------------------------------------------------
+    # Reset Methods.
+    # --------------------------------------------------------------------------
+
+    def reset_simulation(self, completely=False) -> None:
+        """ Resets the simulation parameters to their initial value.
+
+            :param completely: If the simulation must be reset completely.
+        """
+
+        self.counter_steps = 0
+        self.counter_time = 0.0
+        self.lattice = ["E" for _ in range(len(self))]
+
+        if completely:
+            self.generator = numpy.random.default_rng(self.seed)
+            self.statistics = [{"E": 0, "O": 0, "CO": 0} for _ in range(len(self))]
+
+    # --------------------------------------------------------------------------
+    # Run Methods.
+    # --------------------------------------------------------------------------
+
+    def run_simulation(self, repetitions: int = 1) -> None:
+        """ Run the simulation.
+
+            :param repetitions: The number of times the simulation must be
+             run, for statistics purposes.
         """
 
         # //////////////////////////////////////////////////////////////////////
-        # Auxiliary Functions.
+        # Auxiliary functions.
         # //////////////////////////////////////////////////////////////////////
 
-        def validate_sites(site_1_0, rate_id_1_0):
-            """ Validates that the site and reaction index are in the proper range.
+        def must_continue() -> bool:
+            """ Determines if the simulation must continue, i.e., the guard
+                variable has surpassed the maximum counter.
 
-                :param site_1_0: The site at which the process will take place.
-
-                :param rate_id_1_0: The rate that was chosen; determines which desorption
-                process will be attempted.
+                :return:
             """
 
-            # Validate the new site.
-            if site_1_0 not in [0, 1, 2]:
-                raise ValueError(f"The requested site for reaction is not valid, it must have a value between 0 and 2."
-                                 f"site_0: {site_1_0}.")
+            if isinstance(self.counter_maximum, (float,)) and self.counter_time <= self.counter_maximum:
+                return True
 
-            # Validate the reaction index.
-            if rate_id_1_0 not in [6, 7, 8]:
-                raise ValueError(f"The requested reaction index is not valid, it must have a value between 6 and 8."
-                                 f"rate_id_0: {rate_id_1_0}.")
+            if isinstance(self.counter_maximum, (int,)) and self.counter_steps <= self.counter_maximum:
+                return True
+
+            return False
 
         # //////////////////////////////////////////////////////////////////////
         # Implementation.
         # //////////////////////////////////////////////////////////////////////
 
-        # Validate the indexes.
-        validate_sites(site_0, rate_id_0)
+        self.reset_simulation(completely=True)
 
-        # Carbon monoxide - oxygen neighbor reaction on surface, two possible
-        # reaction sites (left or right) with a rate of 1.
-        if rate_id_0 == 6:
-            # Choose a neighboring site.
-            site_1 = site_0 + 1 if self.choose_random_number(0, 1) <= 0.5 else site_0 - 1
+        for _ in range(repetitions):
+            self.reset_simulation(completely=False)
 
-            # Check that the site is NOT out of bounds.
-            if site_1 < 0 or site_1 > 2:
-                return
+            while True:
+                self.update_counters()
+                if not must_continue():
+                    continue
 
-            # Conditions for desorption.
-            cond_0 = self.configuration_list[site_0] == "CO" and self.configuration_list[site_1] == "O"
-            cond_0 = cond_0 or self.configuration_list[site_0] == "O" and self.configuration_list[site_1] == "CO"
+                self.choose_move()
+                self.statistics_record()
 
-            # Desorb if needed.
-            if cond_0:
-                self.configuration_list[site_0] = "E"
-                self.configuration_list[site_1] = "E"
+        self.statistics_record(repetitions=repetitions, normalize=True)
 
+    # --------------------------------------------------------------------------
+    # Statistics Methods.
+    # --------------------------------------------------------------------------
+
+    def statistics_record(self, repetitions: int = 1, normalize: bool = False) -> None:
+        """ Records the statistics for the process.
+
+            :param repetitions: The number of times the simulation has been run.
+
+            :param normalize: True, if the statistics must be normalized. False,
+             otherwise.
+        """
+
+        # //////////////////////////////////////////////////////////////////////
+        # Auxiliary functions.
+        # //////////////////////////////////////////////////////////////////////
+
+        def normalize_statistics(repetitions0: int) -> None:
+            """ Normalizes the quantities for statistical purposes.
+
+                :param repetitions0: The number of times the simulation has been
+                 run.
+            """
+            for i0 in range(len(self)):
+                for key0 in ['CO', 'O', 'E']:
+                    self.statistics[i0][key0] /= repetitions0
+
+        # //////////////////////////////////////////////////////////////////////
+        # Implementation.
+        # //////////////////////////////////////////////////////////////////////
+
+        if normalize:
+            normalize_statistics(repetitions)
             return
 
-        # Carbon monoxide - oxygen reaction in gas (i.e., oxygen on surface binds to
-        # CO in gas)
-        if rate_id_0 == 7:
-            # Desorb the oxygen.
-            if self.configuration_list[site_0] == "O":
-                self.configuration_list[site_0] = "E"
-
-            return
-
-        # Carbon monoxide - oxygen reaction anywhere in lattice, two possible
-        # reaction sites (i.e., not the chosen site) with a rate of 1.
-        if rate_id_0 == 8:
-            # Select the two possible sites from where to choose.
-            sites_0 = [i for i in range(3) if not i == site_0]
-
-            # Pick a random site.
-            site_1 = random.choice(sites_0)
-
-            # Validate the new site.
-            if site_1 < 0 or site_1 > 2 or site_1 == site_0:
-                raise ValueError(f"The extra site must be 0, 1 or 2 and cannot be the same as site0."
-                                 f"site_0: {site_0}, site_1: {site_1}")
-
-            # Conditions for desorption.
-            cond_0 = self.configuration_list[site_0] == "CO" and self.configuration_list[site_1] == "O"
-            cond_0 = cond_0 or self.configuration_list[site_0] == "O" and self.configuration_list[site_1] == "CO"
-
-            # Desorb if possible.
-            if cond_0:
-                self.configuration_list[site_0] = "E"
-                self.configuration_list[site_1] = "E"
-
-            return
+        for i in range(len(self)):
+            particle = self.lattice[i]
+            self.statistics[i][particle] += 1
 
     # --------------------------------------------------------------------------
-    # Random Functions.
+    # Update Methods.
     # --------------------------------------------------------------------------
 
-    def choose_random_site(self):
-        """
-            Chooses an integer between 0 and 2.
-
-            :return: An integer number between 0 and 2.
-        """
-        import random
-
-        return random.choice([int(x) for x in range(3)])
-
-    def choose_random_number(self, lower_0, upper_0):
-        """ Gets a random number in the range (lower_0, upper_0)
-
-            :param lower_0: The lower number in the range.
-
-            :param upper_0: The upper number in the range.
-
-            :return random_number: A random number in the range (lower_0, upper_0)
-        """
-        import random
-
-        # Choose a random number that does NOT include either of the ends.
-        range_list = [lower_0, upper_0]
-        random_number = random.uniform(min(range_list), max(range_list))
-        while random_number == lower_0 or random_number == upper_0:
-            random_number = random.uniform(lower_0, upper_0)
-
-        return random_number
-
-    def choose_random_move(self):
-        """ Chooses a random move to be performed.
-        """
-
-        # Choose a random site.
-        site_0 = self.choose_random_site()
-
-        # Choose a random move, i.e., a random rate from the list.
-        rates_0 = self.get_rates()
-        random_number_0 = self.choose_random_number(0, rates_0[-1])
-
-        # Check that everything is consistent.
-        if random_number_0 > rates_0[-1]:
-            raise ValueError(f"The number chosen is greater than that of the total rate; this should not happen.\n"
-                             f"Maximum rate: {rates_0[-1]}, Chosen rate: {random_number_0}.")
-
-        # Choose the move.
-        rate_id_0 = np.inf
-        for i_0, rate_0 in enumerate(rates_0):
-            if random_number_0 < rate_0:
-                rate_id_0 = i_0
-                break
-
-        # --------------------------------------------------------------------------
-        # Perform an adsorption/desorption move.
-        # --------------------------------------------------------------------------
-
-        # Choose the move.
-        if rate_id_0 == 0 or rate_id_0 == 3:  # Adsorption.
-            self.adsorb_desorb_particle(site_0, rate_id_0)
-
-        elif rate_id_0 == 1 or rate_id_0 == 4:  # Desorption.
-            self.adsorb_desorb_particle(site_0, rate_id_0)
-
-        elif rate_id_0 == 2 or rate_id_0 == 5:  # Diffusion.
-            self.move_particle(site_0, rate_id_0)
-
-        elif rate_id_0 == 6:  # CO-O reaction on surface.
-            self.react_particle(site_0, rate_id_0)
-
-        elif rate_id_0 == 7:  # CO-O reaction in gas.
-            self.react_particle(site_0, rate_id_0)
-
-        elif rate_id_0 == 8:  # CO-O reaction anywhere.
-            self.react_particle(site_0, rate_id_0)
-
-        else:
-            raise ValueError(f"The chosen rate must be between 0 and 8. Current rate_id: {rate_id_0}")
-
-    def choose_time_increment(self):
-        """ Increases the elapsed time by a random amount.
-        """
-        self.elapsed_time = self.elapsed_time - np.log(self.choose_random_number(0, 1)) / (3 * self.get_rates()[-1])
+    def update_counters(self) -> None:
+        """ Updates the steps and time counters.
+        """""
+        self.counter_steps += 1
+        self.counter_time -= numpy.log(self.get_float(1.0)) / self.rates[-1]
 
     # --------------------------------------------------------------------------
-    # Run a simulation.
+    # Validate methods.
     # --------------------------------------------------------------------------
 
-    def run_simulation(self, details=False):
-        """ Run the simulation.
+    def validate_in_lattice(self, site: int) -> bool:
+        """ Validates if the given site is in the lattice.
 
-            :param details: If details of the simulation must be printed.
+            :param site: The site to be validated.
+
+            :return: True, if the site is in the lattice. False otherwise.
         """
-
-        # Do it for the given number of steps.
-        for i in range(self.steps_number):
-
-            # Print the details if needed.
-            if details:
-                print(f"Running simulation {i + 1} of {self.steps_number}")
-
-            # Reset the elapsed time.
-            self.elapsed_time = 0.0
-
-            # Reset the state list.
-            self.configuration_list = ["E" for _ in range(3)]
-
-            # Time must increment at least once before the simulation begins.
-            self.choose_time_increment()
-
-            # While the elapsed time is less than the maximum time.
-            while self.elapsed_time < self.maximum_time:
-                # Perform a random move.
-                self.choose_random_move()
-
-                # Increment the time.
-                self.choose_time_increment()
-
-            # Take the statistics.
-            for i in range(3):
-                self.final_state_count[i][self.configuration_list[i]] += 1
-
-        # Take the statistics.
-        for i in range(3):
-            for particle in ["E", "O", "CO"]:
-                self.final_state_count[i][particle] /= self.steps_number
-
-    # --------------------------------------------------------------------------
-    # Save state functions.
-    # --------------------------------------------------------------------------
-
-    def save_to_file(self, name="results", append_to_file=True):
-        """ Saves the resulst to a text file in the current directory.
-
-            :param name: The name of the file without the extension. That by
-            default is results.
-
-            :param append_to_file: If the results should be appended to the
-            file instead of written to a different file.
-        """
-
-        # Set the base name for the file.
-        base_name0 = COOxidationKMC.CURRENT_DIRECTORY + os.sep + name + str(0) + ".txt"
-
-        # Don't overwrite the file.
-        i = 0
-        while os.path.isfile(base_name0) and not append_to_file:
-            base_name0 = COOxidationKMC.CURRENT_DIRECTORY + os.sep + name + str(i) + ".txt"
-            i += 1
-
-        # Set the correct mode
-        writing_mode = "a" if append_to_file else "w"
-
-        # Save or append to the file.
-        with open(base_name0, writing_mode) as fl:
-
-            # Simulation data.
-            sim_data = f"Steps: {self.steps_number}, Maximum Time: {self.maximum_time}\n"
-            fl.writelines(sim_data)
-
-            # Make a table (to read as a Pandas data frame).
-            columns = ["Site", "P(E)", "P(O)", "P(CO)"]
-            fl.write("\t".join(columns) + "\n")
-
-            # Gather the results and print them.
-            for i in range(3):
-                sim_data = [f"{i + 1: 2d}"]
-                sim_data += [f"{self.final_state_count[i][j]: .7f}" for j in ["E", "O", "CO"]]
-                fl.write("\t".join(sim_data) + "\n")
-
-    # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-    # Private Interface.
-    # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+        return 0 <= site < len(self)
 
     # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
     # Constructor and Dunder Methods.
@@ -591,91 +358,31 @@ class COOxidationKMC:
     # Constructor.
     # --------------------------------------------------------------------------
 
-    def __init__(self, steps_number, maximum_time):
+    def __init__(self, parameters: COOxidationKMCParameters):
         """ Constructs a kinetic Monte Carlo simulation for CO oxidation. All
             variables are initially set to a default value.
+
+            :param parameters: The parameters of the simulation.
         """
 
-        # The configuration array will always be set to the standard.
-        self.configuration_list = ["E", "E", "E"]
+        self.lattice = ["E" for _ in range(parameters.length)]
+        self.statistics = [{"E": 0, "O": 0, "CO": 0} for _ in range(len(self))]
+        self.rates = COOxidationKMC.get_rates()
 
-        # Always set the elapsed time to zero.
-        self.elapsed_time = np.double(0.0)
+        self.counter_steps = 0
+        self.counter_time = 0.0
+        self.counter_maximum = parameters.maximum_counter
 
-        # A dictionary with the particle types and their final count.
-        self.final_state_count = [{"E": 0, "O": 0, "CO": 0} for _ in range(3)]
+        self.seed = parameters.seed
+        self.generator = numpy.random.default_rng(self.seed)
 
-        # Set the number of steps.
-        self.steps_number = steps_number
+    # --------------------------------------------------------------------------
+    # Dunder Methods.
+    # --------------------------------------------------------------------------
 
-        # Maximum time, i.e., time to run the simulation.
-        self.maximum_time = maximum_time
+    def __len__(self):
+        """ Returns the length of the lattice.
 
-
-
-if __name__ == "__main__":
-    """
-        Explanation:
-        
-        To determine the probability of finding a specific particle at a site
-        [1 - 3] after a given time t (provided by the user), where t is given in
-        units of 1/k; k is the total rate of the system.
-        
-        To determine the probabilities, an ensemble average is taken over a
-        given number of simulations (provided by the user). Notice that to get
-        good statistics we must average over a large number of simulations, with
-        the caveat that the more simulations we make to get this average, the
-        more time it will take, i.e., we must sacrifice either time or accuracy,
-        or find a satisfactory balance.
-    """
-
-    """
-        Instructions:
-        
-        To run this code, you will need Python 3.8 or above and the numpy
-        package. The other packages already come with the basic Python
-        installation.
-    
-            * Rates for the different processes must be provided.
-                - In the code, look for the get_rates(self) function.
-                
-                - In the place where the rates are specified, change the
-                ones (1) by the corresponding rates. DO NOT touch the
-                pre-factors, i.e, the twos (2).
-            
-            * Use the functions below to run a simulation. You might want to use
-            a loop to run several simulations at a time. I am thinking of adding
-            parallel processing capabilities (not worth it at this time).
-    """
-
-    # Create a simulation with parameters:
-    #   * n_steps: The number of steps from which to take statistics.
-    #
-    #   * maximum_simulation_time: The time, in simulation units, for which the
-    #   system runs.
-
-    n_steps = 10_000
-    maximum_simulation_time = 89
-
-    simulation = COOxidationKMC(10_000, 89)
-
-    # Run the simulation:
-    #   * simulation_details: True, if details about the progress of the
-    #   simulation should be provided, otherwise False.
-    simulation_details = False
-
-    simulation.run_simulation(simulation_details)
-
-    # Saves the data gathered by the simulation:
-    #   * append_to_file: True, if the data is to be appended to an existing
-    #   file; if the file does not exist, a new one will be created. False, if
-    #   a new file should be created for the current run; in the case the file
-    #   already exists, it will create a numbered version of the file.
-    #
-    #   * results_file_name: Name of the file that will store the results. You
-    #   can choose not to provide one (delete the parameter from the function)
-    #   and it will use the default.
-    file_name = "results_file"
-    append_to_file_0 = True
-
-    simulation.save_to_file(name=file_name, append_to_file=append_to_file_0)
+            :return: The length of the lattice.
+        """
+        return len(self.lattice)

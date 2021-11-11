@@ -85,11 +85,12 @@ class Formatter(ABC):
         """
 
         keys = ["constraints", "equations", "initial conditions", "rate values", "raw states"]
-        return ""
+        return str(keys)
 
     @staticmethod
     @abstractmethod
-    def format_initial_condition(state: tuple, time: Union[float, int, str] = 0.0, value: Union[float, int, str] = 0.0) -> str:
+    def format_initial_condition(state: tuple, time: Union[float, int, str] = 0.0,
+                                 value: Union[float, int, str] = 0.0) -> str:
         """ Gets the string that represents a state equal to a given initial
             condition that, by default, is set to zero.
 
@@ -154,12 +155,12 @@ class Formatter(ABC):
 
         # The dictionary of the possible features to format.
         formatter_functions = {
-            "constraint": Formatter._format_constraint,
-            "equation": Formatter._format_equation,
-            "final": Formatter._format_final,
-            "initial condition": Formatter._format_initial_condition,
-            "rate": Formatter._format_rate,
-            "state": Formatter._format_state
+            "constraint": Formatter.format_constraint,
+            "equation": Formatter.format_equation,
+            "final": Formatter.format_final,
+            "initial condition": Formatter.format_initial_condition,
+            "rate": Formatter.format_rate,
+            "state": Formatter.format_state
         }
 
         return formatter_functions
