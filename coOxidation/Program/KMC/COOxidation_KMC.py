@@ -5,7 +5,11 @@
 # ------------------------------------------------------------------------------
 
 # Imports: General.
+import copy
+import datetime
 import numpy
+
+from datetime import datetime
 
 # Imports: User-defined.
 from coOxidation.Program.KMC.COOxidation_parameters import COOxidationKMCParameters
@@ -30,8 +34,8 @@ class COOxidationKMC:
 
             :return: The id of the process to be executed.
         """
-        random, id_ = self.get_float(self.rates[-1]), numpy.inf
-        for i, rate in enumerate(self.rates):
+        random, id_ = self.get_float(self.rates_cumulative[-1]), numpy.inf
+        for i, rate in enumerate(self.rates_cumulative):
             if random < rate:
                 return i
 
@@ -67,6 +71,46 @@ class COOxidationKMC:
         raise ValueError(f"The selected rate must be between 0 and 7. Selected process: {process_id}")
 
     # --------------------------------------------------------------------------
+    # Format Methods.
+    # --------------------------------------------------------------------------
+
+    def format_columns(self) -> str:
+        """ Gets the columns information."""
+
+        str0 = [
+            "Site\\Probability of,E,'O',CO"
+        ]
+        statiscs = copy.deepcopy(self.statistics)
+        for i in range(len(self)):
+            line = [
+                f"{i + 1}",
+                *list(f"{statiscs[i][key]:.7f}" for key in ['E', 'O', 'CO'])
+            ]
+            str0.append(",".join(line))
+
+        return "\n".join(str0)
+
+    def format_header(self) -> str:
+        """ Gets the main information of the simulation."""
+
+        time_stamp = datetime.now().strftime("20%y-%m-%d--%H-%M-%S")
+        counter_type = "Steps" if isinstance(self.counter_maximum, (int,)) else "Time"
+        rates_strings = ",".join([f"{key} = {self.rates[key]:f}" for key in self.rates.keys()])
+
+        str0 = [
+            "CO Oxidation on Ru(111)",
+            f"date--time = {time_stamp}",
+            f"Repetitions = {self.repetitions}",
+            f"Simulation Steps = {self.counter_steps}",
+            f"Simulation Time = {self.counter_time}",
+            f"Maximum {counter_type} Counter = {self.counter_maximum}",
+            f"Generator Seed = {self.seed}",
+            rates_strings
+        ]
+
+        return ",".join(str0)
+
+    # --------------------------------------------------------------------------
     # Get Methods.
     # --------------------------------------------------------------------------
 
@@ -87,23 +131,13 @@ class COOxidationKMC:
 
         return number * base
 
-    @staticmethod
-    def get_rates() -> tuple:
+    def get_rates(self) -> tuple:
         """ Gets the rates of the system. More rates can be added if needed.
 
             :return: The cumulative rates of the system.
         """
 
-        rates = (
-            2 * 1.0,  # Oxygen adsorption rate.
-            2 * 1.0,  # Oxygen desorption rate.
-            2 * 1.0,  # Oxygen diffusion rate.
-            1 * 1.0,  # Carbon monoxide adsorption rate.
-            1 * 1.0,  # Carbon monoxide desorption rate.
-            2 * 1.0,  # Carbon monoxide diffusion rate.
-            2 * 1.0,  # Langmuir-Hinshelwood reaction rate.
-            1 * 1.0,  # Elay-Rideal reaction rate.
-        )
+        rates = [self.rates[key] for key in self.rates.keys()]
         rates = tuple(sum(rates[0:i + 1]) for i, _ in enumerate(rates))
         return rates
 
@@ -258,12 +292,8 @@ class COOxidationKMC:
     # Run Methods.
     # --------------------------------------------------------------------------
 
-    def run_simulation(self, repetitions: int = 1) -> None:
-        """ Run the simulation.
-
-            :param repetitions: The number of times the simulation must be
-             run, for statistics purposes.
-        """
+    def run_simulation(self) -> None:
+        """ Run the simulation."""
 
         # //////////////////////////////////////////////////////////////////////
         # Auxiliary functions.
@@ -276,7 +306,7 @@ class COOxidationKMC:
                 :return:
             """
 
-            if isinstance(self.counter_maximum, (float,)) and self.counter_time <= self.counter_maximum:
+            if isinstance(self.counter_maximum, (float,)) and self.counter_time < self.counter_maximum:
                 return True
 
             if isinstance(self.counter_maximum, (int,)) and self.counter_steps <= self.counter_maximum:
@@ -290,22 +320,35 @@ class COOxidationKMC:
 
         self.reset_simulation(completely=True)
 
-        for _ in range(repetitions):
+        for _ in range(self.repetitions):
             self.reset_simulation(completely=False)
 
             while True:
                 self.update_counters()
                 if not must_continue():
-                    continue
+                    break
 
                 self.choose_move()
-                self.statistics_record()
+            self.statistics_record()
 
-        self.statistics_record(repetitions=repetitions, normalize=True)
+        self.statistics_record(repetitions=self.repetitions, normalize=True)
 
     # --------------------------------------------------------------------------
     # Statistics Methods.
     # --------------------------------------------------------------------------
+
+    def statistics_save(self, file_name: str, mode: str = 'w') -> None:
+        """ Saves the final statistics to the given file.
+
+            :param file_name: The name of the file where the results must be
+             saved.
+
+            :param mode: The saving mode; i.e., write, append, etc.
+        """
+
+        str_ = "\n".join([self.format_header(), self.format_columns(), "-" * 80, ""])
+        with open(file_name, mode) as fl:
+            fl.write(str_)
 
     def statistics_record(self, repetitions: int = 1, normalize: bool = False) -> None:
         """ Records the statistics for the process.
@@ -350,7 +393,7 @@ class COOxidationKMC:
         """ Updates the steps and time counters.
         """""
         self.counter_steps += 1
-        self.counter_time -= numpy.log(self.get_float(1.0)) / self.rates[-1]
+        self.counter_time -= numpy.log(self.get_float(1.0)) / self.rates_cumulative[-1]
 
     # --------------------------------------------------------------------------
     # Validate methods.
@@ -398,11 +441,13 @@ class COOxidationKMC:
 
         self.lattice = ["E" for _ in range(parameters.length)]
         self.statistics = [{"E": 0, "O": 0, "CO": 0} for _ in range(len(self))]
-        self.rates = COOxidationKMC.get_rates()
+        self.rates = parameters.rates
+        self.rates_cumulative = self.get_rates()
 
         self.counter_steps = 0
         self.counter_time = 0.0
         self.counter_maximum = parameters.maximum_counter
+        self.repetitions = parameters.repetitions
 
         self.seed = parameters.seed
         self.generator = numpy.random.default_rng(self.seed)

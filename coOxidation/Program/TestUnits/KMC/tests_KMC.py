@@ -116,11 +116,11 @@ class TestCOOxidationKMC(unittest.TestCase):
         length = 10
         simulation, parameters = self.get_simulation(length=length)
 
-        for i, rate in enumerate(simulation.rates):
+        for i, rate in enumerate(simulation.rates_cumulative):
             if i == 0:
                 self.assertGreaterEqual(rate, 0.0)
                 continue
-            self.assertLessEqual(simulation.rates[i - 1], rate)
+            self.assertLessEqual(simulation.rates_cumulative[i - 1], rate)
 
     def test_get_sites(self):
         """ Tests that the get sites method is working properly."""
@@ -472,6 +472,36 @@ class TestCOOxidationKMC(unittest.TestCase):
                 self.validate_states(lattice, (*state[:2], 'E'))
             else:
                 self.validate_states(lattice, state)
+
+    def test_statistics_record(self):
+        """ Tests that updating the statistics is working. """
+
+        simulation, parameters = self.get_simulation()
+        for i in range(len(simulation)):
+            self.assertEqual(simulation.lattice[i], "E")
+
+        simulation.statistics_record()
+        for i in range(len(simulation)):
+            self.assertEqual(simulation.statistics[i]['E'], 1)
+
+        simulation.lattice[1] = 'CO'
+        simulation.statistics_record()
+        for i in range(len(simulation)):
+            if not i == 1:
+                self.assertEqual(simulation.statistics[i]['E'], 2)
+                continue
+            self.assertEqual(simulation.statistics[i]['E'], 1)
+            self.assertEqual(simulation.statistics[i]['CO'], 1)
+
+        simulation.lattice[1] = 'O'
+        simulation.statistics_record()
+        for i in range(len(simulation)):
+            if not i == 1:
+                self.assertEqual(simulation.statistics[i]['E'], 3)
+                continue
+            self.assertEqual(simulation.statistics[i]['E'], 1)
+            self.assertEqual(simulation.statistics[i]['CO'], 1)
+            self.assertEqual(simulation.statistics[i]['O'], 1)
 
     def test_update_counters(self):
         """  Tests that the site validation method is working."""

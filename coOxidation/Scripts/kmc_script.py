@@ -1,14 +1,19 @@
-import numpy
+import os.path
 
 from coOxidation.Program.KMC.COOxidation_parameters import COOxidationKMCParameters
 from coOxidation.Program.KMC.COOxidation_KMC import COOxidationKMC
 
+from coOxidation.Program.Utilities.context_managers import WorkingDirectorySet
+
 if __name__ == "__main__":
 
-    parameters = COOxidationKMCParameters()
-    parameters.length = 3
-    parameters.maximum_counter = 9
+    with WorkingDirectorySet(os.path.dirname(__file__)) as fl:
+        parameters = COOxidationKMCParameters()
+        parameters.length = 3
+        parameters.maximum_counter = 0.5
+        parameters.repetitions = 100_001
 
-    simulation = COOxidationKMC(parameters)
-    simulation.reset_simulation(6.0)
+        simulation = COOxidationKMC(parameters)
+        simulation.run_simulation()
+        simulation.statistics_save("results.txt")
 
