@@ -138,6 +138,8 @@ class COOxidationKMC:
             :param process_id: The id of the process.
         """
 
+        COOxidationKMC.validate_process(process_id, (0, 3))
+
         if not self.lattice[sites[0]] == 'E':
             return
 
@@ -148,7 +150,9 @@ class COOxidationKMC:
             self.lattice[sites[0]], self.lattice[sites[1]] = 'O', 'O'
             return
 
-        self.lattice[sites[0]] = 'CO'
+        else:
+            self.lattice[sites[0]] = 'CO'
+            return
 
     def process_desorb(self, sites: list, process_id: int) -> None:
         """ Tries to desorb a carbon monoxide molecule or an oxygen pair.
@@ -159,6 +163,8 @@ class COOxidationKMC:
 
             :param process_id: The id of the process.
         """
+
+        COOxidationKMC.validate_process(process_id, (1, 4))
 
         if self.lattice[sites[0]] == 'E':
             return
@@ -173,7 +179,9 @@ class COOxidationKMC:
             self.lattice[sites[0]], self.lattice[sites[1]] = 'E', 'E'
             return
 
-        self.lattice[sites[0]] = 'E' if self.lattice[sites[0]] == 'CO' else self.lattice[sites[0]]
+        else:
+            self.lattice[sites[0]] = 'E' if self.lattice[sites[0]] == 'CO' else self.lattice[sites[0]]
+            return
 
     def process_diffusion(self, sites: list, process_id: int) -> None:
         """ Tries to diffuse a carbon monoxide molecule or an oxygen atom.
@@ -184,6 +192,8 @@ class COOxidationKMC:
 
             :param process_id: The id of the process.
         """
+
+        COOxidationKMC.validate_process(process_id, (2, 5))
 
         if self.lattice[sites[0]] == 'E':
             return
@@ -205,6 +215,8 @@ class COOxidationKMC:
             :param process_id: The id of the process.
         """
 
+        COOxidationKMC.validate_process(process_id, (6, 7))
+
         if self.lattice[sites[0]] == 'E':
             return
 
@@ -213,13 +225,16 @@ class COOxidationKMC:
                 self.lattice[sites[0]] = 'E'
             return
 
-        if not self.validate_in_lattice(sites[1]):
-            return
+        else:
+            if not self.validate_in_lattice(sites[1]):
+                return
 
-        states = ['CO', 'O']
-        states.remove(self.lattice[sites[0]])
-        if self.lattice[sites[1]] == states[0]:
-            self.lattice[sites[0]],  self.lattice[sites[1]] = 'E',  'E'
+            states = ['CO', 'O']
+            states.remove(self.lattice[sites[0]])
+            if self.lattice[sites[1]] == states[0]:
+                self.lattice[sites[0]],  self.lattice[sites[1]] = 'E',  'E'
+
+            return
 
     # --------------------------------------------------------------------------
     # Reset Methods.
@@ -349,6 +364,22 @@ class COOxidationKMC:
             :return: True, if the site is in the lattice. False otherwise.
         """
         return 0 <= site < len(self)
+
+    @staticmethod
+    def validate_process(process_id: int, processes: tuple) -> None:
+        """ Validates that the given process is in the list of available
+            processes.
+
+            :param process_id: The process identifier to be validated.
+
+            :param processes: The list of valid process identifiers.
+        """
+
+        if process_id not in processes:
+            raise ValueError(
+                f"The desired process is not valid. Process: {process_id}, "
+                f"available processes: {processes}."
+            )
 
     # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
     # Constructor and Dunder Methods.

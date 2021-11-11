@@ -1,13 +1,13 @@
-from coOxidation.Program.Analytic.equation_generator import EquationGenerator
+from itertools import product
+
 
 if __name__ == "__main__":
     # Set a fictitious state.
-    states = [
-        (("CO", 1), ("CO", 2), ("CO", 3),),
-        (("CO", 1), ("CO", 2), ("E", 3),),
-        (("CO", 1), ("CO", 2), ("O", 3), )
-    ]
+    states = ['CO', 'O', 'E']
 
-    print(EquationGenerator(3).get_nth_order_equations(True))
+    states = product(*([states] * 3))
+
+    for i, state in enumerate(states):
+        print(i + 1, ". ", state)
 
     # TODO: CONTINUE IN THE equation_generator.py FILE.

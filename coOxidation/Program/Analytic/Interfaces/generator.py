@@ -296,7 +296,10 @@ class Generator(ABC):
         decay_states = {}
         keys = operations.keys()
 
+        # ----------------------------------------------------------------------
         # Get the decay states.
+        # ----------------------------------------------------------------------
+
         for key in keys:
             decay_states[key] = operations[key](state)
 

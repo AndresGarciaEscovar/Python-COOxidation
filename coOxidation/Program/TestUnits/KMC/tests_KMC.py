@@ -169,90 +169,63 @@ class TestCOOxidationKMC(unittest.TestCase):
 
         simulation, parameters = TestCOOxidationKMC.get_simulation()
         lattice = simulation.lattice
-        states0 = ['CO', 'E', 'O']
-        states1 = ['CO', 'O']
-        states2 = ['O', 'CO']
+        base_states = ['CO', 'O', 'E']
+        states = list(product(*([base_states] * 3)))
 
-        # Desorption of Oxygen.
-        sites_list = [[0, 1], [1, 0]]
-        for sites in sites_list:
-            for particle in states0:
-                empty_lattice(lattice, ('E', 'E', particle))
-                simulation.process_adsorb(sites, 0)
-                self.validate_states(lattice, ('O', 'O', particle))
+        # Oxygen adsorption.
+        states_ = [('E', 'E', particle) for particle in base_states]
+        for site in [[1, 0], [0, 1]]:
+            for state in states:
+                empty_lattice(lattice, state)
+                simulation.process_adsorb(site, 0)
+                if state in states_:
+                    self.validate_states(lattice, ('O', 'O', state[2]))
+                else:
+                    self.validate_states(lattice, state)
 
-            for particle in states0:
-                for particle1 in states1:
-                    empty_lattice(lattice, ('E', particle1, particle))
-                    simulation.process_adsorb(sites, 0)
-                    self.validate_states(lattice, ('E', particle1, particle))
+        states_ = [(particle, 'E', 'E') for particle in base_states]
+        for site in [[1, 2], [2, 1]]:
+            for state in states:
+                empty_lattice(lattice, state)
+                simulation.process_adsorb(site, 0)
+                if state in states_:
+                    self.validate_states(lattice, (state[0], 'O', 'O'))
+                else:
+                    self.validate_states(lattice, state)
 
-                for particle1 in states1:
-                    empty_lattice(lattice, (particle1, 'E', particle))
-                    simulation.process_adsorb(sites, 0)
-                    self.validate_states(lattice, (particle1, 'E', particle))
+        # Carbon monoxide adsorption.
+        states_ = [('E', *particle) for particle in product(*([base_states] * 2))]
+        site = [0]
+        for state in states:
+            empty_lattice(lattice, state)
+            simulation.process_adsorb(site, 3)
+            if state in states_:
+                self.validate_states(lattice, ('CO', *state[1:]))
+            else:
+                self.validate_states(lattice, state)
 
-                for particle1, particle2 in product(states1, states1):
-                    empty_lattice(lattice, (particle1, particle2, particle))
-                    simulation.process_adsorb(sites, 0)
-                    self.validate_states(lattice, (particle1, particle2, particle))
+        states_ = [(particle[0], 'E', particle[1]) for particle in product(*([base_states] * 2))]
+        site = [1]
+        for state in states:
+            empty_lattice(lattice, state)
+            simulation.process_adsorb(site, 3)
+            if state in states_:
+                self.validate_states(lattice, (state[0], 'CO', state[2]))
+            else:
+                self.validate_states(lattice, state)
 
-        sites_list = [[1, 2], [2, 1]]
-        for sites in sites_list:
-            for particle in states0:
-                empty_lattice(lattice, (particle, 'E', 'E'))
-                simulation.process_adsorb(sites, 0)
-                self.validate_states(lattice, (particle, 'O', 'O'))
-
-            for particle in states0:
-                for particle1 in states1:
-                    empty_lattice(lattice, (particle, 'E', particle1))
-                    simulation.process_adsorb(sites, 0)
-                    self.validate_states(lattice, (particle, 'E', particle1))
-
-                for particle1 in states1:
-                    empty_lattice(lattice, (particle, particle1, 'E'))
-                    simulation.process_adsorb(sites, 0)
-                    self.validate_states(lattice, (particle, particle1, 'E'))
-
-                for particle1, particle2 in product(states1, states1):
-                    empty_lattice(lattice, (particle, particle1, particle2))
-                    simulation.process_adsorb(sites, 0)
-                    self.validate_states(lattice, (particle, particle1, particle2))
-
-        # Desorption of CO.
-        sites = [0]
-        for particle1, particle2 in product(states0, states0):
-            empty_lattice(lattice, ('E', particle1, particle2))
-            simulation.process_adsorb(sites, 3)
-            self.validate_states(lattice, ('CO', particle1, particle2))
-            for particle3 in states2:
-                empty_lattice(lattice, (particle3, particle1, particle2))
-                simulation.process_adsorb(sites, 3)
-                self.validate_states(lattice, (particle3, particle1, particle2))
-
-        sites = [1]
-        for particle1, particle2 in product(states0, states0):
-            empty_lattice(lattice, (particle1, 'E', particle2))
-            simulation.process_adsorb(sites, 3)
-            self.validate_states(lattice, (particle1, 'CO', particle2))
-            for particle3 in states2:
-                empty_lattice(lattice, (particle1, particle3, particle2))
-                simulation.process_adsorb(sites, 3)
-                self.validate_states(lattice, (particle1, particle3, particle2))
-
-        sites = [2]
-        for particle1, particle2 in product(states0, states0):
-            empty_lattice(lattice, (particle1, particle2, 'E'))
-            simulation.process_adsorb(sites, 3)
-            self.validate_states(lattice, (particle1, particle2, 'CO'))
-            for particle3 in states2:
-                empty_lattice(lattice, (particle1, particle2, particle3))
-                simulation.process_adsorb(sites, 3)
-                self.validate_states(lattice, (particle1, particle2, particle3))
+        states_ = [(*particle, 'E') for particle in product(*([base_states] * 2))]
+        site = [2]
+        for state in states:
+            empty_lattice(lattice, state)
+            simulation.process_adsorb(site, 3)
+            if state in states_:
+                self.validate_states(lattice, (*state[:-1], 'CO'))
+            else:
+                self.validate_states(lattice, state)
 
     def test_process_desorb(self):
-        """ Tests that the adsorb processes are consistently carried out."""
+        """ Tests that the desorb processes are consistently carried out."""
 
         # //////////////////////////////////////////////////////////////////////
         # Auxiliary functions.
@@ -282,87 +255,223 @@ class TestCOOxidationKMC(unittest.TestCase):
 
         simulation, parameters = TestCOOxidationKMC.get_simulation()
         lattice = simulation.lattice
-        states0 = ['CO', 'E', 'O']
-        states1 = ['CO', 'E']
-        states2 = ['O', 'E']
+        base_states = ['CO', 'O', 'E']
+        states = list(product(*([base_states] * 3)))
 
-        # Desorption of Oxygen.
-        sites_list = [[0, 1], [1, 0]]
-        for sites in sites_list:
-            for particle in states0:
-                empty_lattice(lattice, ('O', 'O', particle))
-                simulation.process_desorb(sites, 1)
-                self.validate_states(lattice, ('E', 'E', particle))
+        # Oxygen desorption.
+        states_ = [('O', 'O', particle) for particle in base_states]
+        for site in [[1, 0], [0, 1]]:
+            for state in states:
+                empty_lattice(lattice, state)
+                simulation.process_desorb(site, 1)
+                if state in states_:
+                    self.validate_states(lattice, ('E', 'E', state[2]))
+                else:
+                    self.validate_states(lattice, state)
 
-            for particle in states0:
-                for particle1 in states1:
-                    empty_lattice(lattice, ('O', particle1, particle))
-                    simulation.process_desorb(sites, 1)
-                    self.validate_states(lattice, ('O', particle1, particle))
+        states_ = [(particle, 'O', 'O') for particle in base_states]
+        for site in [[1, 2], [2, 1]]:
+            for state in states:
+                empty_lattice(lattice, state)
+                simulation.process_desorb(site, 1)
+                if state in states_:
+                    self.validate_states(lattice, (state[0], 'E', 'E'))
+                else:
+                    self.validate_states(lattice, state)
 
-                for particle1 in states1:
-                    empty_lattice(lattice, (particle1, 'O', particle))
-                    simulation.process_desorb(sites, 1)
-                    self.validate_states(lattice, (particle1, 'O', particle))
+        # Carbon monoxide desorption.
+        states_ = [('CO', *particle) for particle in product(*([base_states] * 2))]
+        site = [0]
+        for state in states:
+            empty_lattice(lattice, state)
+            simulation.process_desorb(site, 4)
+            if state in states_:
+                self.validate_states(lattice, ('E', *state[1:]))
+            else:
+                self.validate_states(lattice, state)
 
-                for particle1, particle2 in product(states1, states1):
-                    empty_lattice(lattice, (particle1, particle2, particle))
-                    simulation.process_desorb(sites, 1)
-                    self.validate_states(lattice, (particle1, particle2, particle))
+        states_ = [(particle[0], 'CO', particle[1]) for particle in product(*([base_states] * 2))]
+        site = [1]
+        for state in states:
+            empty_lattice(lattice, state)
+            simulation.process_desorb(site, 4)
+            if state in states_:
+                self.validate_states(lattice, (state[0], 'E', state[2]))
+            else:
+                self.validate_states(lattice, state)
 
-        sites_list = [[1, 2], [2, 1]]
-        for sites in sites_list:
-            for particle in states0:
-                empty_lattice(lattice, (particle, 'O', 'O'))
-                simulation.process_desorb(sites, 1)
-                self.validate_states(lattice, (particle, 'E', 'E'))
+        states_ = [(*particle, 'CO') for particle in product(*([base_states] * 2))]
+        site = [2]
+        for state in states:
+            empty_lattice(lattice, state)
+            simulation.process_desorb(site, 4)
+            if state in states_:
+                self.validate_states(lattice, (*state[:-1], 'E'))
+            else:
+                self.validate_states(lattice, state)
 
-            for particle in states0:
-                for particle1 in states1:
-                    empty_lattice(lattice, (particle, 'O', particle1))
-                    simulation.process_desorb(sites, 1)
-                    self.validate_states(lattice, (particle, 'O', particle1))
+    def test_process_diffusion(self):
+        """ Tests that the diffusion processes are consistently carried out."""
 
-                for particle1 in states1:
-                    empty_lattice(lattice, (particle, particle1, 'O'))
-                    simulation.process_desorb(sites, 1)
-                    self.validate_states(lattice, (particle, particle1, 'O'))
+        # //////////////////////////////////////////////////////////////////////
+        # Auxiliary functions.
+        # //////////////////////////////////////////////////////////////////////
 
-                for particle1, particle2 in product(states1, states1):
-                    empty_lattice(lattice, (particle, particle1, particle2))
-                    simulation.process_desorb(sites, 1)
-                    self.validate_states(lattice, (particle, particle1, particle2))
+        def empty_lattice(lattice0: list, state0: tuple = tuple()) -> None:
+            """ Sets the lattice to the given state. If the state is empty, the
+                lattice will be emptied.
 
-        # Desorption of CO.
-        sites = [0]
-        for particle1, particle2 in product(states0, states0):
-            empty_lattice(lattice, ('CO', particle1, particle2))
-            simulation.process_desorb(sites, 4)
-            self.validate_states(lattice, ('E', particle1, particle2))
-            for particle3 in states2:
-                empty_lattice(lattice, (particle3, particle1, particle2))
-                simulation.process_desorb(sites, 4)
-                self.validate_states(lattice, (particle3, particle1, particle2))
+                :param lattice0: The lattice whose state is to be set.
 
-        sites = [1]
-        for particle1, particle2 in product(states0, states0):
-            empty_lattice(lattice, (particle1, 'CO', particle2))
-            simulation.process_desorb(sites, 4)
-            self.validate_states(lattice, (particle1, 'E', particle2))
-            for particle3 in states2:
-                empty_lattice(lattice, (particle1, particle3, particle2))
-                simulation.process_desorb(sites, 4)
-                self.validate_states(lattice, (particle1, particle3, particle2))
+                :param state0: The state to which the respective lattice
+                 components must be set. Must match the dimensions.
+            """
 
-        sites = [2]
-        for particle1, particle2 in product(states0, states0):
-            empty_lattice(lattice, (particle1, particle2, 'CO'))
-            simulation.process_desorb(sites, 4)
-            self.validate_states(lattice, (particle1, particle2, 'E'))
-            for particle3 in states2:
-                empty_lattice(lattice, (particle1, particle2, particle3))
-                simulation.process_desorb(sites, 4)
-                self.validate_states(lattice, (particle1, particle2, particle3))
+            if state0 == tuple():
+                for i in range(len(lattice0)):
+                    lattice0[i] = 'E'
+                return
+
+            for i, state0_ in enumerate(state0):
+                lattice0[i] = state0_
+
+        # //////////////////////////////////////////////////////////////////////
+        # Implementation.
+        # //////////////////////////////////////////////////////////////////////
+
+        simulation, parameters = TestCOOxidationKMC.get_simulation()
+        lattice = simulation.lattice
+        base_states = ['CO', 'O', 'E']
+        states = list(product(*([base_states] * 3)))
+
+        for particle in [('O', 2), ('CO', 5)]:
+            states_ = [(particle[0], 'E', particle_) for particle_ in base_states]
+            site = [0, 1]
+            for state in states:
+                empty_lattice(lattice, state)
+                simulation.process_diffusion(site, particle[1])
+                if state in states_:
+                    self.validate_states(lattice, ('E', particle[0], state[2]))
+                else:
+                    self.validate_states(lattice, state)
+
+            states_ = [('E', particle[0], particle_) for particle_ in base_states]
+            site = [1, 0]
+            for state in states:
+                empty_lattice(lattice, state)
+                simulation.process_diffusion(site, particle[1])
+                if state in states_:
+                    self.validate_states(lattice, (particle[0], 'E', state[2]))
+                else:
+                    self.validate_states(lattice, state)
+
+            states_ = [(particle_, particle[0], 'E') for particle_ in base_states]
+            site = [1, 2]
+            for state in states:
+                empty_lattice(lattice, state)
+                simulation.process_diffusion(site, particle[1])
+                if state in states_:
+                    self.validate_states(lattice, (state[0], 'E', particle[0]))
+                else:
+                    self.validate_states(lattice, state)
+
+            states_ = [(particle_, 'E', particle[0]) for particle_ in base_states]
+            site = [2, 1]
+            for state in states:
+                empty_lattice(lattice, state)
+                simulation.process_diffusion(site, particle[1])
+                if state in states_:
+                    self.validate_states(lattice, (state[0], particle[0], 'E'))
+                else:
+                    self.validate_states(lattice, state)
+
+    def test_process_reaction(self):
+        """ Tests that reactions are properly carried out."""
+
+        # //////////////////////////////////////////////////////////////////////
+        # Auxiliary functions.
+        # //////////////////////////////////////////////////////////////////////
+
+        def empty_lattice(lattice0: list, state0: tuple = tuple()) -> None:
+            """ Sets the lattice to the given state. If the state is empty, the
+                lattice will be emptied.
+
+                :param lattice0: The lattice whose state is to be set.
+
+                :param state0: The state to which the respective lattice
+                 components must be set. Must match the dimensions.
+            """
+
+            if state0 == tuple():
+                for i in range(len(lattice0)):
+                    lattice0[i] = 'E'
+                return
+
+            for i, state0_ in enumerate(state0):
+                lattice0[i] = state0_
+
+        # //////////////////////////////////////////////////////////////////////
+        # Implementation.
+        # //////////////////////////////////////////////////////////////////////
+
+        simulation, parameters = TestCOOxidationKMC.get_simulation()
+        lattice = simulation.lattice
+        base_states = ['CO', 'O', 'E']
+        states = list(product(*([base_states] * 3)))
+
+        # Langmuir-Hinshelwood.
+        states_ = [('O', 'CO', particle) for particle in base_states]
+        states_.extend([('CO', 'O', particle) for particle in base_states])
+        for site in [[1, 0], [0, 1]]:
+            for state in states:
+                empty_lattice(lattice, state)
+                simulation.process_reaction(site, 6)
+                if state in states_:
+                    self.validate_states(lattice, ('E', 'E', state[2]))
+                else:
+                    self.validate_states(lattice, state)
+
+        states_ = [(particle, 'O', 'CO') for particle in base_states]
+        states_.extend([(particle, 'CO', 'O') for particle in base_states])
+        for site in [[1, 2], [2, 1]]:
+            for state in states:
+                empty_lattice(lattice, state)
+                simulation.process_reaction(site, 6)
+                if state in states_:
+                    self.validate_states(lattice, (state[0], 'E', 'E'))
+                else:
+                    self.validate_states(lattice, state)
+
+        # Elay-Rideal.
+        states_ = [('O', particle[0], particle[1]) for particle in product(*([base_states]*2))]
+        site = [0]
+        for state in states:
+            empty_lattice(lattice, state)
+            simulation.process_reaction(site, 7)
+            if state in states_:
+                self.validate_states(lattice, ('E', *state[1:]))
+            else:
+                self.validate_states(lattice, state)
+
+        states_ = [(particle[0], 'O', particle[1]) for particle in product(*([base_states] * 2))]
+        site = [1]
+        for state in states:
+            empty_lattice(lattice, state)
+            simulation.process_reaction(site, 7)
+            if state in states_:
+                self.validate_states(lattice, (state[0], 'E', state[2]))
+            else:
+                self.validate_states(lattice, state)
+
+        states_ = [(*particle, 'O') for particle in product(*([base_states] * 2))]
+        site = [2]
+        for state in states:
+            empty_lattice(lattice, state)
+            simulation.process_reaction(site, 7)
+            if state in states_:
+                self.validate_states(lattice, (*state[:2], 'E'))
+            else:
+                self.validate_states(lattice, state)
 
     def test_update_counters(self):
         """  Tests that the site validation method is working."""
