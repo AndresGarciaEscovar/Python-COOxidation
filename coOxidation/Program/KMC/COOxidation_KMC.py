@@ -6,6 +6,7 @@
 
 # Imports: General.
 import copy
+import csv
 import datetime
 import numpy
 
@@ -20,6 +21,38 @@ from coOxidation.Program.KMC.COOxidation_parameters import COOxidationKMCParamet
 
 
 class COOxidationKMC:
+    """ Class that carries out the simulation.
+
+        Parameters:
+
+        - self.counter_maximum: The maximum time or steps that must be
+          simulated in a single simulation.
+
+        - self.counter_steps: The counter that keeps track of the step progress
+          of a single simulation.
+
+        - self.counter_time: The counter that keeps track of the time progress
+          of a single simulation.
+
+        - self.generator = The specific random number generator from where to
+          get random numbers.
+
+        - self.lattice: A list of strings that denotes the state of the system
+          at a given instant.
+
+        - self.rates = A dictionary with the rates of the system.
+
+        - self.rates_cumulative: The list that contains the cumulative rates of
+          the system, in the specific order given in the
+          COOxidationKMCParameters data class.
+
+        - self.repetitions: The number of simulations over which to average.
+
+        - self.seed = The seed with which to seed the random number generator.
+
+        - self.statistics: A list of dictionaries that contains the statistics
+          of the simulation.
+    """
 
     # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
     # Methods.
@@ -74,28 +107,33 @@ class COOxidationKMC:
     # Format Methods.
     # --------------------------------------------------------------------------
 
-    def format_columns(self) -> str:
-        """ Gets the columns information."""
+    def format_columns(self) -> list:
+        """ Gets the columns information.
 
-        str0 = [
-            "Site\\Probability of,E,'O',CO"
-        ]
+            :return: A list of lists that contains the columns information.
+        """
+
+        str0 = [["Site\\Probability", "E", "O", "CO"]]
+
         statiscs = copy.deepcopy(self.statistics)
         for i in range(len(self)):
             line = [
                 f"{i + 1}",
                 *list(f"{statiscs[i][key]:.7f}" for key in ['E', 'O', 'CO'])
             ]
-            str0.append(",".join(line))
+            str0.append(line)
 
-        return "\n".join(str0)
+        return str0
 
-    def format_header(self) -> str:
-        """ Gets the main information of the simulation."""
+    def format_header(self) -> list:
+        """ Gets the main information of the simulation.
+
+            :return: A list with the information of the simulation.
+        """
 
         time_stamp = datetime.now().strftime("20%y-%m-%d--%H-%M-%S")
         counter_type = "Steps" if isinstance(self.counter_maximum, (int,)) else "Time"
-        rates_strings = ",".join([f"{key} = {self.rates[key]:f}" for key in self.rates.keys()])
+        rates_strings = [f"{key} = {self.rates[key]:f}" for key in self.rates.keys()]
 
         str0 = [
             "CO Oxidation on Ru(111)",
@@ -105,10 +143,10 @@ class COOxidationKMC:
             f"Simulation Time = {self.counter_time}",
             f"Maximum {counter_type} Counter = {self.counter_maximum}",
             f"Generator Seed = {self.seed}",
-            rates_strings
+            *rates_strings
         ]
 
-        return ",".join(str0)
+        return str0
 
     # --------------------------------------------------------------------------
     # Get Methods.
@@ -346,9 +384,12 @@ class COOxidationKMC:
             :param mode: The saving mode; i.e., write, append, etc.
         """
 
-        str_ = "\n".join([self.format_header(), self.format_columns(), "-" * 80, ""])
-        with open(file_name, mode) as fl:
-            fl.write(str_)
+        str_ = [self.format_header(), *self.format_columns(), ["-" * 80]]
+
+        with open(file_name, mode, newline="\n") as fl:
+            writer = csv.writer(fl, delimiter=",")
+            for line in str_:
+                writer.writerow(line)
 
     def statistics_record(self, repetitions: int = 1, normalize: bool = False) -> None:
         """ Records the statistics for the process.
