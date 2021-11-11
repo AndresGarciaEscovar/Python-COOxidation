@@ -7,7 +7,6 @@ from coOxidation.Program.KMC.COOxidation_KMC import COOxidationKMC
 from coOxidation.Program.Utilities.context_managers import WorkingDirectorySet
 
 if __name__ == "__main__":
-
     with WorkingDirectorySet(os.path.dirname(__file__)) as fl:
         parameters = COOxidationKMCParameters()
         parameters.length = 3
