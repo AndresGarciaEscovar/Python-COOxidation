@@ -250,7 +250,7 @@ class Generator(ABC):
         # Set the variables.
         indexes, particles = [], []
         get_particles_and_indexes(states, indexes, particles)
-        particles = np.array(particles)
+        particles = np.array(particles, dtype=object)
 
         # Compare indexes.
         indexes = set(indexes)
