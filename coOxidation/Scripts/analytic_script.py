@@ -18,5 +18,5 @@ if __name__ == "__main__":
     system.order = 2
     system.get_nth_order_equations(display=True)
 
-    # Generate the equations.
+    # Generate the equations for the given format.
     system.save_equations(file_name="tmp", format_type="Mathematica", order=order, save_path=os.path.dirname(__file__))
