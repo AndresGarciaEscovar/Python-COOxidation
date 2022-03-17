@@ -6,7 +6,7 @@ from coOxidation.Program.Analytic.equation_generator import EquationGenerator
 
 if __name__ == "__main__":
     # Define the states and the number of sites.
-    sites_number = 3
+    sites_number = 2
 
     # Define the equation order.
     order = 2
