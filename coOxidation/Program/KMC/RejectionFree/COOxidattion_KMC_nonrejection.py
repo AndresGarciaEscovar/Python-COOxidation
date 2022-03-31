@@ -171,10 +171,10 @@ def action_adsorb(sites0: tuple[int, ...]) -> None:
     # --------------------------------------------------------------------------
 
     # Validate the swap.
-    validate_swap0(sites0)
+    validate_adsorb0(sites0)
 
-    # Make the swap.
-    lattice[sites0[0]], lattice[sites0[1]] = lattice[sites0[1]], lattice[sites0[0]]
+    # Adsorb the particles.
+    #TODO: Finish the adsorption function.
 
 
 # ------------------------------------------------------------------------------
