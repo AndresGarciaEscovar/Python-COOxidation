@@ -831,4 +831,5 @@ if __name__ == "__main__":
     lattice[1] = "o"
     lattice[2] = "empty"
 
-    # TODO: Write the rate calculating functions and the.
+    # TODO: Finish to write the rate calculating function.
+    # TODO: Write the rate selecting function and get the total rate of the system.
