@@ -1047,6 +1047,8 @@ def save_statistics(elapsed_time0: float, steps0: int, file_name0: str) -> None:
             f"Date: {date0}",
             f"Random generator seed: {seed}",
             f"Equilibration time (s): {time_equ}",
+            f"Total elapsed time (s): {elapsed_time0}",
+            f"Equivalent Monte Carlo steps: {steps0}",
             f"Simulation time (s): {time_sim}",
             f"Temperature (K): {temperature}",
             f"Surface area (m^2): {area}",
