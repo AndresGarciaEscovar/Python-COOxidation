@@ -18,7 +18,7 @@ import random
 
 from datetime import datetime
 from itertools import product
-from matplotlib import pyplot
+from matplotlib import pyplot as plt
 
 # //////////////////////////////////////////////////////////////////////////////
 # Parameters.
