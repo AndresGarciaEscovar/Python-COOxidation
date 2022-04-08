@@ -9,13 +9,27 @@
 
 # General.
 import copy as cp
+import csv
+
+import matplotlib.pyplot as plt
 import numpy as np
+import os
 import random
 
+from datetime import datetime
+from itertools import product
+from matplotlib import pyplot
 
 # //////////////////////////////////////////////////////////////////////////////
 # Parameters.
 # //////////////////////////////////////////////////////////////////////////////
+
+# ------------------------------------------------------------------------------
+# File Parameters.
+# ------------------------------------------------------------------------------
+
+folder_name = os.path.dirname(__file__) + os.sep
+file_name = "COOxidation"
 
 # ------------------------------------------------------------------------------
 # Lattice Parameters.
@@ -49,7 +63,7 @@ eact_co_des = 1.0  # Carbon monoxide activation energy (ev).
 eact_co_dif = 1.0  # Carbon monoxide diffusion energy (ev).
 eact_co_er = 1.0  # Elay-Rideal activation energy for carbon monoxide (ev).
 
-partial_pressure_co = 1.0  # Partial Pressure for carbon monoxide (Pa).
+partial_pressure_co = 10.0**5  # Partial Pressure for carbon monoxide (Pa).
 molar_mass_co = 0.016 + 0.012  # Molar mass of carbon monoxide (CO) (kg/mol).
 
 # Oxygen.
@@ -57,7 +71,7 @@ eact_o_des = 1.0  # Oxygen desorption activation energy (ev).
 eact_o_dif = 1.0  # Oxygen diffusion activation energy (ev).
 eact_o_er = 1.0  # Elay-Rideal activation energy for oxygen (ev).
 
-partial_pressure_o = 1.0  # Partial Pressure for oxygen (Pa).
+partial_pressure_o = 10.0**5  # Partial Pressure for oxygen (Pa).
 molar_mass_o = 0.016 + 0.016  # Molar mass of oxygen molecule (O2) (kg/mol).
 
 # Rates for the cells, initialize to zero.
@@ -75,8 +89,8 @@ take_stats = False  # Flag to indicate if statistics must be taken.
 # ------------------------------------------------------------------------------
 
 # Times.
-time_equ = 100_000.0  # The time that the system must run to reach equilibrium.
-time_sim = 200_000.0  # The time the simulation must run after equilibrium is reached.
+time_equ = 1_000_000.0  # The time that the system must run to reach equilibrium.
+time_sim = 2_000_000.0  # The time the simulation must run after equilibrium is reached.
 time_elapsed = 0.0  # The elapsed time of the simulation.
 
 # //////////////////////////////////////////////////////////////////////////////
@@ -432,7 +446,7 @@ def get_boltzmann_constant(units0) -> float:
     validate_units0(units0)
 
     # Return the value of the constant.
-    kb0 = 8.617_333 * 10**-5 if units0.strip().lower() == "ev" else 1.380_649 * 10**23
+    kb0 = 8.617_333 * 10**-5 if units0.strip().lower() == "ev" else 1.380_649 * 10**-23
 
     return float(kb0)
 
@@ -535,6 +549,117 @@ def get_rate_arrhenius(energy0: float, temperature0: float = 300, factor0: float
 
     return float(factor0 * np.exp(-coefficient0))
 
+
+def get_statistics(configuration0: list) -> float:
+    """
+        Gets the statistic of the requested configuration.
+
+        :param configuration0: The list of particles with the requested
+         configuration.
+
+        :return: The statistic related to the given configuration.
+    """
+
+    # --------------------------------------------------------------------------
+    # Auxiliary Functions.
+    # --------------------------------------------------------------------------
+
+    def validate_configuration0(configuration1: list) -> None:
+        """
+            Validate that the requested configuration exists.
+
+            :param configuration1: The list of particles with the requested
+             configuration.
+        """
+
+        # Check that the length is consistent.
+        if not len(configuration1) == len(lattice):
+            raise ValueError(
+                f"The requested configuration must have the same length as that of the lattice. Lattice length: "
+                f"{len(lattice)}, requested configuration length: {len(configuration1)}."
+            )
+
+        elif not all(map(lambda x: x.strip().lower() in particles, configuration1)):
+            raise ValueError(
+                f"The particles in the configuration are NOT valid. Configuration {configuration1}, valid particles: "
+                f"{particles}."
+            )
+
+    # --------------------------------------------------------------------------
+    # Implementation.
+    # --------------------------------------------------------------------------
+
+    # Validate the configuration
+    validate_configuration0(configuration0)
+
+    # Get the scalar identifier.
+    sum0 = 0
+    for i0, particle0 in enumerate(configuration0):
+        sum0 += get_particle_id(particle0.strip().lower()) * 3**i0
+
+    return statistics[sum0]
+
+
+def get_total_rate() -> float:
+    """
+        Gets the total rate of the system.
+
+        :return: The total rate of the system, i.e., the sum of the cumulative
+         rates of each cell in the system.
+    """
+
+    # Total rates of the system.
+    total_rate0 = sum([cell_rates0[-1] for cell_rates0 in rates])
+
+    return total_rate0
+
+
+# ------------------------------------------------------------------------------
+# Plot Methods.
+# ------------------------------------------------------------------------------
+
+
+def plot_pies() -> None:
+    """
+        Plots the pie charts of the results.
+    """
+
+    # Get the information.
+    information0 = [
+        [
+            sum([get_statistics(["empty", p0_0, p0_1]) for p0_0, p0_1 in product(particles, particles)]),
+            sum([get_statistics(["co", p0_0, p0_1]) for p0_0, p0_1 in product(particles, particles)]),
+            sum([get_statistics(["o", p0_0, p0_1]) for p0_0, p0_1 in product(particles, particles)]),
+        ],
+        [
+            sum([get_statistics([p0_0, "empty", p0_1]) for p0_0, p0_1 in product(particles, particles)]),
+            sum([get_statistics([p0_0, "co", p0_1]) for p0_0, p0_1 in product(particles, particles)]),
+            sum([get_statistics([p0_0, "o", p0_1]) for p0_0, p0_1 in product(particles, particles)]),
+        ],
+        [
+            sum([get_statistics([p0_0, p0_1, "empty"]) for p0_0, p0_1 in product(particles, particles)]),
+            sum([get_statistics([p0_0, p0_1, "co"]) for p0_0, p0_1 in product(particles, particles)]),
+            sum([get_statistics([p0_0, p0_1, "o"]) for p0_0, p0_1 in product(particles, particles)]),
+        ]
+    ]
+
+    # Configure the plots.
+    figure0, axes0 = plt.subplots(nrows=1, ncols=3)
+
+    # Configure the plots.
+    axes0[0].pie(information0[0], autopct='%1.1f%%')
+    axes0[0].axis("equal")
+
+    axes0[1].pie(information0[1], autopct='%1.1f%%')
+    axes0[1].axis("equal")
+
+    patches, *texts = axes0[2].pie(information0[2], autopct='%1.1f%%')
+    axes0[2].axis("equal")
+
+    figure0.legend(patches, ["Empty", "CO", "O"])
+    plt.show()
+    plt.clf()
+    plt.close()
 
 # ------------------------------------------------------------------------------
 # Rate Methods.
@@ -779,17 +904,15 @@ def rate_lh(site0: int) -> float:
 # ------------------------------------------------------------------------------
 
 
-def record_statistic(delta0: float) -> None:
+def record_statistics(delta0: float) -> None:
     """
         Records the statistics related to the state of the lattice.
 
         :param delta0: The time that has gone by since the last move.
     """
 
-    # Set the sum to zero.
-    sum0 = 0
-
     # Get the scalar site where the statistics must be taken.
+    sum0 = 0
     for i, particle0 in enumerate(lattice):
         sum0 += get_particle_id(particle0) * (3 ** i)
 
@@ -797,27 +920,321 @@ def record_statistic(delta0: float) -> None:
     statistics[sum0] += delta0
 
 
+def record_statistics_final() -> None:
+    """
+        Normalizes the statistics of the simulation.
+    """
+
+    # Get the average statistics.
+    normalizing0 = sum(statistics)
+    for i0 in range(len(statistics)):
+        statistics[i0] /= normalizing0
+
+
+# ------------------------------------------------------------------------------
+# Run Methods.
+# ------------------------------------------------------------------------------
+
+
+def run_simulation(equilibrate0: bool = False) -> tuple:
+    """
+        Runs the simulation of the system. If the simulation is run with the
+        equilibration flag set to true, it runs the simulation without taking
+        any statistics.
+
+        :param equilibrate0: Determines if statistics must be taken while the
+         simulation is running.
+
+        :return: A tuple with the total physical elapsed time and the
+         corresponding number of Monte Carlo simulation steps.
+    """
+
+    # Set the elapsed time to zero.
+    t0 = 0.0
+    steps0 = 0
+    max_time0 = time_equ if equilibrate0 else time_sim
+
+    # Run until the time reaches equilibrium.
+    while t0 < max_time0:
+        # Advance the number of steps.
+        steps0 += 1
+
+        # Stochastic time advance.
+        update_rates()
+        delta_t0 = -np.log(get_random_number(0.0, 1.0)) / get_total_rate()
+        t0 += delta_t0
+
+        # Record the statistics if needed.
+        if not equilibrate0:
+            record_statistics(delta_t0)
+
+        # Make a move.
+        cell0 = select_cell()
+        process0 = select_process(cell0)
+        update_lattice(cell0, process0)
+
+    # Record the final statistics.
+    if not equilibrate0:
+        t0 = sum(statistics)
+        record_statistics_final()
+
+    return t0, steps0
+
+
+# ------------------------------------------------------------------------------
+# Save Methods.
+# ------------------------------------------------------------------------------
+
+
+def save_statistics(elapsed_time0: float, steps0: int, file_name0: str) -> None:
+    """
+        Saves the statistics to the given file.
+
+        :param elapsed_time0: The elapsed time of the simulation after
+         equilibration.
+
+        :param steps0: The number of kinetic Monte Carlo steps that were used
+         for the simulation to run.
+
+        :param file_name0: The name of the file where the simulation is to be
+         saved; without any extension.
+    """
+
+    # Date and time.
+    date0 = datetime.now().strftime("%Y%m%d-%H:%M:%S")
+
+    # Carbon monoxide parameters.
+    co_adsorption_rate0 = get_rate_adsorption(
+        pressure0=partial_pressure_co, area0=area, molar_mass0=molar_mass_co, temperature0=temperature
+    )
+
+    co_desorption_rate0 = get_rate_arrhenius(
+        energy0=eact_co_des, temperature0=temperature, factor0=factor_arrhenius, units0="ev"
+    )
+
+    co_diffusion_rate0 = get_rate_arrhenius(
+        energy0=eact_co_dif, temperature0=temperature, factor0=factor_arrhenius, units0="ev"
+    )
+
+    # Oxygen parameters.
+    o_adsorption_rate0 = get_rate_adsorption(
+        pressure0=partial_pressure_o, area0=area, molar_mass0=molar_mass_o, temperature0=temperature
+    )
+
+    o_desorption_rate0 = get_rate_arrhenius(
+        energy0=eact_o_des, temperature0=temperature, factor0=factor_arrhenius, units0="ev"
+    )
+
+    o_diffusion_rate0 = get_rate_arrhenius(
+        energy0=eact_o_dif, temperature0=temperature, factor0=factor_arrhenius, units0="ev"
+    )
+
+    # Reactions.
+    lh_rate0 = get_rate_arrhenius(
+        energy0=eact_lh, temperature0=temperature, factor0=factor_arrhenius, units0="ev"
+    )
+
+    er_o_reaction_rate0 = get_rate_arrhenius(
+        energy0=eact_o_er, temperature0=temperature, factor0=factor_arrhenius, units0="ev"
+    )
+
+    er_co_reaction_rate0 = 0.0
+
+    # Simulation information.
+    information0 = [
+        [
+            "CO Oxidation Non-rejection Ergodic Average",
+            f"Date: {date0}",
+            f"Random generator seed: {seed}",
+            f"Equilibration time (s): {time_equ}",
+            f"Simulation time (s): {time_sim}",
+            f"Temperature (K): {temperature}",
+            f"Surface area (m^2): {area}",
+            f"Arrhenius factor (s^-1): {factor_arrhenius:.5e}",
+            f"Molar mass carbon monoxide (kg/mol): {molar_mass_co}",
+            f"Partial pressure carbon monoxide (Pa): {partial_pressure_co}",
+            f"Molar mass oxygen (kg/mol): {molar_mass_o}",
+            f"Partial pressure oxygen (Pa): {partial_pressure_o}",
+            f"Langmuir-Hinshelwood reaction rate: {lh_rate0:.5e}",
+            f"Elay-Rideal carbon monoxide reaction rate: {er_co_reaction_rate0:.5e}",
+            f"CO adsorption rate (s^-1): {co_adsorption_rate0:.5e}",
+            f"CO desorption rate (s^-1): {co_desorption_rate0:.5e}",
+            f"CO diffusion rate (s^-1): {co_diffusion_rate0:.5e}",
+            f"Elay-Rideal oxygen reaction rate: {er_o_reaction_rate0:.5e}",
+            f"O adsorption rate (s^-1): {o_adsorption_rate0:.5e}",
+            f"O desorption rate (s^-1): {o_desorption_rate0:.5e}",
+            f"O diffusion rate (s^-1): {o_diffusion_rate0:.5e}"
+        ]
+    ]
+
+    # Get the single site statistics.
+    table_header0 = [
+        "Site Number", *[
+            f"{particle0.title()}" if i0 == 0 else f"{particle0.upper()}" for i0, particle0 in enumerate(particles)
+        ]
+    ]
+    information0.append(table_header0)
+
+    information0.extend(
+        [
+            [
+                1,
+                sum([get_statistics(["empty", p0_0, p0_1]) for p0_0, p0_1 in product(particles, particles)]),
+                sum([get_statistics(["co", p0_0, p0_1]) for p0_0, p0_1 in product(particles, particles)]),
+                sum([get_statistics(["o", p0_0, p0_1]) for p0_0, p0_1 in product(particles, particles)]),
+            ],
+            [
+                2,
+                sum([get_statistics([p0_0, "empty", p0_1]) for p0_0, p0_1 in product(particles, particles)]),
+                sum([get_statistics([p0_0, "co", p0_1]) for p0_0, p0_1 in product(particles, particles)]),
+                sum([get_statistics([p0_0, "o", p0_1]) for p0_0, p0_1 in product(particles, particles)]),
+            ],
+            [
+                3,
+                sum([get_statistics([p0_0, p0_1, "empty"]) for p0_0, p0_1 in product(particles, particles)]),
+                sum([get_statistics([p0_0, p0_1, "co"]) for p0_0, p0_1 in product(particles, particles)]),
+                sum([get_statistics([p0_0, p0_1, "o"]) for p0_0, p0_1 in product(particles, particles)]),
+            ]
+        ]
+    )
+
+    # Format the file name.
+    extension0 = ".csv"
+    file_name0_ = folder_name + file_name0
+    file_name1_ = cp.deepcopy(file_name0_)
+
+    counter0 = 0
+    while os.path.isfile(file_name0_ + extension0):
+        file_name0_ = cp.deepcopy(file_name1_ + str(counter0))
+        counter0 += 1
+
+    # Save the file.
+    with open(file_name0_ + extension0, mode="w", newline="\n") as fl0:
+        writer = csv.writer(fl0, delimiter=",")
+        writer.writerows(information0)
+
+
+# ------------------------------------------------------------------------------
+# Select Methods.
+# ------------------------------------------------------------------------------
+
+
+def select_cell() -> int:
+    """
+        Selects a cell where an action will be take place.
+
+        :return: The numerical id of the cell where an action will take place.
+    """
+
+    # Get the total rates of the system.
+    total_rate0 = get_total_rate()
+
+    # Select a cell.
+    random_rate0 = get_random_number(0.0, total_rate0)
+
+    # Select the cell.
+    cumulative0 = 0.0
+    for i0, rates0 in enumerate(rates):
+        cumulative0 += rates0[-1]
+        if random_rate0 < cumulative0:
+            return i0
+
+    # There is an inconsistency if this point is reached.
+    raise ValueError("The cell chosen to perform an action is out of range.")
+
+
+def select_process(site0: int) -> int:
+    """
+        Selects the process to be performed.
+
+        :param site0: The site in which the process is taking place.
+    """
+
+    # Get the total rate of the given cell.
+    random_rate0 = get_random_number(0.0, rates[site0][-1])
+
+    # Get the proper rate.
+    for i0, rate0 in enumerate(rates[site0]):
+        if random_rate0 < rate0:
+            return i0
+
+    # There is an inconsistency if this point is reached.
+    raise ValueError("The action to be performed is out of range.")
+
+
 # ------------------------------------------------------------------------------
 # Update Methods.
 # ------------------------------------------------------------------------------
 
 
+def update_lattice(site0: int, action0: int) -> None:
+    """
+        Given a site in the lattice and a move to make, updates the lattice
+        accordingly.
+
+        :param site0: The numerical identifier of the site at which the action
+         will take place.
+
+        :param action0: The numerical identifier of the action that will take
+         place at the site.
+    """
+
+    # Make the move:
+    if action0 == 0:
+        action_reaction_lh(site0)
+        return
+
+    elif action0 == 1:
+        action_reaction_er(site0, "co")
+        return
+
+    elif action0 == 2:
+        action_reaction_er(site0, "o")
+        return
+
+    elif action0 == 3:
+        action_adsorption(site0, "co")
+        return
+
+    elif action0 == 4:
+        action_desorption(site0, "co")
+        return
+
+    elif action0 == 5:
+        action_diffusion(site0)
+        return
+
+    elif action0 == 6:
+        action_adsorption(site0, "o")
+        return
+
+    elif action0 == 7:
+        action_desorption(site0, "o")
+        return
+
+    elif action0 == 8:
+        action_diffusion(site0)
+        return
+
+    raise ValueError(f"The requested action for the given site doesn't exist. Requested action identifier: {action0}.")
+
+
 def update_rates() -> None:
     """
-        Updates the rates of the cells in the system.
+        Updates the cumulative rates of all the cells in the system.
     """
 
     # For all the sites.
     for i0 in range(3):
         rates[i0][0] = rate_lh(i0)  # Langmuir-Hinshelwood process.
-        # rates[i0][1] =
-        # rates[i0][2] =
-        # rates[i0][3] =
-        # rates[i0][4] =
-        # rates[i0][5] =
-        # rates[i0][6] =
-        # rates[i0][7] =
-        # rates[i0][8] =
+        rates[i0][1] = rates[i0][0] + rate_er(i0, "co")  # Elay-Rideal process for carbon monoxide.
+        rates[i0][2] = rates[i0][1] + rate_er(i0, "o")  # Elay-Rideal process for oxygen.
+        rates[i0][3] = rates[i0][2] + rate_adsorption(i0, "co")  # Carbon monoxide adsorption.
+        rates[i0][4] = rates[i0][3] + rate_desorption(i0, "co")  # Carbon monoxide desorption.
+        rates[i0][5] = rates[i0][4] + rate_diffusion(i0, "co")  # Carbon monoxide diffusion.
+        rates[i0][6] = rates[i0][5] + rate_adsorption(i0, "o")  # Oxygen adsorption.
+        rates[i0][7] = rates[i0][6] + rate_desorption(i0, "o")  # Oxygen desorption.
+        rates[i0][8] = rates[i0][7] + rate_diffusion(i0, "o")  # Oxygen diffusion.
 
 
 # //////////////////////////////////////////////////////////////////////////////
@@ -826,11 +1243,14 @@ def update_rates() -> None:
 
 
 if __name__ == "__main__":
-    # Lattice configuration
-    lattice[0] = "co"
-    lattice[1] = "o"
-    lattice[2] = "empty"
+    # Run the simulation.
+    run_simulation(equilibrate0=True)
+    elapsed_time, steps = run_simulation(equilibrate0=False)
 
-    # TODO: Finish to write the rate calculating function.
-    # TODO: Write the rate selecting function and get the total rate of the system.
-    # TODO: Make a quick test unit.
+    print(f"Sum of probabilities: {sum(statistics)}\nDifference: {1.0 - sum(statistics)}")
+
+    # Save to a file.
+    save_statistics(elapsed_time, steps, file_name)
+
+    # Make the plot.
+    plot_pies()
