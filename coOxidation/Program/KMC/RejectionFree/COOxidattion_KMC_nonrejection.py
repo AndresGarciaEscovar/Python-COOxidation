@@ -10,8 +10,6 @@
 # General.
 import copy as cp
 import csv
-
-import matplotlib.pyplot as plt
 import numpy as np
 import os
 import random
