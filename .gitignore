@@ -1,23 +1,36 @@
-# Ignore all the .xlm and .iml files.
-*.xml
-*.iml
+# ##################################################################################################
+# Directories
+# ##################################################################################################
 
-# Ignore the Pycharm and cache files.
+# Hidden.
 .idea
-.idea/*
-**/__pycache__
-**/__pycache__/**
+.vscode
 
-# Ignore installation files.
-coOxidation.egg-info
-coOxidation.egg-info/**
+# Configuration.
+__pycache__
+_minted*
 
-# Ignore output from background processes.
-nohup.out
-**nohup.out
+# Python installation.
+build
+*.egg*
 
-# Ignore iPython temporary files.
-**checkpoint**
 
-# Ignore generated text files.
-**.txt
+# --------------------------------------------------------------------------------------------------
+# Files
+# --------------------------------------------------------------------------------------------------
+
+# Various LaTeX output files.
+*.aux
+*.fdb_latexmk
+*.fls
+*.gz
+*.log
+*.pdf
+*.out
+*.toc
+
+# --------------------------------------------------------------------------------------------------
+# Exceptions
+# --------------------------------------------------------------------------------------------------
+
+!.gitkeep
