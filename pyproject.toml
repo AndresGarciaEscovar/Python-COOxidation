@@ -3,7 +3,7 @@
 # https://setuptools.readthedocs.io/en/latest/userguide/declarative_config.html
 
 
-# ----------------------------------------- Build System ----------------------------------------- #
+# ------------------------------- Build System ------------------------------- #
 
 
 [build-system]
@@ -11,7 +11,7 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 
-# ---------------------------------------- Project Details --------------------------------------- #
+# ------------------------------ Project Details ----------------------------- #
 
 
 [project]
@@ -31,21 +31,14 @@ dependencies = [
 version = "0.0.1"
 
 
-# ---------------------------------------- Optional Fields --------------------------------------- #
-
-
-[project.optional-dependencies]
-debugging = ["icecream==2.1.3"]
-
-
-# --------------------------------------- Package Commands --------------------------------------- #
+# ----------------------------- Package Commands ----------------------------- #
 
 
 [project.scripts]
 co2oxidation = "co2oxidation.__main__:main"
 
 
-# -------------------------------------- Packages to Include ------------------------------------- #
+# ---------------------------- Packages to Include --------------------------- #
 
 
 [tool.setuptools]
