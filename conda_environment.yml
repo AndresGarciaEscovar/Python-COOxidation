@@ -1,4 +1,4 @@
-name: env_image_generator
+name: env_co2_oxidation
 channels:
   - conda-forge
   - defaults
