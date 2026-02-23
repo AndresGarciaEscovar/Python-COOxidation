@@ -21,7 +21,7 @@ authors = [
 ]
 description = "3-site CO2 oxidation model."
 readme = "README.md"
-requires-python = ">=3.11.6"
+requires-python = ">=3.11.8"
 keywords = ["CO2", "KMC", "lattice", "three-site", "Stochastic"]
 license = {text = "MIT"}
 dependencies = [
@@ -47,3 +47,10 @@ package-dir = {"" = "src"}
 [tool.setuptools.packages.find]
 where = ["src"]
 namespaces = false
+
+
+# -------------------------- Pylint Flags to Include ------------------------- #
+
+
+[tool.pylint]
+disable = []
