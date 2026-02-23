@@ -1,0 +1,56 @@
+# This is the installation script for the package co2oxidation. For more
+# information on how more parameters can be added, see:
+# https://setuptools.readthedocs.io/en/latest/userguide/declarative_config.html
+
+
+# ----------------------------------------- Build System ----------------------------------------- #
+
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+
+# ---------------------------------------- Project Details --------------------------------------- #
+
+
+[project]
+name = "co2oxidation"
+authors = [
+    {name = "Andres Garcia Escovar", email = "andrumen1@yahoo.com"},
+]
+description = "3-site CO2 oxidation model."
+readme = "README.md"
+requires-python = ">=3.11.6"
+keywords = ["CO2", "KMC", "lattice", "three-site", "Stochastic"]
+license = {text = "MIT"}
+dependencies = [
+    "numpy==2.4.2",
+    "pyyaml==6.0.1"
+]
+version = "0.0.1"
+
+
+# ---------------------------------------- Optional Fields --------------------------------------- #
+
+
+[project.optional-dependencies]
+debugging = ["icecream==2.1.3"]
+
+
+# --------------------------------------- Package Commands --------------------------------------- #
+
+
+[project.scripts]
+co2oxidation = "co2oxidation.__main__:main"
+
+
+# -------------------------------------- Packages to Include ------------------------------------- #
+
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+namespaces = false

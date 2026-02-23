@@ -1,35 +1,37 @@
-""" Contains the tests for the EquationGenerator class."""
+"""
+    Contains the tests for the EquationGenerator class.
+"""
 
-# ------------------------------------------------------------------------------
+
+# $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 # Imports.
-# ------------------------------------------------------------------------------
+# $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
-# Imports: The unittest module.
+
+# Standard library.
 import unittest
 
-# Imports: Class to be tested.
-from coOxidation.Program.Analytic.equation_generator import EquationGenerator
+# User.
+from co2oxidation.Program.Analytic.equation_generator import EquationGenerator
 
-# ------------------------------------------------------------------------------
+
+# $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 # Classes.
-# ------------------------------------------------------------------------------
+# $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
 
 class TestEquationGenerator(unittest.TestCase):
-    """ Tests that the different functions of the EquationGenerator class for
+    """
+        Tests that the different functions of the EquationGenerator class for
         the carbon moxide oxidation model.
     """
-
-    # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-    # Methods Tests.
-    # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-
-    # --------------------------------------------------------------------------
-    # Get Methods Tests.
-    # --------------------------------------------------------------------------
+    # /////////////////////////////////////////////////////////////////////////
+    # Methods - Tests
+    # /////////////////////////////////////////////////////////////////////////
 
     def test_get_contracted_state(self):
-        """ Tests that the _get_contracted_states function is working properly.
+        """
+            Tests that the _get_contracted_states function is working properly.
         """
         sites_number = 6
         system = EquationGenerator(sites_number)
@@ -43,7 +45,9 @@ class TestEquationGenerator(unittest.TestCase):
 
         # The state that must result from the contraction.
         resulting_state = (('CO', 2), ('E', 3), ('O', 5))
-        contracted_state, original_states = system.get_contracted_state(states, 2)
+        contracted_state, original_states = system.get_contracted_state(
+            states, 2
+        )
         self.assertEqual(resulting_state, contracted_state)
         self.assertEqual(states, original_states)
 
@@ -56,7 +60,10 @@ class TestEquationGenerator(unittest.TestCase):
 
         # The state that must result from the contraction.
         resulting_state = tuple()
-        contracted_state, original_states = system.get_contracted_state(states, 2)
+        contracted_state, original_states = system.get_contracted_state(
+            states, 2
+        )
+
         self.assertEqual(contracted_state, resulting_state)
         self.assertEqual(states, original_states)
 
@@ -68,7 +75,10 @@ class TestEquationGenerator(unittest.TestCase):
         ]
 
         resulting_state = tuple()
-        contracted_state, original_states = system.get_contracted_state(states, 1)
+        contracted_state, original_states = system.get_contracted_state(
+            states, 1
+        )
+
         self.assertEqual(contracted_state, resulting_state)
         self.assertEqual(states, original_states)
 
@@ -79,14 +89,17 @@ class TestEquationGenerator(unittest.TestCase):
 
         # The state that must result from the contraction.
         resulting_state = (1,)
-        contracted_state, original_states = system.get_contracted_state(states, 0)
+        contracted_state, original_states = system.get_contracted_state(
+            states, 0
+        )
+
         self.assertEqual(contracted_state, resulting_state)
         self.assertEqual(states, original_states)
 
     def test_get_decay_states(self):
-        """ Tests that the _get_decay_states function is working properly.
         """
-
+            Tests that the _get_decay_states function is working properly.
+        """
         sites_number = 6
         system = EquationGenerator(sites_number)
 
@@ -104,7 +117,10 @@ class TestEquationGenerator(unittest.TestCase):
         }
 
         # Get the dictionary of states.
-        states_of_decay = system.get_decay_states(state, system.get_process_functions())
+        states_of_decay = system.get_decay_states(
+            state, system.get_process_functions()
+        )
+
         self.assertEqual(state, states_of_decay[0])
         self.assertEqual(decay_dict, states_of_decay[1])
 
@@ -122,7 +138,10 @@ class TestEquationGenerator(unittest.TestCase):
         }
 
         # Get the dictionary of states.
-        states_of_decay = system.get_decay_states(state, system.get_process_functions())
+        states_of_decay = system.get_decay_states(
+            state, system.get_process_functions()
+        )
+
         self.assertEqual(state, states_of_decay[0])
         self.assertEqual(decay_dict, states_of_decay[1])
 
@@ -132,7 +151,10 @@ class TestEquationGenerator(unittest.TestCase):
             'k.O.ads': [(('CO', 1), ('O', 2), ('O', 3))],
             'k.O.des': [],
             'k.O.dif': [],
-            'k.CO.ads': [(('CO', 1), ('CO', 2), ('E', 3)), (('CO', 1), ('E', 2), ('CO', 3))],
+            'k.CO.ads': [
+                (('CO', 1), ('CO', 2), ('E', 3)),
+                (('CO', 1), ('E', 2), ('CO', 3))
+            ],
             'k.CO.des': [(('E', 1), ('E', 2), ('E', 3))],
             'k.CO.dif': [(('E', 1), ('CO', 2), ('E', 3))],
             'k.COO.lh': [],
@@ -140,14 +162,17 @@ class TestEquationGenerator(unittest.TestCase):
         }
 
         # Get the dictionary of states.
-        states_of_decay = system.get_decay_states(state, system.get_process_functions())
+        states_of_decay = system.get_decay_states(
+            state, system.get_process_functions()
+        )
+
         self.assertEqual(state, states_of_decay[0])
         self.assertEqual(decay_dict, states_of_decay[1])
 
     def test_get_is_substate(self):
-        """ Tests that the _get_is_substate function is working properly.
         """
-
+            Tests that the _get_is_substate function is working properly.
+        """
         sites_number = 6
         system = EquationGenerator(sites_number)
 
@@ -174,45 +199,71 @@ class TestEquationGenerator(unittest.TestCase):
         self.assertFalse(system.get_is_substate(state2, state1))
 
     def test_get_multiplicity(self):
-        """ Tests that the _get_multiplicity function is working properly.
         """
-
+            Tests that the _get_multiplicity function is working properly.
+        """
         sites_number = 6
         system = EquationGenerator(sites_number)
 
         decay_dict0 = {
-            'k.O.ads': [(('CO', 1), ('O', 2), ('O', 3)), (('O', 1), ('O', 2), ('O', 3)),
-                        (('CO', 1), ('O', 2), ('O', 3))],
+            'k.O.ads': [
+                (('CO', 1), ('O', 2), ('O', 3)),
+                (('O', 1), ('O', 2), ('O', 3)),
+                (('CO', 1), ('O', 2), ('O', 3))
+            ],
             'k.O.des': [],
             'k.O.dif': [],
-            'k.CO.ads': [(('CO', 1), ('CO', 2), ('E', 3)), (('CO', 1), ('E', 2), ('CO', 3))],
+            'k.CO.ads': [
+                (('CO', 1), ('CO', 2), ('E', 3)),
+                (('CO', 1), ('E', 2), ('CO', 3))
+            ],
             'k.CO.des': [(('E', 1), ('E', 2), ('E', 3))],
-            'k.CO.dif': [(('E', 1), ('CO', 2)), (('E', 1), ('CO', 2), ('E', 3)), (('E', 1), ('CO', 2), ('E', 3))],
+            'k.CO.dif': [
+                (('E', 1), ('CO', 2)),
+                (('E', 1), ('CO', 2), ('E', 3)),
+                (('E', 1), ('CO', 2), ('E', 3))
+            ],
             'k.COO.er': [],
             'k.COO.lh': [],
         }
 
         decay_dict_resultant0 = {
-            'k.O.ads': [((('CO', 1), ('O', 2), ('O', 3)), 2), ((('O', 1), ('O', 2), ('O', 3)), 1)],
+            'k.O.ads': [
+                ((('CO', 1), ('O', 2), ('O', 3)), 2),
+                ((('O', 1), ('O', 2), ('O', 3)), 1)
+            ],
             'k.O.des': [],
             'k.O.dif': [],
-            'k.CO.ads': [((('CO', 1), ('CO', 2), ('E', 3)), 1), ((('CO', 1), ('E', 2), ('CO', 3)), 1)],
+            'k.CO.ads': [
+                ((('CO', 1), ('CO', 2), ('E', 3)), 1),
+                ((('CO', 1), ('E', 2), ('CO', 3)), 1)
+            ],
             'k.CO.des': [((('E', 1), ('E', 2), ('E', 3)), 1)],
-            'k.CO.dif': [((('E', 1), ('CO', 2)), 1), ((('E', 1), ('CO', 2), ('E', 3)), 2)],
+            'k.CO.dif': [
+                ((('E', 1), ('CO', 2)), 1),
+                ((('E', 1), ('CO', 2), ('E', 3)), 2)
+            ],
             'k.COO.er': [],
             'k.COO.lh': [],
         }
 
         decay_dict_resultant1 = system.get_multiplicity(decay_dict0)
         keys = decay_dict_resultant0.keys()
+
         for key in keys:
-            self.assertEqual(len(decay_dict_resultant0[key]), len(decay_dict_resultant1[key]))
-            self.assertEqual(set(decay_dict_resultant0[key]), set(decay_dict_resultant1[key]))
+            self.assertEqual(
+                len(decay_dict_resultant0[key]),
+                len(decay_dict_resultant1[key])
+            )
+            self.assertEqual(
+                set(decay_dict_resultant0[key]),
+                set(decay_dict_resultant1[key])
+            )
 
     def test_get_numbering(self):
-        """ Tests that the _get_numbering function is working properly.
         """
-
+            Tests that the _get_numbering function is working properly.
+        """
         number_of_sites = 6
         system = EquationGenerator(number_of_sites)
 
@@ -229,6 +280,7 @@ class TestEquationGenerator(unittest.TestCase):
         # Check that all the states are unique.
         self.assertEqual(len(outcomes_0), len(set(outcomes_0)))
         self.assertEqual(len(outcomes_1), len(set(outcomes_1)))
+
         for outcome_0 in outcomes_0:
             self.assertTrue(outcome_0 in outcomes_1)
 
@@ -258,9 +310,9 @@ class TestEquationGenerator(unittest.TestCase):
             system.get_numbering(state)
 
     def test_get_states(self):
-        """ Tests that the _get_states function is working properly.
         """
-
+            Tests that the _get_states function is working properly.
+        """
         number_of_sites = 6
         system = EquationGenerator(number_of_sites)
 
@@ -276,13 +328,14 @@ class TestEquationGenerator(unittest.TestCase):
         # Check that all the states are unique.
         self.assertEqual(len(outcomes_0), len(set(outcomes_0)))
         self.assertEqual(len(outcomes_1), len(set(outcomes_1)))
+
         for outcome_0 in outcomes_0:
             self.assertTrue(outcome_0 in outcomes_1)
 
     def test_get_states_left(self):
-        """ Tests that the _get_states_left function is working properly.
         """
-
+            Tests that the _get_states_left function is working properly.
+        """
         # Define the states and the number of sites.
         number_of_sites = 3
         system = EquationGenerator(number_of_sites)
@@ -351,9 +404,9 @@ class TestEquationGenerator(unittest.TestCase):
             self.assertTrue(outcome_0 in outcomes_1)
 
     def test_get_states_right(self):
-        """ Tests that the _get_states_right function is working properly.
         """
-
+            Tests that the _get_states_right function is working properly.
+        """
         number_of_sites = 3
         system = EquationGenerator(number_of_sites)
 
@@ -438,20 +491,17 @@ class TestEquationGenerator(unittest.TestCase):
             self.assertTrue(outcome_0 in outcomes_1)
             self.assertTrue(outcomes_0_1[j] in outcomes_1)
 
-    # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-    # General Properties Tests.
-    # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-
-    # --------------------------------------------------------------------------
-    # Model Consistency Tests.
-    # --------------------------------------------------------------------------
+    # /////////////////////////////////////////////////////////////////////////
+    # Tests - General Properties
+    # /////////////////////////////////////////////////////////////////////////
 
     def test_consistency(self):
-        """ Tests that the model is consistent, i.e., the number of rate
-            constants must be the same as the number of rates for the processes,
-            that must be the same as the number of functions to be applied.
         """
-
+            Tests that the model is consistent, i.e., the number of rate
+            constants must be the same as the number of rates for the
+            processes, that must be the same as the number of functions to be
+            applied.
+        """
         number_of_sites = 3
         system = EquationGenerator(number_of_sites)
 
@@ -461,100 +511,132 @@ class TestEquationGenerator(unittest.TestCase):
 
         # Check the process orders.
         process_dict = system.get_process_orders()
-        process_orders = set(process_dict[process_rate] for process_rate in processes_rates)
+        process_orders = set(
+            process_dict[process_rate] for process_rate in processes_rates
+        )
+
         self.assertTrue(all(map(lambda x: x > 0, process_orders)))
         self.assertGreaterEqual(system.sites_number, max(process_orders))
 
         # Check the functions are unique.
         process_dict = system.get_process_functions()
-        process_functions = set(process_dict[process_rate] for process_rate in processes_rates)
+        process_functions = set(
+            process_dict[process_rate] for process_rate in processes_rates
+        )
+
         self.assertEqual(len(process_functions), len(set(process_functions)))
 
-    # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-    # Processes Tests
-    # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+    # /////////////////////////////////////////////////////////////////////////
+    # Tests - Processes
+    # /////////////////////////////////////////////////////////////////////////
 
-    # --------------------------------------------------------------------------
-    # Carbon Monoxide Processes Tests.
-    # --------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
+    # Carbon Monoxide
+    # -------------------------------------------------------------------------
 
     def test_carbon_monoxide_adsorb(self):
-        """ Tests that the _carbon_monoxide_adsorb function is working properly.
         """
-
+            Tests that the _carbon_monoxide_adsorb function is working
+            properly.
+        """
         number_of_sites = 3
         system = EquationGenerator(number_of_sites)
 
         # Adsorption of carbon monoxide, with CO particles.
         mock_state = (('CO', 1), ('E', 2), ('E', 3),)
-        outcomes_0 = (('CO', 1), ('CO', 2), ('E', 3),), (('CO', 1), ('E', 2), ('CO', 3),)
+        outcomes_0 = (
+            ('CO', 1), ('CO', 2), ('E', 3),), (('CO', 1), ('E', 2), ('CO', 3)
+        )
         outcomes_1 = system.process_carbon_monoxide_adsorb(mock_state)
+
         self.assertEqual(len(outcomes_0), len(outcomes_1))
-        for i, outcome_1 in enumerate(outcomes_1):
+
+        for _, outcome_1 in enumerate(outcomes_1):
             self.assertTrue(outcome_1 in outcomes_0)
 
         # Adsorption of carbon monoxide, with O particles.
         mock_state = (('O', 1), ('E', 2), ('E', 3),)
-        outcomes_0 = (('O', 1), ('CO', 2), ('E', 3),), (('O', 1), ('E', 2), ('CO', 3),)
+        outcomes_0 = (
+            ('O', 1), ('CO', 2), ('E', 3),), (('O', 1), ('E', 2), ('CO', 3)
+        )
         outcomes_1 = system.process_carbon_monoxide_adsorb(mock_state)
+
         self.assertEqual(len(outcomes_0), len(outcomes_1))
-        for i, outcome_1 in enumerate(outcomes_1):
+
+        for _, outcome_1 in enumerate(outcomes_1):
             self.assertTrue(outcome_1 in outcomes_0)
 
         # NO adsorption of carbon monoxide.
         mock_state = (('O', 1), ('CO', 2), ('O', 3),)
         outcomes_1 = system.process_carbon_monoxide_adsorb(mock_state)
+
         self.assertEqual(len(outcomes_1), 0)
 
     def test_carbon_monoxide_desorb(self):
-        """ Tests that the _carbon_monoxide_desorb function is working properly.
         """
-
+            Tests that the _carbon_monoxide_desorb function is working
+            properly.
+        """
         number_of_sites = 3
         system = EquationGenerator(number_of_sites)
 
         # Desorption of carbon monoxide, with CO particles.
         mock_state = (('CO', 1), ('E', 2), ('CO', 3),)
-        outcomes_0 = (('CO', 1), ('E', 2), ('E', 3),), (('E', 1), ('E', 2), ('CO', 3),)
+        outcomes_0 = (
+            ('CO', 1), ('E', 2), ('E', 3),), (('E', 1), ('E', 2), ('CO', 3)
+        )
         outcomes_1 = system.process_carbon_monoxide_desorb(mock_state)
+
         self.assertEqual(len(outcomes_0), len(outcomes_1))
-        for i, outcome_1 in enumerate(outcomes_1):
+
+        for _, outcome_1 in enumerate(outcomes_1):
             self.assertTrue(outcome_1 in outcomes_0)
 
         # Desorption of carbon monoxide, with O particles.
         mock_state = (('O', 1), ('E', 2), ('CO', 3),)
         outcomes_0 = (('O', 1), ('E', 2), ('E', 3),),
         outcomes_1 = system.process_carbon_monoxide_desorb(mock_state)
+
         self.assertEqual(len(outcomes_0), len(outcomes_1))
-        for i, outcome_1 in enumerate(outcomes_1):
+
+        for _, outcome_1 in enumerate(outcomes_1):
             self.assertTrue(outcome_1 in outcomes_0)
 
         # NO desorption of carbon monoxide.
         mock_state = (('O', 1), ('E', 2), ('O', 3),)
         outcomes_1 = system.process_carbon_monoxide_desorb(mock_state)
+
         self.assertEqual(len(outcomes_1), 0)
 
     def test_carbon_monoxide_diffusion(self):
-        """ Tests that the _carbon_monoxide_diffusion function is working properly.
         """
-
+            Tests that the _carbon_monoxide_diffusion function is working
+            properly.
+        """
         number_of_sites = 6
         system = EquationGenerator(number_of_sites)
 
         # Diffusion of carbon monoxide, with CO particles.
         mock_state = (('CO', 1), ('E', 2), ('CO', 3), ('E', 6),)
-        outcomes_0 = (('E', 1), ('CO', 2), ('CO', 3), ('E', 6),), (('CO', 1), ('CO', 2), ('E', 3), ('E', 6),)
+        outcomes_0 = (
+            ('E', 1), ('CO', 2), ('CO', 3), ('E', 6),), (('CO', 1), ('CO', 2),
+            ('E', 3), ('E', 6)
+        )
         outcomes_1 = system.process_carbon_monoxide_diffusion(mock_state)
+
         self.assertEqual(len(outcomes_0), len(outcomes_1))
-        for i, outcome_1 in enumerate(outcomes_1):
+
+        for _, outcome_1 in enumerate(outcomes_1):
             self.assertTrue(outcome_1 in outcomes_0)
 
         # Diffusion of carbon monoxide, with O particles.
         mock_state = (('O', 1), ('E', 2), ('CO', 3),)
         outcomes_0 = (('O', 1), ('CO', 2), ('E', 3),),
         outcomes_1 = system.process_carbon_monoxide_diffusion(mock_state)
+
         self.assertEqual(len(outcomes_0), len(outcomes_1))
-        for i, outcome_1 in enumerate(outcomes_1):
+
+        for _, outcome_1 in enumerate(outcomes_1):
             self.assertTrue(outcome_1 in outcomes_0)
 
         # NO adsorption of carbon monoxide.
@@ -567,14 +649,14 @@ class TestEquationGenerator(unittest.TestCase):
         outcomes_1 = system.process_carbon_monoxide_diffusion(mock_state)
         self.assertEqual(len(outcomes_1), 0)
 
-    # --------------------------------------------------------------------------
-    # Oxygen Processes Tests.
-    # --------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
+    # Oxygen.
+    # -------------------------------------------------------------------------
 
     def test_oxygen_adsorb(self):
-        """ Tests that the _oxygen_adsorb function is working properly.
         """
-
+            Tests that the _oxygen_adsorb function is working properly.
+        """
         number_of_sites = 6
         system = EquationGenerator(number_of_sites)
 
@@ -582,25 +664,31 @@ class TestEquationGenerator(unittest.TestCase):
         mock_state = (('CO', 1), ('E', 2), ('E', 3), ('E', 6))
         outcomes_0 = (('CO', 1), ('O', 2), ('O', 3), ('E', 6)),
         outcomes_1 = system.process_oxygen_adsorb(mock_state)
+
         self.assertEqual(len(outcomes_0), len(outcomes_1))
-        for i, outcome_1 in enumerate(outcomes_1):
+
+        for _, outcome_1 in enumerate(outcomes_1):
             self.assertTrue(outcome_1 in outcomes_0)
 
         # Adsorption of oxygen, with O particles.
         mock_state = (('E', 1), ('E', 2), ('O', 3), ('E', 4),)
         outcomes_0 = (('O', 1), ('O', 2), ('O', 3), ('E', 4),),
         outcomes_1 = system.process_oxygen_adsorb(mock_state)
+
         self.assertEqual(len(outcomes_0), len(outcomes_1))
-        for i, outcome_1 in enumerate(outcomes_1):
+
+        for _, outcome_1 in enumerate(outcomes_1):
             self.assertTrue(outcome_1 in outcomes_0)
 
         # NO adsorption of oxygen.
         mock_state = (('O', 1), ('E', 2), ('O', 3), ('E', 4),)
         outcomes_1 = system.process_oxygen_adsorb(mock_state)
+
         self.assertEqual(len(outcomes_1), 0)
 
     def test_oxygen_desorb(self):
-        """ Tests that the _oxygen_desorb function is working properly.
+        """
+            Tests that the _oxygen_desorb function is working properly.
         """
 
         number_of_sites = 6
@@ -610,27 +698,34 @@ class TestEquationGenerator(unittest.TestCase):
         mock_state = (('CO', 1), ('O', 2), ('O', 3), ('O', 6))
         outcomes_0 = (('CO', 1), ('E', 2), ('E', 3), ('O', 6)),
         outcomes_1 = system.process_oxygen_desorb(mock_state)
+
         self.assertEqual(len(outcomes_0), len(outcomes_1))
-        for i, outcome_1 in enumerate(outcomes_1):
+
+        for _, outcome_1 in enumerate(outcomes_1):
             self.assertTrue(outcome_1 in outcomes_0)
 
         # Desorption of oxygen, with O particles.
         mock_state = (('E', 1), ('O', 2), ('O', 3), ('O', 4),)
-        outcomes_0 = (('E', 1), ('E', 2), ('E', 3), ('O', 4),), (('E', 1), ('O', 2), ('E', 3), ('E', 4),)
+        outcomes_0 = (
+            ('E', 1), ('E', 2), ('E', 3), ('O', 4),), (('E', 1), ('O', 2),
+            ('E', 3), ('E', 4)
+        )
         outcomes_1 = system.process_oxygen_desorb(mock_state)
+
         self.assertEqual(len(outcomes_0), len(outcomes_1))
-        for i, outcome_1 in enumerate(outcomes_1):
+
+        for _, outcome_1 in enumerate(outcomes_1):
             self.assertTrue(outcome_1 in outcomes_0)
 
         # NO desorption of oxygen.
         mock_state = (('O', 1), ('E', 2), ('O', 3), ('O', 5),)
         outcomes_1 = system.process_oxygen_desorb(mock_state)
+
         self.assertEqual(len(outcomes_1), 0)
 
     def test_oxygen_diffusion(self):
         """ Tests that the _oxygen_diffusion function is working properly.
         """
-
         number_of_sites = 6
         system = EquationGenerator(number_of_sites)
 
@@ -638,8 +733,10 @@ class TestEquationGenerator(unittest.TestCase):
         mock_state = (('CO', 1), ('O', 2), ('E', 3), ('O', 6))
         outcomes_0 = (('CO', 1), ('E', 2), ('O', 3), ('O', 6)),
         outcomes_1 = system.process_oxygen_diffusion(mock_state)
+
         self.assertEqual(len(outcomes_0), len(outcomes_1))
-        for i, outcome_1 in enumerate(outcomes_1):
+
+        for _, outcome_1 in enumerate(outcomes_1):
             self.assertTrue(outcome_1 in outcomes_0)
 
         # Desorption of oxygen, with O particles.
@@ -651,12 +748,14 @@ class TestEquationGenerator(unittest.TestCase):
         )
         outcomes_1 = system.process_oxygen_diffusion(mock_state)
         self.assertEqual(len(outcomes_0), len(outcomes_1))
+
         for i, outcome_1 in enumerate(outcomes_1):
             self.assertTrue(outcome_1 in outcomes_0)
 
         # NO desorption of oxygen.
         mock_state = (('O', 1), ('CO', 2), ('O', 3), ('O', 5),)
         outcomes_1 = system.process_oxygen_diffusion(mock_state)
+
         self.assertEqual(len(outcomes_1), 0)
 
 

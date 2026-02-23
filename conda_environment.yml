@@ -1,0 +1,9 @@
+name: env_co2_oxidation
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11.6
+  - pip
+  - pip:
+    - "-e ."

@@ -13,7 +13,7 @@ import numpy
 from datetime import datetime
 
 # Imports: User-defined.
-from coOxidation.Program.KMC.COOxidation_parameters import COOxidationKMCParameters
+from co2oxidation.program.kmc.cooxidation_parameters import cooxidationkmcparameters
 
 # ------------------------------------------------------------------------------
 # Classes.

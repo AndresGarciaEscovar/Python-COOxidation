@@ -7,16 +7,21 @@
 # Imports.
 # //////////////////////////////////////////////////////////////////////////////
 
+
 # General.
 import copy as cp
 import csv
-import numpy as np
 import os
 import random
 
 from datetime import datetime
 from itertools import product
+
+# Third party.
+import numpy as np
+
 from matplotlib import pyplot as plt
+
 
 # //////////////////////////////////////////////////////////////////////////////
 # Parameters.
