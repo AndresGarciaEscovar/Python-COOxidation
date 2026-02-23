@@ -12,7 +12,7 @@
 import unittest
 
 # User.
-from coOxidation.Program.Analytic.equation_generator import EquationGenerator
+from co2oxidation.Program.Analytic.equation_generator import EquationGenerator
 
 
 # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
