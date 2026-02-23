@@ -564,7 +564,10 @@ class TestCOOxidationKMC(unittest.TestCase):
             else:
                 self.validate_states(lattice, state)
 
-        states_ = [(*particle, 'O') for particle in product(*([base_states] * 2))]
+        states_ = [
+            (*particle, 'O')
+            for particle in product(*([base_states] * 2))
+        ]
         site = [2]
 
         for state in states:
