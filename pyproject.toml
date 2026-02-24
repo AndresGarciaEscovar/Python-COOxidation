@@ -19,7 +19,7 @@ name = "cooxidation"
 authors = [
     {name = "Andres Garcia Escovar", email = "andrumen1@yahoo.com"},
 ]
-description = "3-site CO2 oxidation model."
+description = "3-site CO oxidation model."
 readme = "README.md"
 requires-python = ">=3.11.8"
 keywords = ["CO2", "KMC", "lattice", "three-site", "Stochastic"]
@@ -35,7 +35,7 @@ version = "0.0.1"
 
 
 [project.scripts]
-co2oxidation = "co2oxidation.__main__:main"
+cooxidation = "cooxidation.__main__:main"
 
 
 # ---------------------------- Packages to Include --------------------------- #
