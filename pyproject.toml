@@ -1,4 +1,4 @@
-# This is the installation script for the package co2oxidation. For more
+# This is the installation script for the package cooxidation. For more
 # information on how more parameters can be added, see:
 # https://setuptools.readthedocs.io/en/latest/userguide/declarative_config.html
 
@@ -15,7 +15,7 @@ build-backend = "setuptools.build_meta"
 
 
 [project]
-name = "co2oxidation"
+name = "cooxidation"
 authors = [
     {name = "Andres Garcia Escovar", email = "andrumen1@yahoo.com"},
 ]
