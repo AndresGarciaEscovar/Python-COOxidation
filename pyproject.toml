@@ -21,7 +21,7 @@ authors = [
 ]
 description = "3-site CO oxidation model."
 readme = "README.md"
-requires-python = ">=3.11.8"
+requires-python = ">=3.12.13"
 keywords = ["CO", "KMC", "lattice", "three-site", "Stochastic"]
 license = {text = "MIT"}
 dependencies = [

@@ -6,6 +6,6 @@ dependencies:
   - flake8
   - pip
   - pylint
-  - python=3.11.8
+  - python=3.12.13
   - pip:
     - "-e ."
